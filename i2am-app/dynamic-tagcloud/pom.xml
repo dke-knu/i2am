@@ -1,13 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
-  <groupId>i2am</groupId>
-  <artifactId>i2am-app</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <parent>
+    <artifactId>app</artifactId>
+    <groupId>i2am</groupId>
+    <version>0.0.1-SNAPSHOT</version>
+   </parent>
+  <groupId>i2am.team1</groupId>
+  <artifactId>dynamic-tagcloud</artifactId>
   <packaging>pom</packaging>
 
-  <name>i2am-app</name>
+  <name>dynamic-tagcloud</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -22,8 +25,8 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
   <modules>
-    <module>dynamic-tagcloud</module>
+  <module>dynamic-tagcloud-storm</module>
+  <module>dynamic-tagcloud-web</module>
   </modules>
 </project>
