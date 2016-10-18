@@ -1,2 +1,2 @@
-# i2am-app
-For application
+# i2am
+i2am
