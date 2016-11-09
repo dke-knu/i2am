@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
+  <parent>
+    <groupId>i2am</groupId>
+    <artifactId>i2am-app</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
   <groupId>i2am</groupId>
-  <artifactId>i2am-app</artifactId>
+  <artifactId>dynamic-anomaly-detection</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <packaging>pom</packaging>
-
-  <name>i2am-app</name>
+  <name>dynamic-anomaly-detection</name>
   <url>http://maven.apache.org</url>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -22,9 +22,8 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+  <packaging>pom</packaging>
   <modules>
-    <module>dynamic-tagcloud</module>
-    <module>dynamic-anomaly-detection</module>
+    <module>dynamic-anomaly-detection-storm</module>
   </modules>
 </project>
