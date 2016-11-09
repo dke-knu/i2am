@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import knu.cs.dke.vo.TrainingResult;
 
 public class DBProcess {
-	String url = "jdbc:mariadb://114.70.235.39:3306/filtering_system";
+	String url = "jdbc:mariadb://SERVER_IP:PORT/filtering_system";
 	String id = "root";
 	String pw = "cs2013";
 
