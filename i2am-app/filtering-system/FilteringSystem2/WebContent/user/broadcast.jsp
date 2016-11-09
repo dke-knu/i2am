@@ -49,7 +49,7 @@ history.go(1);
 	
         //WebSocketEx는 프로젝트 이름
         //websocket 클래스 이름
-        var webSocket = new WebSocket("ws://114.70.235.39:9998/FilteringSystem/user/broadcasting_web");
+        var webSocket = new WebSocket("ws://SERVER_IP:PORT/FilteringSystem/user/broadcasting_web");
         var messageTextArea = document.getElementById("messageTextArea");
         //웹 소켓이 연결되었을 때 호출되는 이벤트
         webSocket.onopen = function(message){

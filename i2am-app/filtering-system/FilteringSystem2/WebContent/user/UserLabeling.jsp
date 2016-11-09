@@ -44,7 +44,7 @@
 <!-- <input type='submit' name="ReturnOrRedo" value='file_return'> -->
 <input TYPE='IMAGE' src="user/image/save.png" name='ReturnOrRedo' onclick="alert('file')" value='file_return' width='50' align='absmiddle'>
 <!-- <input type='button' onclick="location.href='..\\setting?file=0'" value='처음 페이지로'>-->
-<input TYPE='IMAGE' src="user/image/home.png" onclick="alert('home');location.href='http://114.70.235.39:9998/FilteringSystem/return_file?file=0'" value='처음 페이지로' width='50' align='absmiddle'>
+<input TYPE='IMAGE' src="user/image/home.png" onclick="alert('home');location.href='http://SERVER_IP:PORT/FilteringSystem/return_file?file=0'" value='처음 페이지로' width='50' align='absmiddle'>
 
 <!-- <input type='submit' name="ReturnOrRedo" value='시작'>-->
 <input TYPE='IMAGE' src="user/image/feedback.png" name='ReturnOrRedo' value='Submit' height='45' align='absmiddle'>
