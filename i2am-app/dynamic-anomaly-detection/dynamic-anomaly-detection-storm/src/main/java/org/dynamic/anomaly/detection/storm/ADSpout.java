@@ -29,14 +29,14 @@ public class ADSpout extends BaseRichSpout {
 		String host = "host" + rand.nextInt(4);
 		String key = "key" + rand.nextInt(4);
 		if (rand.nextInt(10)==0)
-			collector.emit(new Values(cluster+","+host, key, rand.nextGaussian()*2+1000, (new Date()).getTime()/1000));
+			collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+1000, (new Date()).getTime()/1000));
 		else
-			collector.emit(new Values(cluster+","+host, key, rand.nextGaussian()*2+10, (new Date()).getTime()/1000));
+			collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+10, (new Date()).getTime()/1000));
 		Utils.sleep(100);
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("cluster,host", "key", "value", "time"));
+		declarer.declare(new Fields("cluster", "host", "key", "value", "time"));
 	}
 
 }
