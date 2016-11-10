@@ -1,5 +1,6 @@
 package org.dynamic.anomaly.detection.storm;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.storm.task.OutputCollector;
@@ -15,8 +16,7 @@ public class ADWindowedBolt extends BaseWindowedBolt {
 	private OutputCollector collector;
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("log", "mvAvg", "mvStd"));
-		
+		declarer.declare(new Fields("cluster", "host", "key2", "value", "mvAvg", "mvStd", "time"));
 	}
 
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -24,22 +24,37 @@ public class ADWindowedBolt extends BaseWindowedBolt {
 	}
 
 	public void execute(TupleWindow inputWindow) {
-		double input = 0;
 		int windowSize = 0;
 		double sum = 0;
 		double sqr_sum = 0;
+
+		List<Tuple> tuples = inputWindow.get();
+		if (tuples.size() <= 0)	return ;
 		
-		for(Tuple tuple: inputWindow.get()){
+		System.out.println("###");
+		for(Tuple tuple: tuples) {
 			windowSize += 1;
-			input = tuple.getDouble(0);
-			sum += input;
-			sqr_sum += Math.pow(input, 2);
+			System.out.print(tuple.getStringByField("cluster,host"));
+//			System.out.print(" - " + tuple.getStringByField("host"));
+			System.out.print(" - " + tuple.getStringByField("key"));
+			System.out.println(" - " + tuple.getLongByField("time"));
+			double v = tuple.getDoubleByField("value");
+			sum += v;
+			sqr_sum += Math.pow(v, 2);
 		}
+		System.out.println("@@@");
+		
+		Tuple lastTuple = tuples.get(tuples.size()-1);
+		String cluster[] = lastTuple.getStringByField("cluster,host").split(",");
+//		String host = lastTuple.getStringByField("host");
+		String key = lastTuple.getStringByField("key");
+		double value = lastTuple.getDoubleByField("value");
+		long time = lastTuple.getLongByField("time");
 		
 		double mvAvg = sum / windowSize;
 		double variance = (sqr_sum / windowSize) - Math.pow(mvAvg, 2);
 		
-		collector.emit(new Values(input, mvAvg, Math.sqrt(variance)));
+		collector.emit(new Values(cluster[0], cluster[1], key, value, mvAvg, Math.sqrt(variance), time));
 	}
 
 	public void cleanup() {

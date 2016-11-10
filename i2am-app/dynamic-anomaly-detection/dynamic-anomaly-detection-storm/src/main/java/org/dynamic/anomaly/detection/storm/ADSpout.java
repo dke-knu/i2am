@@ -1,5 +1,6 @@
 package org.dynamic.anomaly.detection.storm;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 
@@ -17,19 +18,25 @@ import org.slf4j.LoggerFactory;
 public class ADSpout extends BaseRichSpout {
 	private SpoutOutputCollector collector;
 	private Random rand;
-	
-	public void nextTuple() {
-		Utils.sleep(1000);
-		collector.emit(new Values(rand.nextDouble()));
-	}
 
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
 		this.rand = new Random();
 	}
+	
+	public void nextTuple() {
+		String cluster = "cluster" + rand.nextInt(2);
+		String host = "host" + rand.nextInt(4);
+		String key = "key" + rand.nextInt(4);
+		if (rand.nextInt(10)==0)
+			collector.emit(new Values(cluster+","+host, key, rand.nextGaussian()*2+1000, (new Date()).getTime()/1000));
+		else
+			collector.emit(new Values(cluster+","+host, key, rand.nextGaussian()*2+10, (new Date()).getTime()/1000));
+		Utils.sleep(100);
+	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("value"));
+		declarer.declare(new Fields("cluster,host", "key", "value", "time"));
 	}
 
 }
