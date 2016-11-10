@@ -25,5 +25,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>dynamic-anomaly-detection-storm</module>
+    <module>dynamic-anomaly-detection-web</module>
   </modules>
 </project>
