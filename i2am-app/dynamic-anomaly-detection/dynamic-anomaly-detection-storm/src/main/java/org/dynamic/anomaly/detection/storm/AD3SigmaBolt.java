@@ -58,9 +58,9 @@ public class AD3SigmaBolt implements IRichBolt {
 
 	private Connection getConnection() {
 		final String driver = "org.mariadb.jdbc.Driver";
-		final String url = "jdbc:mysql://114.70.235.40:3306/anomalydetection"; // db ip
-		final String uId = "anomalydetection"; // db id
-		final String uPwd = "dke304"; // db passwd
+		final String url = "jdbc:mysql://" + "/anomalydetection"; // db ip
+		final String uId = ""; // db id
+		final String uPwd = ""; // db passwd
 
 		Connection conn = null;
 		try{
