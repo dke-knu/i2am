@@ -23,15 +23,21 @@ public class ADSpout extends BaseRichSpout {
 		this.collector = collector;
 		this.rand = new Random();
 	}
-	
+
 	public void nextTuple() {
-		String cluster = "cluster" + rand.nextInt(2);
-		String host = "host" + rand.nextInt(4);
-		String key = "key" + rand.nextInt(4);
-		if (rand.nextInt(10)==0)
-			collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+1000, (new Date()).getTime()/1000));
-		else
-			collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+10, (new Date()).getTime()/1000));
+		for (int i=0; i<2; i++) {
+			for (int j=0; j<4; j++) {
+				for (int k=0; k<4; k++) {
+					String cluster = "cluster" + i;
+					String host = "host" + j;
+					String key = "key" + k;
+					if (rand.nextInt(100)==0)
+						collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+1000, (new Date()).getTime()/1000));
+					else
+						collector.emit(new Values(cluster, host, key, rand.nextGaussian()*2+10, (new Date()).getTime()/1000));
+				}
+			}
+		}
 		Utils.sleep(100);
 	}
 

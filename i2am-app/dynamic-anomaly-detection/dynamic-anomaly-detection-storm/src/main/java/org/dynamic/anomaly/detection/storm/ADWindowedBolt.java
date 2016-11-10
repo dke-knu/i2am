@@ -15,7 +15,7 @@ public class ADWindowedBolt implements IRichBolt {
 	private OutputCollector collector;
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("cluster", "host", "key2", "value", "mvAvg", "mvStd", "time"));
+		declarer.declare(new Fields("cluster", "host", "key", "value", "mvAvg", "mvStd", "time"));
 	}
 
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -31,18 +31,12 @@ public class ADWindowedBolt implements IRichBolt {
 		List<Tuple> tuples = (List<Tuple>) input.getValueByField("window");
 		if (tuples.size() <= 0)	return ;
 		
-		System.out.println("###");
 		for(Tuple tuple: tuples) {
 			windowSize += 1;
-			System.out.print(tuple.getStringByField("cluster"));
-			System.out.print(" - " + tuple.getStringByField("host"));
-			System.out.print(" - " + tuple.getStringByField("key"));
-			System.out.println(" - " + tuple.getLongByField("time"));
 			double v = tuple.getDoubleByField("value");
 			sum += v;
 			sqr_sum += Math.pow(v, 2);
 		}
-		System.out.println("@@@");
 		
 		Tuple lastTuple = tuples.get(tuples.size()-1);
 		String cluster = lastTuple.getStringByField("cluster");
@@ -55,7 +49,6 @@ public class ADWindowedBolt implements IRichBolt {
 		double variance = (sqr_sum / windowSize) - Math.pow(mvAvg, 2);
 		
 		collector.emit(new Values(cluster, host, key, value, mvAvg, Math.sqrt(variance), time));
-		
 	}
 
 	public void cleanup() {

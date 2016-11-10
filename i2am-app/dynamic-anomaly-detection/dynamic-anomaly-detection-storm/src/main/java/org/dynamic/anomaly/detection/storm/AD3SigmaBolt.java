@@ -24,7 +24,7 @@ public class AD3SigmaBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		String cluster = input.getStringByField("cluster");
 		String host = input.getStringByField("host");
-		String key = input.getStringByField("key2");
+		String key = input.getStringByField("key");
 		double value = input.getDoubleByField("value");
 		double ma = input.getDoubleByField("mvAvg");
 		double sd = input.getDoubleByField("mvStd");
@@ -33,9 +33,8 @@ public class AD3SigmaBolt implements IRichBolt {
 		double upper = ma+(3*sd);
 		double lower = ma-(3*sd);
 		boolean isAnomaly = false;
-		if(value > upper && value < lower)
+		if(value > upper || value < lower)
 			isAnomaly = true;
-		System.out.println(isAnomaly);
 		
 		if (conn == null)	conn = getConnection();
 		transmit(conn, cluster, host, key, value, upper, lower, isAnomaly, time);
@@ -58,9 +57,9 @@ public class AD3SigmaBolt implements IRichBolt {
 
 	private Connection getConnection() {
 		final String driver = "org.mariadb.jdbc.Driver";
-		final String url = "jdbc:mysql://" + "/anomalydetection"; // db ip
-		final String uId = ""; // db id
-		final String uPwd = ""; // db passwd
+		final String url = "jdbc:mysql://114.70.235.40:3306/anomalydetection"; // db ip
+		final String uId = "anomalydetection"; // db id
+		final String uPwd = "dke304"; // db passwd
 
 		Connection conn = null;
 		try{
