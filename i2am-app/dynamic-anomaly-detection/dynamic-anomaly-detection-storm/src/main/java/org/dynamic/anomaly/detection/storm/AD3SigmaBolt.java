@@ -27,11 +27,11 @@ public class AD3SigmaBolt implements IRichBolt {
 		String key = input.getStringByField("key");
 		double value = input.getDoubleByField("value");
 		double ma = input.getDoubleByField("mvAvg");
-		double sd = input.getDoubleByField("mvStd");
+		double msd = input.getDoubleByField("mvStd");
 		long time = input.getLongByField("time");
 		
-		double upper = ma+(3*sd);
-		double lower = ma-(3*sd);
+		double upper = ma+(3*msd);
+		double lower = ma-(3*msd);
 		boolean isAnomaly = false;
 		if(value > upper || value < lower)
 			isAnomaly = true;

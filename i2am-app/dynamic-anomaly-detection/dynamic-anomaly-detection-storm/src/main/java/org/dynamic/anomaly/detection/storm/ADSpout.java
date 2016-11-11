@@ -38,7 +38,7 @@ public class ADSpout extends BaseRichSpout {
 				}
 			}
 		}
-		Utils.sleep(100);
+		Utils.sleep(5000);
 	}
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {

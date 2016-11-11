@@ -17,7 +17,7 @@ public class ADGroupingBolt implements IRichBolt {
 	private OutputCollector collector;
 	
 	private Map<String, List<Tuple>> windows;
-	private final int WINDOW_SIZE = 60;
+	private final int WINDOW_SIZE = 12;
 	
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;

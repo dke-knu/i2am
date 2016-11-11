@@ -11,7 +11,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
-public class ADWindowedBolt implements IRichBolt {
+public class ADMovAvgStdBolt implements IRichBolt {
 	private OutputCollector collector;
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -46,9 +46,9 @@ public class ADWindowedBolt implements IRichBolt {
 		long time = lastTuple.getLongByField("time");
 		
 		double mvAvg = sum / windowSize;
-		double variance = (sqr_sum / windowSize) - Math.pow(mvAvg, 2);
+		double mvStd = Math.sqrt( (sqr_sum / windowSize) - Math.pow(mvAvg, 2) );
 		
-		collector.emit(new Values(cluster, host, key, value, mvAvg, Math.sqrt(variance), time));
+		collector.emit(new Values(cluster, host, key, value, mvAvg, mvStd, time));
 	}
 
 	public void cleanup() {
