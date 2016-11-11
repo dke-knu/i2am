@@ -40,7 +40,6 @@ public class ADGroupingBolt implements IRichBolt {
 				tuples.remove(0);
 			windows.put(cluster_host_key, tuples);
 		}
-		System.out.println("SWSON");
 		
 		collector.emit(new Values(cluster, host, key, windows.get(cluster_host_key), time));
 	}
