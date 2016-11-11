@@ -14,12 +14,12 @@ import org.apache.storm.tuple.Values;
 public class ADGroupingBolt implements IRichBolt {
 	private OutputCollector collector;
 	
-	private Map<String, TupleList> windows;
+	private Map<String, LogValueList> windows;
 	private final int WINDOW_SIZE = 12;
 	
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
-		this.windows = new HashMap<String, TupleList>();
+		this.windows = new HashMap<String, LogValueList>();
 	}
 
 	public void execute(Tuple input) {
@@ -30,15 +30,15 @@ public class ADGroupingBolt implements IRichBolt {
 		long time = input.getLongByField("time");
 		
 		if (!windows.containsKey(cluster_host_key)) {
-			TupleList oneTuple = new TupleList();
-			oneTuple.addObject(input);
-			windows.put(cluster_host_key, oneTuple);
+			LogValueList value = new LogValueList();
+			value.addObject(input.getDoubleByField("value"));
+			windows.put(cluster_host_key, value);
 		} else {
-			TupleList tuples = windows.get(cluster_host_key);
-			tuples.addObject(input);
-			if (tuples.size() > WINDOW_SIZE)
-				tuples.remove(0);
-			windows.put(cluster_host_key, tuples);
+			LogValueList values = windows.get(cluster_host_key);
+			values.addObject(input.getDoubleByField("value"));
+			if (values.size() > WINDOW_SIZE)
+				values.remove(0);
+			windows.put(cluster_host_key, values);
 		}
 		
 		collector.emit(new Values(cluster, host, key, windows.get(cluster_host_key), time));

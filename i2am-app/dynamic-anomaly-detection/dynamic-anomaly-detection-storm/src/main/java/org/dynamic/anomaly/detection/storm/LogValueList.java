@@ -4,20 +4,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.storm.tuple.Tuple;
+public class LogValueList implements Serializable {
 
-public class TupleList implements Serializable {
+    private final List<Double> list = new ArrayList<Double>();
 
-    private final List<Tuple> list = new ArrayList<Tuple>();
-
-    public TupleList() {
+    public LogValueList() {
     }
 
-    public List<Tuple> getList() {
+    public List<Double> getList() {
         return list;
     }
 
-    public void addObject(Tuple o) {
+    public void addObject(Double o) {
         list.add(o);
     }
     

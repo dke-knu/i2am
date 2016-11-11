@@ -28,27 +28,25 @@ public class ADMovAvgStdBolt implements IRichBolt {
 		double sqr_sum = 0;
 
 		@SuppressWarnings("unchecked")
-		List<Tuple> tuples = ((TupleList) input.getValueByField("window")).getList();
-		if (tuples.size() <= 0)	return ;
+		List<Double> values = ((LogValueList) input.getValueByField("window")).getList();
+		if (values.size() <= 0)	return ;
 		
-		for(Tuple tuple: tuples) {
+		for (double v: values) {
 			windowSize += 1;
-			double v = tuple.getDoubleByField("value");
 			sum += v;
 			sqr_sum += Math.pow(v, 2);
 		}
 		
-		Tuple lastTuple = tuples.get(tuples.size()-1);
-		String cluster = lastTuple.getStringByField("cluster");
-		String host = lastTuple.getStringByField("host");
-		String key = lastTuple.getStringByField("key");
-		double value = lastTuple.getDoubleByField("value");
-		long time = lastTuple.getLongByField("time");
+		String cluster = input.getStringByField("cluster");
+		String host = input.getStringByField("host");
+		String key = input.getStringByField("key");
+		double currentValue = values.get(values.size()-1);
+		long time = input.getLongByField("time");
 		
 		double mvAvg = sum / windowSize;
 		double mvStd = Math.sqrt( (sqr_sum / windowSize) - Math.pow(mvAvg, 2) );
 		
-		collector.emit(new Values(cluster, host, key, value, mvAvg, mvStd, time));
+		collector.emit(new Values(cluster, host, key, currentValue, mvAvg, mvStd, time));
 	}
 
 	public void cleanup() {
