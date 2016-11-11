@@ -28,7 +28,7 @@ public class ADMovAvgStdBolt implements IRichBolt {
 		double sqr_sum = 0;
 
 		@SuppressWarnings("unchecked")
-		List<Tuple> tuples = (List<Tuple>) input.getValueByField("window");
+		List<Tuple> tuples = ((TupleList) input.getValueByField("window")).getList();
 		if (tuples.size() <= 0)	return ;
 		
 		for(Tuple tuple: tuples) {

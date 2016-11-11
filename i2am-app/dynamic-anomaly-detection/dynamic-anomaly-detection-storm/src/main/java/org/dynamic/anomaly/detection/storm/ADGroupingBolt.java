@@ -1,8 +1,6 @@
 package org.dynamic.anomaly.detection.storm;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.storm.task.OutputCollector;
@@ -16,12 +14,12 @@ import org.apache.storm.tuple.Values;
 public class ADGroupingBolt implements IRichBolt {
 	private OutputCollector collector;
 	
-	private Map<String, List<Tuple>> windows;
+	private Map<String, TupleList> windows;
 	private final int WINDOW_SIZE = 12;
 	
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
-		this.windows = new HashMap<String, List<Tuple>>();
+		this.windows = new HashMap<String, TupleList>();
 	}
 
 	public void execute(Tuple input) {
@@ -32,12 +30,12 @@ public class ADGroupingBolt implements IRichBolt {
 		long time = input.getLongByField("time");
 		
 		if (!windows.containsKey(cluster_host_key)) {
-			List<Tuple> oneTuple = new ArrayList<Tuple>();
-			oneTuple.add(input);
+			TupleList oneTuple = new TupleList();
+			oneTuple.addObject(input);
 			windows.put(cluster_host_key, oneTuple);
 		} else {
-			List<Tuple> tuples = windows.get(cluster_host_key);
-			tuples.add(input);
+			TupleList tuples = windows.get(cluster_host_key);
+			tuples.addObject(input);
 			if (tuples.size() > WINDOW_SIZE)
 				tuples.remove(0);
 			windows.put(cluster_host_key, tuples);

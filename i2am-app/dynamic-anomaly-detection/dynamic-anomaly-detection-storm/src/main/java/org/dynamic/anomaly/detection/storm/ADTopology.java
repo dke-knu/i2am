@@ -30,13 +30,13 @@ public class ADTopology {
 		.shuffleGrouping("ADWindowedBolt");
 
 		Config conf = new Config();
-		//		conf.setDebug(true);
+		conf.setDebug(true);
 
 		if (args == null || args.length == 0) {
 			LocalCluster cluster = new LocalCluster();
 			cluster.submitTopology("ADTopology", conf, builder.createTopology());
 
-			Thread.sleep(30 * 000);
+			Thread.sleep(30 * 1000);
 			cluster.shutdown();
 		}
 		else {
