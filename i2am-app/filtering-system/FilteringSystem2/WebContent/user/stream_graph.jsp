@@ -5,7 +5,7 @@
 <html>
 <head>
 <script src="https://d3js.org/d3.v3.min.js"></script>
-
+<script src="http://d3js.org/colorbrewer.v1.min.js"></script>
 <meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
 <title>d3 test</title>
 </head>
@@ -98,7 +98,7 @@ button {
 		  };
 	*/
 	//새 데이터 들어옴!
-	var width = 960, height = 400;
+	var width = 1000, height = 400;
 	//var width = 480, height = 250;
 	var layers0, layers1, o_layers0, o_layers1;
 		var colorRange = ["#E34A33", "#FDBB84", "#FEF0D9"];
@@ -107,18 +107,18 @@ button {
 		var messageTextArea = document.getElementById("messageTextArea");
 		messageTextArea.value += "start\n";
 		
-		var n = 3, // number of layers
-		m = 6, // number of samples per layer
+		var n = 9, // number of layers
+		m = 20, // number of samples per layer
 		stack1 = d3.layout.stack().offset("wiggle"), 
 		layers0 = stack1(d3.range(n).map(function() {return bumpLayer(m, 0);}));
-		messageTextArea.value += "------------------------------\n";
 		layers1 = stack1(d3.range(n).map(function() {return bumpLayer(m, 1);}));
 
+		//original
 		var stack2 = d3.layout.stack().offset("wiggle"), 
 		o_layers0 = stack2(d3.range(n).map(function() {return bumpLayer(m, 0);}));
 		o_layers1 = stack2(d3.range(n).map(function() {return bumpLayer(m, 1);}));
 		
-		var x = d3.scale.linear().domain([ 0, m - 1 ]).range([ 0, width ]);
+		var x = d3.scale.linear().domain([ 0, m - 1 ]).range([ 0, width-200 ]);
 		var y = d3.scale.linear().domain(
 				[ 0, d3.max(layers0.concat(layers1), function(layer) {
 					return d3.max(layer, function(d) {
@@ -127,16 +127,9 @@ button {
 				}) ]).range([ height, 0 ]);
 
 		//var color = d3.scale.linear().range([ "#aad", "#556" ]);
-		var color_origin = d3.scale.ordinal().range(origin_colorRange);
-		var colorZ = d3.scale.ordinal().range(colorRange);
-		var area = d3.svg.area().x(function(d) {
-			return x(d.x);
-		}).y0(function(d) {
-			return y(d.y0);
-		}).y1(function(d) {
-			return y(d.y0 + d.y);
-		});
-		var o_area = d3.svg.area().x(function(d) {
+		var color_origin = d3.scale.ordinal().range(colorbrewer.Blues[9]);
+		var colorZ = d3.scale.ordinal().range(colorbrewer.Reds[9]);
+		var area = d3.svg.area().interpolate("monotone").x(function(d) {
 			return x(d.x);
 		}).y0(function(d) {
 			return y(d.y0);
@@ -154,7 +147,7 @@ button {
 					return colorZ(i);
 		});
 		o_svg.selectAll("path").data(o_layers0).enter().append("path").attr("d",
-				o_area).style("fill", function(d,i) {
+				area).style("fill", function(d,i) {
 					return color_origin(i);
 		});
 		//legend
@@ -170,7 +163,7 @@ button {
 	      class:'legend',
 	      transform:function(d,i){
 	          //Just a calculation for x and y position
-	          return 'translate('+1.5*width/2+',' + ((i*legendHeight)+5) + ')';
+	          return 'translate('+(width-150)+',' + ((i*legendHeight)+60) + ')';
 	      }
 	  });
 	legend.append('rect')
@@ -192,7 +185,7 @@ button {
 	      class:'legend',
 	      transform:function(d,i){
 	          //Just a calculation for x and y position
-	          return 'translate('+1.5*width/2+',' + ((i*legendHeight)+5) + ')';
+	          return 'translate('+(width-150)+',' + ((i*legendHeight)+60) + ')';
 	      }
 	  });
 	o_legend.append('rect')
