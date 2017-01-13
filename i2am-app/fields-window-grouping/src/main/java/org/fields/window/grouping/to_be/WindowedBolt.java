@@ -13,7 +13,6 @@ public class WindowedBolt implements IRichBolt {
 	private OutputCollector collector;
 	
 	private int objectId;
-	private int idx=0;
 
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
@@ -26,7 +25,6 @@ public class WindowedBolt implements IRichBolt {
 			System.out.print(tuple.getStringByField("sender") + " sended " + tuple.getDoubleByField("value"));
 			System.out.println();
 		}
-		idx ++;
 	}
 
 	public void cleanup() {
