@@ -52,6 +52,33 @@ public class Config extends HashMap<String, Object> {
     private static final long serialVersionUID = -1550278723792864455L;
 
     /**
+     * JXIO based messaging: The # of worker threads for the client.
+     */
+    @isInteger
+    public static final String STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS = "storm.messaging.jxio.client_worker_threads";
+    /**
+     * JXIO based messaging: The buffer size for send/recv buffer
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_BUFFER_SIZE = "storm.messaging.jxio.buffer_size";
+    /**
+     * JXIO based messaging: Sets the backlog value to specify when the channel binds to a local address
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_SOCKET_BACKLOG = "storm.messaging.jxio.socket.backlog";
+    /**
+     * JXIO based messaging: The # of worker threads for the server.
+     */
+    @isInteger
+    @isPositiveNumber(includeZero = true)
+    public static final String STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS = "storm.messaging.jxio.server_worker_threads";
+
+    @isString
+    public static final String STORM_MESSAGING_TRANSFER_MODE = "storm.messaging.transfer.mode";
+
+    /**
      * The serializer class for ListDelegate (tuple payload).
      * The default serializer will be ListDelegateSerializer
      */
