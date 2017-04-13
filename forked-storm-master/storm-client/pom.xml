@@ -42,6 +42,11 @@
     This is here as a work around to place it at the beginning of the classpath
     even though maven does not officially support ordering of the classpath.-->
         <dependency>
+            <groupId>org.accelio</groupId>
+            <artifactId>jxio</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
             <groupId>uk.org.lidalia</groupId>
             <artifactId>sysout-over-slf4j</artifactId>
         </dependency>
