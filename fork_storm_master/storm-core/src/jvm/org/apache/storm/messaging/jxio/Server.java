@@ -14,8 +14,7 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,7 +29,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     @SuppressWarnings("rawtypes")
     Map storm_conf;
     int port;
-    String host = "localhost";
+    String host;
     private final ConcurrentHashMap<String, AtomicInteger> messagesEnqueued = new ConcurrentHashMap<>();
     private final AtomicInteger messagesDequeued = new AtomicInteger(0);
 
@@ -51,6 +50,9 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         this.storm_conf = storm_conf;
         this.port = port;
         _ser = new KryoValuesSerializer(storm_conf);
+        host = getLocalServerIp();
+
+        LOG.info("host IP = " + host);
 
         //Configure the Server.
         int buffer_size = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_BUFFER_SIZE));
@@ -82,6 +84,27 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     public String jxio_name() {
         return "JXIO-server-localhost-" + port;
+    }
+
+    private String getLocalServerIp()
+    {
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
+                    {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
+        }
+        catch (SocketException ex) {}
+        return null;
     }
 
     private void addReceiveCount(String from, int amount) {

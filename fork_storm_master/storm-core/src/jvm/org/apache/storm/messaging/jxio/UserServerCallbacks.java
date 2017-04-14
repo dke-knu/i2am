@@ -16,8 +16,8 @@
  */
 package org.apache.storm.messaging.jxio;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.Constants;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserServerCallbacks implements JxioConnectionServer.Callbacks {
 
-    private static final Log LOG = LogFactory.getLog(UserServerCallbacks.class.getCanonicalName());
+    private static final Logger LOG = LoggerFactory.getLogger(UserServerCallbacks.class.getCanonicalName());
     private Server server;
     private AtomicInteger failure_count;
     private KryoValuesSerializer _ser;

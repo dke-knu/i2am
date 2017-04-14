@@ -38,6 +38,8 @@ public class TransportFactory {
 
         String transport_mode = (String)storm_conf.get(Config.STORM_MESSAGING_TRANSFER_MODE);
 
+        LOG.info("#####" + transport_mode);
+
         //choose which plugin used
         if("RDMA".equals(transport_mode))
             transport_plugin_klassName = JXIO_CONTEXT;
