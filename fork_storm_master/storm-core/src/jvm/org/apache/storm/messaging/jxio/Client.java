@@ -140,5 +140,19 @@ public class Client extends ConnectionWithStatus {
         return Status.Connecting;
     }
 
-
+    private class Connect{
+    	
+    	public Connect(){
+    		
+    	}
+    	
+    	private void reschedule(){
+    		
+    	}
+    	
+    	public void run(){
+    		
+    	}
+    	
+    }
 }
