@@ -16,12 +16,11 @@
  */
 package org.apache.storm.messaging.jxio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.storm.messaging.TaskMessage;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.Constants;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
 import org.apache.storm.serialization.KryoValuesSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,22 +40,22 @@ public class UserServerCallbacks implements JxioConnectionServer.Callbacks {
     private AtomicInteger failure_count;
     private KryoValuesSerializer _ser;
     private Map<Integer, Double> taskToLoad;
+    private int msgpool_size;
 
     public void setTaskToLoad(Map<Integer, Double> taskToLoad) {
         this.taskToLoad = taskToLoad;
     }
 
-    public UserServerCallbacks(Server server, KryoValuesSerializer ser) {
+    public UserServerCallbacks(Server server, KryoValuesSerializer ser, int msgpool_size) {
         this.server = server;
         this._ser = ser;
+        this.msgpool_size = msgpool_size;
         failure_count = new AtomicInteger(0);
     }
 
     public void newSessionOS(URI uri, OutputStream output) {
         // Only sendMetrics method send to clients
         LOG.info("newSessionOS invoked");
-        byte[] temp = new byte[Constants.MSGPOOL_BUF_SIZE];
-
         try {
             TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
             output.write(tm.serialize().get());
@@ -70,7 +69,7 @@ public class UserServerCallbacks implements JxioConnectionServer.Callbacks {
     //uri of EventNewSession.getUri()
     @Override
     public void newSessionIS(URI uri, InputStream input) {
-        byte[] temp = new byte[Constants.MSGPOOL_BUF_SIZE];
+        byte[] temp = new byte[msgpool_size];
         long bytes = getBytes(uri);
         List<TaskMessage> messages = new ArrayList<>();
         LOG.info(Thread.currentThread().toString() + " going to read " + bytes + " bytes");
