@@ -85,16 +85,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         try {
 
-			jxClient = new JxioConnection(uri);
+			jxClient = new JxioConnection(uri, jxioConfigs);
 		} catch (ConnectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-
-            jxClient = new JxioConnection(uri, jxioConfigs);
-            output = jxClient.getOutputStream();
-            input = jxClient.getInputStream();
 
 
     }
@@ -262,10 +257,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 				return;
 			}
 		}
-    	
+    }	
     	
 
-    @Override
     public Object getState() {
         LOG.debug("Getting metrics for client connection to {}", dstAddressPrefixedName);
         HashMap<String, Object> ret = new HashMap<String, Object>();
@@ -297,21 +291,4 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return (uri.getHost() + ":" + uri.getPort());
     }
 
-    private class Connect {
-
-        public Connect() {
-
-        }
-
-        private void reschedule() {
-
-        }
-
-        public void run() {
-
-        }
-
     }
-
-
-}
