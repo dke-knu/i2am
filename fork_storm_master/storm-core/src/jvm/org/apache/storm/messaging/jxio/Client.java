@@ -1,10 +1,11 @@
 package org.apache.storm.messaging.jxio;
 
-import org.accelio.jxio.jxioConnection.JxioConnection;
+
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
+import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnection;
 
 import java.io.IOException;
 import java.io.InputStream;
