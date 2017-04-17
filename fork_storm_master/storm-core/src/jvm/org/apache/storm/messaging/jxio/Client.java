@@ -14,6 +14,7 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 public class Client extends ConnectionWithStatus {
 
@@ -22,10 +23,17 @@ public class Client extends ConnectionWithStatus {
     private URI uri;
     private Object writeLock = new Object();
     private InputStream input;
+    private ScheduledThreadPoolExecutor scheduler;
+    private Map stormConf;
 
     private volatile boolean closing = false;
 
-    Client(Map stormConf, String host, int port, Context context) {
+    Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
+    	this.stormConf = stormConf;
+    	closing = false;
+    	this.scheduler = scheduler;
+    	
+    	
         try {
             uri = new URI(String.format("rdma://%s:%s", host, port));
         } catch (URISyntaxException e) {
@@ -140,7 +148,7 @@ public class Client extends ConnectionWithStatus {
         return Status.Connecting;
     }
 
-    private class Connect{
+    private class Connect implements Runnable{
     	
     	public Connect(){
     		
@@ -149,10 +157,13 @@ public class Client extends ConnectionWithStatus {
     	private void reschedule(){
     		
     	}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			
+		}
     	
-    	public void run(){
-    		
-    	}
     	
     }
 }
