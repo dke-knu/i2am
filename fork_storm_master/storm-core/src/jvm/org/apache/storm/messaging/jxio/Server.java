@@ -40,6 +40,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     protected JxioConnectionServer conServer;
     private UserServerCallbacks appCallbacks;
+    private HashMap<String, Integer> jxioConfigs = new HashMap<>();
 
 
     /*
@@ -55,14 +56,18 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         LOG.info("host IP = " + host);
 
         //Configure the Server.
-        int buffer_size = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_BUFFER_SIZE));
+        int msgpool_buf_size = Utils.getInt(storm_conf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE));
         //buffer size = MSGPOOL_BUF_SIZE ??
 //        int backlog = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SOCKET_BACKLOG), 500);
         int maxWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
 
-        appCallbacks = new UserServerCallbacks(this, _ser);
+        jxioConfigs.put("msgpool", msgpool_buf_size);
+        jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
+        jxioConfigs.put("initial_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
 
+        appCallbacks = new UserServerCallbacks(this, _ser, msgpool_buf_size);
 
+        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
         try {
             String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
             URI uri = null;
@@ -71,19 +76,19 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
-            conServer = new JxioConnectionServer(uri, maxWorkers, appCallbacks);
+            conServer = new JxioConnectionServer(uri, maxWorkers, appCallbacks, jxioConfigs);
             conServer.start();
 
         } catch (Throwable t) {
             t.printStackTrace();
             t.getCause().printStackTrace();
         }
-        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + buffer_size + ", maxWorkers: " + maxWorkers);
+
 
     }
 
     public String jxio_name() {
-        return "JXIO-server-localhost-" + port;
+        return "JXIO-server" +host + port;
     }
 
     private String getLocalServerIp()

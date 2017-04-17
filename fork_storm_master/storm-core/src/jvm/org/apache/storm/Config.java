@@ -17,6 +17,7 @@
  */
 package org.apache.storm;
 
+import com.esotericsoftware.kryo.Serializer;
 import org.apache.storm.container.ResourceIsolationInterface;
 import org.apache.storm.nimbus.ITopologyActionNotifierPlugin;
 import org.apache.storm.scheduler.resource.strategies.eviction.IEvictionStrategy;
@@ -24,9 +25,8 @@ import org.apache.storm.scheduler.resource.strategies.priority.ISchedulingPriori
 import org.apache.storm.scheduler.resource.strategies.scheduling.IStrategy;
 import org.apache.storm.serialization.IKryoDecorator;
 import org.apache.storm.serialization.IKryoFactory;
-import org.apache.storm.validation.ConfigValidationAnnotations.*;
 import org.apache.storm.validation.ConfigValidation.*;
-import com.esotericsoftware.kryo.Serializer;
+import org.apache.storm.validation.ConfigValidationAnnotations.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,22 +56,53 @@ public class Config extends HashMap<String, Object> {
 
 
     /**
+     * JXIO based messaging: The msgpool buffer size for send/recv at server/client
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.msgpool.buffer.size";
+
+    /**
+     * JXIO based messaging: The # of MSG for client-side input
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT = "storm.messaging.jxio.client.input.buffer.count";
+
+    /**
+     * JXIO based messaging: The # of MSG for client-side output
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT = "storm.messaging.jxio.client.output.buffer.count";
+
+    /**
+     * JXIO based messaging: capacity(number of msg that this pool will contain. Max is 100064)
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT = "storm.messaging.jxio.server.initial.buffer.count";
+
+    /**
+     * JXIO based messaging: for EventQueueHandler Callbacks, capacity(number of msg that this pool will contain. Max is 100064)
+     */
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT = "storm.messaging.jxio.server.inc.buffer.count";
+
+    /**
      * JXIO based messaging: The # of worker threads for the client.
      */
     @isInteger
     public static final String STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS = "storm.messaging.jxio.client_worker_threads";
-    /**
-     * JXIO based messaging: The buffer size for send/recv buffer
-     */
-    @isInteger
-    @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_BUFFER_SIZE = "storm.messaging.jxio.buffer_size";
+
     /**
      * JXIO based messaging: Sets the backlog value to specify when the channel binds to a local address
      */
     @isInteger
     @isPositiveNumber
     public static final String STORM_MESSAGING_JXIO_SOCKET_BACKLOG = "storm.messaging.jxio.socket.backlog";
+
     /**
      * JXIO based messaging: The # of worker threads for the server.
      */
@@ -79,6 +110,32 @@ public class Config extends HashMap<String, Object> {
     @isPositiveNumber(includeZero = true)
     public static final String STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS = "storm.messaging.jxio.server_worker_threads";
 
+    /**
+     * JXIO based messaging: The max # of retries that a peer will perform when a remote is not accessible
+     *
+     * @deprecated "Since JXIO clients should never stop reconnecting - this does not make sense anymore.
+     */
+    @Deprecated
+    @isInteger
+    public static final String STORM_MESSAGING_JXIO_MAX_RETRIES = "storm.messaging.jxio.max_retries";
+
+    /**
+     * JXIO based messaging: The min # of milliseconds that a peer will wait.
+     */
+    @isInteger
+    @isPositiveNumber(includeZero = true)
+    public static final String STORM_MESSAGING_JXIO_MIN_SLEEP_MS = "storm.messaging.jxio.min_wait_ms";
+
+    /**
+     * JXIO based messaging: The max # of milliseconds that a peer will wait.
+     */
+    @isInteger
+    @isPositiveNumber(includeZero = true)
+    public static final String STORM_MESSAGING_JXIO_MAX_SLEEP_MS = "storm.messaging.jxio.max_wait_ms";
+
+    /*
+    * Messaging plugin select.
+    * */
     @isString
     public static final String STORM_MESSAGING_TRANSFER_MODE = "storm.messaging.transfer.mode";
 
@@ -515,7 +572,7 @@ public class Config extends HashMap<String, Object> {
     public static final String NIMBUS_THRIFT_TRANSPORT_PLUGIN = "nimbus.thrift.transport";
 
     /**
-     * How long before a Thrift Client socket hangs before timeout
+     * How long before a Thrift ClientSub socket hangs before timeout
      * and restart the socket.
      */
     @isInteger

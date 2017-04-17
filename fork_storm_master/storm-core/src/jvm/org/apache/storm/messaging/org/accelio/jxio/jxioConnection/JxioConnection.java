@@ -32,10 +32,11 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 public class JxioConnection {
-	private int              isMsgPoolCount = Constants.CLIENT_INPUT_BUF_COUNT;
-	private int              osMsgPoolCount = Constants.CLIENT_OUTPUT_BUF_COUNT;
+	private int              isMsgPoolCount;
+	private int              osMsgPoolCount;
 	private static final Log LOG            = LogFactory.getLog(JxioConnection.class.getCanonicalName());
 	private InputStream      input          = null;
 	private OutputStream     output         = null;
@@ -43,16 +44,20 @@ public class JxioConnection {
 	private ISConnection     isCon;
 	private OSConnection     osCon;
 	private URI              uri;
+	private int msgPoolSize;
 
 	/**
 	 * Ctor
 	 * 
 	 * @param uri
 	 */
-	public JxioConnection(URI uri) throws ConnectException {
+	public JxioConnection(URI uri, HashMap<String, Integer> jxioConfigs) throws ConnectException {
 		name = "jxioConnection[" + Thread.currentThread().toString() + "]";
 		LOG.info("[" + this.toString() + "] " + uri.getHost() + " port " + uri.getPort());
 		this.uri = uri;
+		msgPoolSize = jxioConfigs.get("msgpool");
+		isMsgPoolCount = jxioConfigs.get("is_msgpool_count");
+		osMsgPoolCount = jxioConfigs.get("os_msgpool_count");
 	}
 
 	private URI appendStreamType(String type) throws ConnectException {
@@ -72,7 +77,7 @@ public class JxioConnection {
 
 	public InputStream getInputStream() throws ConnectException {
 		if (input == null) {
-			isCon = new ISConnection(appendStreamType("input"), Constants.MSGPOOL_BUF_SIZE, 0, isMsgPoolCount);
+			isCon = new ISConnection(appendStreamType("input"), msgPoolSize, 0, isMsgPoolCount);
 			input = new MultiBuffInputStream(isCon);
 		}
 		return input;
@@ -80,7 +85,7 @@ public class JxioConnection {
 
 	public OutputStream getOutputStream() throws ConnectException {
 		if (output == null) {
-			osCon = new OSConnection(appendStreamType("output"), 0, Constants.MSGPOOL_BUF_SIZE, osMsgPoolCount);
+			osCon = new OSConnection(appendStreamType("output"), 0, msgPoolSize, osMsgPoolCount);
 			output = new MultiBufOutputStream(osCon);
 		}
 		return output;
@@ -205,14 +210,14 @@ public class JxioConnection {
 		if (input != null) {
 			throw new UnsupportedOperationException("Memory can be set only before creating InputStream");
 		}
-		isMsgPoolCount = (int) Math.ceil((double) mem / Constants.MSGPOOL_BUF_SIZE);
+		isMsgPoolCount = (int) Math.ceil((double) mem / msgPoolSize);
 	}
 
 	public void setSendSize(long mem) throws UnsupportedOperationException {
 		if (output != null) {
 			throw new UnsupportedOperationException("Memory can be set only before creating OutputStream");
 		}
-		osMsgPoolCount = (int) Math.ceil((double) mem / Constants.MSGPOOL_BUF_SIZE);
+		osMsgPoolCount = (int) Math.ceil((double) mem / msgPoolSize);
 	}
 
 	public int getRcvSize() {
