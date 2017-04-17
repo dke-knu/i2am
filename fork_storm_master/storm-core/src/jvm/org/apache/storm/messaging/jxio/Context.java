@@ -1,10 +1,13 @@
 package org.apache.storm.messaging.jxio;
 
+import org.apache.storm.Config;
 import org.apache.storm.messaging.IConnection;
 import org.apache.storm.messaging.IContext;
+import org.apache.storm.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * Created by seokwoo on 17. 3. 17.
@@ -20,7 +23,7 @@ public class Context implements IContext {
     @SuppressWarnings("rawtypes")
     private Map storm_conf;
     private Map<String, IConnection> connections;
-
+    private ScheduledThreadPoolExecutor clientScheduleService;
     /*
     *
     *    Enqueue a task message to be sent to server
@@ -37,7 +40,7 @@ public class Context implements IContext {
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
         connections = new HashMap<>();
-
+        clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)));
 
     }
 
@@ -98,7 +101,7 @@ public class Context implements IContext {
             return connection;
         }
         //스케줄러는 필요할꺼 같다..
-        IConnection client = new Client(storm_conf, host, port, this);
+        IConnection client = new Client(storm_conf, clientScheduleService, host, port, this);
         return client;
     }
 
