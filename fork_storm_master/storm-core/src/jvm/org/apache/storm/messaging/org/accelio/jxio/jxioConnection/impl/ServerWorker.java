@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.storm.messaging.org.accelio.jxio.*;
 import org.apache.storm.messaging.org.accelio.jxio.exceptions.JxioGeneralException;
 import org.apache.storm.messaging.org.accelio.jxio.exceptions.JxioSessionClosedException;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.Constants;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer.Callbacks;
 
@@ -29,6 +28,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ServerWorker extends Thread implements BufferSupplier, WorkerCache.Worker {
 
@@ -66,24 +66,23 @@ public class ServerWorker extends Thread implements BufferSupplier, WorkerCache.
 
 	/**
 	 * CTOR of a server worker, each worker is connected to only 1 client at a time
-	 *
-	 * @param index
+	 *  @param index
 	 *            - used as worker id
 	 * @param uri
 	 *            - uri from client, is used also to pass data between client and server
 //	 * @param numMsgs
 	 *            - number of msgs in msgpool
-	 * @param appCallbacks
-	 *            - callbacks that are called when a new session is started
-	 */
-	public ServerWorker(int index, URI uri, JxioConnectionServer.Callbacks appCallbacks) {
+     * @param appCallbacks
+     * @param jxioConfigs
+     */
+	public ServerWorker(int index, URI uri, Callbacks appCallbacks, HashMap<String, Integer> jxioConfigs) {
 		portalIndex = index;
 		name = "[ServerWorker " + portalIndex + " ]";
-		eqh = new EventQueueHandler(new EqhCallbacks(Constants.SERVER_INC_BUF_COUNT, Constants.MSGPOOL_BUF_SIZE,
-		        Constants.MSGPOOL_BUF_SIZE));
+		eqh = new EventQueueHandler(new EqhCallbacks(jxioConfigs.get("inc_buf_count"), jxioConfigs.get("msgpool"),
+				jxioConfigs.get("msgpool")));
 		this.msgPools = new ArrayList<MsgPool>();
-		MsgPool pool = new MsgPool(Constants.SERVER_INITIAL_BUF_COUNT, Constants.MSGPOOL_BUF_SIZE,
-		        Constants.MSGPOOL_BUF_SIZE);
+		MsgPool pool = new MsgPool(jxioConfigs.get("initial_buf_count"), jxioConfigs.get("msgpool"),
+				jxioConfigs.get("msgpool"));
 		msgPools.add(pool);
 		eqh.bindMsgPool(pool);
 		callbacks = new SessionServerCallbacks();

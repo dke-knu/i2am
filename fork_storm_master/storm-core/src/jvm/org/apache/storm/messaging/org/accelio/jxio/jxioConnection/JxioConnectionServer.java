@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -38,6 +39,7 @@ public class JxioConnectionServer extends Thread implements WorkerCache.WorkerPr
 	private int                                        numOfWorkers;
 	private boolean                                    close     = false;
 	private static ConcurrentLinkedQueue<ServerWorker> SPWorkers = new ConcurrentLinkedQueue<ServerWorker>();
+	private HashMap<String, Integer> jxioConfigs;
 
 	public ServerPortal getListener() {
 		return listener;
@@ -49,23 +51,23 @@ public class JxioConnectionServer extends Thread implements WorkerCache.WorkerPr
 
 	/**
 	 * Ctor that receives from user number of messages to use in the jxio msgpool
-	 *
-	 * @param uri
+	 *  @param uri
 	 * @param numWorkers
 	 *            - number of worker threads to start with (this number will grow on demand
 	 * @param appCallbacks
-	 *            - application callbacks - what to do on new session event
+ *            - application callbacks - what to do on new session event
 //	 * @param msgPoolCount
-	 *            - actual amount of messages that will be used is msgPoolCount - numMsgsToAdd
+	 * @param jxioConfigs
 	 */
-	public JxioConnectionServer(URI uri, int numWorkers, JxioConnectionServer.Callbacks appCallbacks) {
+	public JxioConnectionServer(URI uri, int numWorkers, Callbacks appCallbacks, HashMap<String, Integer> jxioConfigs) {
 		this.appCallbacks = appCallbacks;
 		numOfWorkers = numWorkers;
 		listen_eqh = new EventQueueHandler(null);
 		listener = new ServerPortal(listen_eqh, uri, new PortalServerCallbacks(), this);
+		this.jxioConfigs = jxioConfigs;
 		name = "[JxioConnectionServer " + listener.toString() + " ]";
 		for (int i = 1; i <= numWorkers; i++) {
-			SPWorkers.add(new ServerWorker(i, listener.getUriForServer(), appCallbacks));
+			SPWorkers.add(new ServerWorker(i, listener.getUriForServer(), appCallbacks, jxioConfigs));
 		}
 		LOG.info(this.toString() + " JxioConnectionServer started, host " + uri.getHost() + " listening on port "
 		        + uri.getPort() + ", numWorkers " + numWorkers);
@@ -177,7 +179,7 @@ public class JxioConnectionServer extends Thread implements WorkerCache.WorkerPr
 	private ServerWorker createNewWorker() {
 		LOG.info(this.toString() + " Creating new worker");
 		numOfWorkers++;
-		ServerWorker spw = new ServerWorker(numOfWorkers, listener.getUriForServer(), appCallbacks);
+		ServerWorker spw = new ServerWorker(numOfWorkers, listener.getUriForServer(), appCallbacks, jxioConfigs);
 		spw.start();
 		return spw;
 	}
