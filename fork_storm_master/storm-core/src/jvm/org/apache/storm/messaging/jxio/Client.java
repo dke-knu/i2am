@@ -40,15 +40,15 @@ public class Client extends ConnectionWithStatus {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        try {
-            jxClient = new JxioConnection(uri);
-            output = jxClient.getOutputStream();
-            input = jxClient.getInputStream();
 
-        } catch (ConnectException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        try {
+			jxClient = new JxioConnection(uri);
+		} catch (ConnectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+
     }
 
     @Override
@@ -148,6 +148,10 @@ public class Client extends ConnectionWithStatus {
         return Status.Connecting;
     }
 
+    private boolean reconnectingAllowed() {
+        return !closing;
+    }
+    
     private class Connect implements Runnable{
     	
     	public Connect(){
@@ -161,7 +165,20 @@ public class Client extends ConnectionWithStatus {
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
-			
+			if(reconnectingAllowed()){
+				try {
+					output = jxClient.getOutputStream();
+					input = jxClient.getInputStream();
+				} catch (ConnectException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	            
+			}
+			else{
+				close();
+				return;
+			}
 		}
     	
     	
