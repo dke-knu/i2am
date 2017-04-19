@@ -67,7 +67,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
         appCallbacks = new UserServerCallbacks(this, _ser, msgpool_buf_size);
 
-
+        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
         try {
             String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
             URI uri = null;
@@ -83,7 +83,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             t.printStackTrace();
             t.getCause().printStackTrace();
         }
-        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
+
 
     }
 

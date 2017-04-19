@@ -90,7 +90,7 @@ public class Context implements IContext {
     *
     * WorkerState에서 refreshconnection 함수를 통해 주기적으로 서버와의 연결을 재설정
     * task.refresh.poll.secs, ZK에서 할당이 변경될 떄마다 호출
-    * -> connection은 여기서 ClientSub 객체를 생성함으로써 수행한다.
+    * -> connection은 여기서 Client 객체를 생성함으로써 수행한다.
     * */
     @Override
     public IConnection connect(String storm_id, String host, int port) {
