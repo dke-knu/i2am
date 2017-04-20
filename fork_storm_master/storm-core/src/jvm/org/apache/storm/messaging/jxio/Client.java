@@ -279,6 +279,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 			// TODO Auto-generated method stub
 			input = jxClient.getInputStream();
 			output = jxClient.getOutputStream();
+			
+			if(input == null || output == null){ // 실패했는지 점검을 무엇으로 해야하나...ㅠ
+				reschedule();
+			}
 		}
     	
     	
