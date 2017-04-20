@@ -271,7 +271,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     	}
     	
     	private void reschedule() {
-    		
+    		scheduleConnect(5000L);
     	}
     	
 		@Override
