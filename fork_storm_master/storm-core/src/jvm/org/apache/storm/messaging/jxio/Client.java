@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -69,11 +70,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
      */
     private final AtomicLong pendingMessages = new AtomicLong(0);
 
+    /**
+     * Whether the SASL channel is ready.
+     */
+    private final AtomicBoolean saslChannelReady = new AtomicBoolean(false);
+
     Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         this.stormConf = stormConf;
         closing = false;
         this.scheduler = scheduler;
         this.context = context;
+        // if SASL authentication is disabled, saslChannelReady is initialized as true; otherwise false
+        saslChannelReady.set(!Utils.getBoolean(stormConf.get(Config.STORM_MESSAGING_NETTY_AUTHENTICATION), false));
 
         jxioConfigs.put("msgpool", Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)));
         jxioConfigs.put("is_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)));
@@ -88,11 +96,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
 
         try {
-			jxClient = new JxioConnection(uri, jxioConfigs);
-		} catch (ConnectException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            jxClient = new JxioConnection(uri, jxioConfigs);
+        } catch (ConnectException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private String prefixedName(URI uri) {
@@ -212,7 +220,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     @Override
     public void close() {
         // TODO Auto-generated method stub
-        if(!closing) {
+        if (!closing) {
             LOG.info("closing JXIO Client {}", dstAddressPrefixedName);
             context.removeClient(uri.getHost(), uri.getPort());
             //Set Closing to true to prevent any further reconnection attempts.
@@ -243,50 +251,73 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     }
 
+    /**
+     * Note:  Storm will check via this method whether a worker can be activated safely during the initial startup of a
+     * topology.  The worker will only be activated once all of the its connections are ready.
+     */
     @Override
     public Status status() {
-        // TODO Auto-generated method stub
         if (closing) {
             return Status.Closed;
+        } else if (!connectionEstablished()) {
+            return Status.Connecting;
+        } else {
+            if (saslChannelReady.get()) {
+                return Status.Ready;
+            } else {
+                return Status.Connecting; // need to wait until sasl channel is also ready
+            }
         }
-        return Status.Connecting;
+    }
+
+    public boolean connectionEstablished() {
+        //데이터를 전송할 수 있는 완전한 연결이면 true -> Ready, 하나라도 부족한 부분이 있다면 false -> Connecting
+        if (input == null) {
+            LOG.error("Input Stream disabled");
+            return false;
+        } else if (output == null) {
+            LOG.error("Output Stream disabled");
+            return false;
+        } else {
+            //Need to check other status?
+            return true;
+        }
     }
 
 
     private boolean reconnectingAllowed() {
         return !closing;
     }
-    
-    private class Connect implements Runnable{
-    	
-    	public Connect(){
-    		
-    	}
-    	
-    	private void reschedule(){
-    		
-    	}
 
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			if(reconnectingAllowed()){
-				try {
-					output = jxClient.getOutputStream();
-					input = jxClient.getInputStream();
-				} catch (ConnectException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	            
-			}
-			else{
-				close();
-				return;
-			}
-		}
-    }	
-    	
+    private class Connect implements Runnable {
+
+        public Connect() {
+
+        }
+
+        private void reschedule() {
+
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            if (reconnectingAllowed()) {
+                try {
+                    output = jxClient.getOutputStream();
+                    input = jxClient.getInputStream();
+                } catch (ConnectException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            } else {
+                close();
+                return;
+            }
+        }
+    }
+
 
     public Object getState() {
         LOG.debug("Getting metrics for client connection to {}", dstAddressPrefixedName);
@@ -309,7 +340,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         try {
             Socket tempSocket = new Socket(uri.getHost(), uri.getPort());
 
-            if(tempSocket != null) name = tempSocket.getLocalAddress().toString();
+            if (tempSocket != null) name = tempSocket.getLocalAddress().toString();
 
             tempSocket.close();
         } catch (IOException e) {
@@ -322,4 +353,4 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return (uri.getHost() + ":" + uri.getPort());
     }
 
-    }
+}
