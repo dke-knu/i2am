@@ -91,6 +91,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         try {
 			jxClient = new JxioConnection(uri, jxioConfigs);
+			scheduleConnect(NO_DELAY_MS);
+			
 		} catch (ConnectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -260,11 +262,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
     
     private void scheduleConnect(long delayMs){
-    	scheduler.schedule(new Connect(), NO_DELAY_MS, TimeUnit.MILLISECONDS);
+    	scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
     }
     
     private class Connect implements Runnable {
-	
+
 
     	public Connect(){
     		
