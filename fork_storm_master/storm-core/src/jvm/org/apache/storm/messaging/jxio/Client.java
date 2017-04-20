@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
+    private static final long PENDING_MESSAGES_FLUSH_TIMEOUT_MS = 600000L;
+    private static final long PENDING_MESSAGES_FLUSH_INTERVAL_MS = 1000L;
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
     private JxioConnection jxClient;
@@ -37,6 +39,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     protected String dstAddressPrefixedName;
     private static final String PREFIX = "JXIO-Client-";
     private static final Timer timer = new Timer("JXIO-SessionAlive-Timer", true);
+    private final Context context;
 
     private volatile boolean closing = false;
 
@@ -70,6 +73,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         this.stormConf = stormConf;
         closing = false;
         this.scheduler = scheduler;
+        this.context = context;
 
         jxioConfigs.put("msgpool", Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)));
         jxioConfigs.put("is_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)));
@@ -84,14 +88,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
 
         try {
-
 			jxClient = new JxioConnection(uri, jxioConfigs);
 		} catch (ConnectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-
     }
 
     private String prefixedName(URI uri) {
@@ -211,8 +212,35 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     @Override
     public void close() {
         // TODO Auto-generated method stub
-        jxClient.disconnect();
-        closing = true;
+        if(!closing) {
+            LOG.info("closing JXIO Client {}", dstAddressPrefixedName);
+            context.removeClient(uri.getHost(), uri.getPort());
+            //Set Closing to true to prevent any further reconnection attempts.
+            closing = true;
+            waitForPendingMessagesToBeSent();
+            jxClient.disconnect();
+        }
+    }
+
+    private void waitForPendingMessagesToBeSent() {
+        LOG.info("waiting up to {} ms to send {} pending messages to {}",
+                PENDING_MESSAGES_FLUSH_TIMEOUT_MS, pendingMessages.get(), dstAddressPrefixedName);
+        long totalPendingMsgs = pendingMessages.get();
+        long startMs = System.currentTimeMillis();
+        while (pendingMessages.get() != 0) {
+            try {
+                long deltaMs = System.currentTimeMillis() - startMs;
+                if (deltaMs > PENDING_MESSAGES_FLUSH_TIMEOUT_MS) {
+                    LOG.error("failed to send all pending messages to {} within timeout, {} of {} messages were not " +
+                            "sent", dstAddressPrefixedName, pendingMessages.get(), totalPendingMsgs);
+                    break;
+                }
+                Thread.sleep(PENDING_MESSAGES_FLUSH_INTERVAL_MS);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+
     }
 
     @Override
@@ -280,7 +308,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         String name = null;
         try {
             Socket tempSocket = new Socket(uri.getHost(), uri.getPort());
+
             if(tempSocket != null) name = tempSocket.getLocalAddress().toString();
+
+            tempSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
