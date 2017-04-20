@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Client extends ConnectionWithStatus implements IStatefulObject {
     private static final long PENDING_MESSAGES_FLUSH_TIMEOUT_MS = 600000L;
     private static final long PENDING_MESSAGES_FLUSH_INTERVAL_MS = 1000L;
+    private static final long NO_DELAY_MS = 0L;
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
     private JxioConnection jxClient;
@@ -96,11 +98,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
 
         try {
-            jxClient = new JxioConnection(uri, jxioConfigs);
-        } catch (ConnectException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+			jxClient = new JxioConnection(uri, jxioConfigs);
+			scheduleConnect(NO_DELAY_MS);
+		} catch (ConnectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     private String prefixedName(URI uri) {
@@ -288,36 +291,36 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private boolean reconnectingAllowed() {
         return !closing;
     }
+    
+    private void scheduleConnect(long delayMs){
+    	scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
+    }
 
     private class Connect implements Runnable {
 
-        public Connect() {
 
-        }
+    	public Connect(){
 
-        private void reschedule() {
+    	}
 
-        }
+    	private void reschedule() {
+    		scheduleConnect(5000L);
+    	}
 
-        @Override
-        public void run() {
-            // TODO Auto-generated method stub
-            if (reconnectingAllowed()) {
-                try {
-                    output = jxClient.getOutputStream();
-                    input = jxClient.getInputStream();
-                } catch (ConnectException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			input = jxClient.getInputStream();
+			output = jxClient.getOutputStream();
 
-            } else {
-                close();
-                return;
-            }
-        }
-    }
+			if(input == null || output == null){ // �����ߴ��� ������ �������� �ؾ��ϳ�...��
+				reschedule();
+			}
+		}
 
+
+    }	
+    	
 
     public Object getState() {
         LOG.debug("Getting metrics for client connection to {}", dstAddressPrefixedName);
