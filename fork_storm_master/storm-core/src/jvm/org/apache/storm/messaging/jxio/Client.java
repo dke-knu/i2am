@@ -20,12 +20,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
     private static final long PENDING_MESSAGES_FLUSH_TIMEOUT_MS = 600000L;
     private static final long PENDING_MESSAGES_FLUSH_INTERVAL_MS = 1000L;
+    private static final long NO_DELAY_MS = 0L;
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
     private JxioConnection jxClient;
@@ -257,34 +259,29 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return !closing;
     }
     
-    private class Connect implements Runnable{
-    	
+    private void scheduleConnect(long delayMs){
+    	scheduler.schedule(new Connect(), NO_DELAY_MS, TimeUnit.MILLISECONDS);
+    }
+    
+    private class Connect implements Runnable {
+	
+
     	public Connect(){
     		
     	}
     	
-    	private void reschedule(){
+    	private void reschedule() {
     		
     	}
-
+    	
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
-			if(reconnectingAllowed()){
-				try {
-					output = jxClient.getOutputStream();
-					input = jxClient.getInputStream();
-				} catch (ConnectException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	            
-			}
-			else{
-				close();
-				return;
-			}
+			input = jxClient.getInputStream();
+			output = jxClient.getOutputStream();
 		}
+    	
+    	
     }	
     	
 
