@@ -124,7 +124,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                         this.cancel();
                         return;
                     }
-//                    getConnectedChannel();
+                    jxClient.getInputStream();
+                    jxClient.getOutputStream();
                 } catch (Exception exp) {
                     LOG.error("channel connection error {}", exp);
                 }
