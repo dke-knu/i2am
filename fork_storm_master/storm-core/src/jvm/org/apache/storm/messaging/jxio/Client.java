@@ -178,7 +178,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         synchronized (writeLock) {
             while (msgs.hasNext()) {
                 try {
-                    output.write(msgs.next().serialize().array());
+                	output.write(msgs.next().serialize().array());
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
