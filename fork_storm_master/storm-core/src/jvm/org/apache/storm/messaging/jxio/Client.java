@@ -255,6 +255,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         if (closing) {
             return Status.Closed;
         }
+        if (input == null){
+        	return Status.Ready;
+        }
         return Status.Connecting;
     }
 
