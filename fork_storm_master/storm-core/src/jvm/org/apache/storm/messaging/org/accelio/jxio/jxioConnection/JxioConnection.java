@@ -42,7 +42,7 @@ public class JxioConnection {
 	private OutputStream     output         = null;
 	private final String     name;
 	private ISConnection     isCon;
-	private OSConnection     osCon;
+	public OSConnection     osCon;
 	private URI              uri;
 	private int msgPoolSize;
 

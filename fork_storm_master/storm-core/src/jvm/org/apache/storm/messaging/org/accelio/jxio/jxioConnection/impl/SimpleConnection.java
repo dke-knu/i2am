@@ -33,7 +33,7 @@ public abstract class SimpleConnection {
 	protected EventQueueHandler eqh;
 	protected final ClientSession cs;
 	protected MsgPool msgPool;
-	protected EventName connectErrorType = null;
+	public EventName connectErrorType = null;
 	protected boolean             close            = false;
 	protected Msg msg              = null;
 
