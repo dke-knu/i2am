@@ -159,7 +159,7 @@ public class JxioConnection {
 		}
 	}
 
-	private class OSConnection extends SimpleConnection implements BufferSupplier {
+	public class OSConnection extends SimpleConnection implements BufferSupplier {
 		private final String name;
 
 		public OSConnection(URI uri, int msgIn, int msgOut, int msgCount) throws ConnectException {

@@ -5,6 +5,7 @@ import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
+import org.apache.storm.messaging.org.accelio.jxio.EventName;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnection;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.utils.Utils;
@@ -273,6 +274,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     	}
     	
     	private void reschedule() {
+    		jxClient.disconnect();
     		scheduleConnect(5000L);
     	}
     	
@@ -282,7 +284,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 			input = jxClient.getInputStream();
 			output = jxClient.getOutputStream();
 			
-			if(input == null || output == null){ // 실패했는지 점검을 무엇으로 해야하나...ㅠ
+			if(jxClient.osCon.connectErrorType == EventName.SESSION_CLOSED || jxClient.osCon.connectErrorType == EventName.SESSION_REJECT || 
+					jxClient.osCon.connectErrorType == EventName.SESSION_ERROR){
 				reschedule();
 			}
 		}
