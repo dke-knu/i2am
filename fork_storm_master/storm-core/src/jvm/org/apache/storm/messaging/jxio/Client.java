@@ -181,9 +181,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             while (msgs.hasNext()) {
                 try {
                 	output.write(msgs.next().serialize().array());
+                	pendingMessages.incrementAndGet();
+                	messagesSent.incrementAndGet();
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    pendingMessages.decrementAndGet();
+                    messagesLost.incrementAndGet();
                 }
             }
         }
