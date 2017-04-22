@@ -141,6 +141,10 @@ public abstract class SimpleConnection {
 			msg = null;
 		}
 	}
+	
+	public boolean isConnected() {
+		return !close;
+	}
 
 	public abstract void closeStream();
 

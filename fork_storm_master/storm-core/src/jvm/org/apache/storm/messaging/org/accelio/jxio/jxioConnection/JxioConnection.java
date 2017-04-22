@@ -204,6 +204,7 @@ public class JxioConnection {
 		public String toString() {
 			return this.name;
 		}
+		
 	}
 
 	public void setRcvSize(long mem) throws UnsupportedOperationException {
@@ -231,4 +232,9 @@ public class JxioConnection {
 	public String toString() {
 		return this.name;
 	}
+	
+	public boolean isConnected() {
+		return osCon.isConnected() || isCon.isConnected();
+	}
+	
 }
