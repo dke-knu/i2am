@@ -124,13 +124,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                         this.cancel();
                         return;
                     }
-                    jxClient.getInputStream();
-                    jxClient.getOutputStream();
+                   
+                    if(!jxClient.isConnected())
+                    	scheduleConnect(NO_DELAY_MS);
+                    
                 } catch (Exception exp) {
                     LOG.error("channel connection error {}", exp);
                 }
             }
-        }, 0, SESSION_ALIVE_INTERVAL_MS);
+        }, 1000L, SESSION_ALIVE_INTERVAL_MS);
     }
 
     @Override
@@ -254,11 +256,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         // TODO Auto-generated method stub
         if (closing) {
             return Status.Closed;
-        }
-        if (input == null){
+        } else if(jxClient.isConnected()){
+        	return Status.Connecting;
+        } else {
         	return Status.Ready;
         }
-        return Status.Connecting;
     }
 
 
@@ -279,6 +281,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     	
     	private void reschedule() {
     		jxClient.disconnect();
+    		jxClient = new JxioConnection(uri, jxioConfigs);
     		scheduleConnect(5000L);
     	}
     	
