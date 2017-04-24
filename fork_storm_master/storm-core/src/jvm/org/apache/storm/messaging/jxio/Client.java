@@ -1,6 +1,7 @@
 package org.apache.storm.messaging.jxio;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -33,8 +34,16 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	private URI uri;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
-       
-    	cs = null;
+
+    	this.stormConf = stormConf;
+    	
+    	try {
+			uri = new URI(String.format("rdma://%s:%s", host, port));
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     }
     
     public class ClientCallbacks implements ClientSession.Callbacks {
