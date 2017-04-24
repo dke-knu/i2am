@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
@@ -17,14 +18,16 @@ import org.apache.storm.messaging.org.accelio.jxio.EventQueueHandler;
 import org.apache.storm.messaging.org.accelio.jxio.EventReason;
 import org.apache.storm.messaging.org.accelio.jxio.Msg;
 import org.apache.storm.messaging.org.accelio.jxio.MsgPool;
+import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.impl.JxioResourceManager;
 import org.apache.storm.metric.api.IStatefulObject;
+import org.apache.storm.utils.Utils;
 
 
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
 
 	private EventQueueHandler eqh;
-	private ClientSession cs;
+	private ClientSession outCs;
 	private MsgPool msgPool;
 	private EventName connectErrorType = null;
 	private boolean close = false;
@@ -32,6 +35,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	private Msg msg = null;
 	private Map stormConf;
 	private URI uri;
+	
+	private volatile Map<Integer, Double> serverLoad = null;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
 
@@ -43,6 +48,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    	
+    	eqh = JxioResourceManager.getEqh();
+		msgPool = JxioResourceManager.getMsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE), 
+				0, msgOut);
     	
     }
     
