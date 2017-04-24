@@ -5,6 +5,7 @@ import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
+import org.apache.storm.messaging.org.accelio.jxio.EventName;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnection;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.utils.Utils;
@@ -100,6 +101,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         try {
 			jxClient = new JxioConnection(uri, jxioConfigs);
 			scheduleConnect(NO_DELAY_MS);
+			
 		} catch (ConnectException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -130,12 +132,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                         this.cancel();
                         return;
                     }
-//                    getConnectedChannel();
+
+                    if(!jxClient.isConnected())
+                    	scheduleConnect(NO_DELAY_MS);
+
                 } catch (Exception exp) {
                     LOG.error("channel connection error {}", exp);
                 }
             }
-        }, 0, SESSION_ALIVE_INTERVAL_MS);
+        }, 1000L, SESSION_ALIVE_INTERVAL_MS);
     }
 
     @Override
@@ -183,10 +188,14 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         synchronized (writeLock) {
             while (msgs.hasNext()) {
                 try {
-                    output.write(msgs.next().serialize().array());
+                	output.write(msgs.next().serialize().array());
+                	pendingMessages.incrementAndGet();
+                	messagesSent.incrementAndGet();
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
+                    pendingMessages.decrementAndGet();
+                    messagesLost.incrementAndGet();
                 }
             }
         }
@@ -260,6 +269,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
      */
     @Override
     public Status status() {
+        // TODO Auto-generated method stub
         if (closing) {
             return Status.Closed;
         } else if (!connectionEstablished()) {
@@ -285,6 +295,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             //Need to check other status?
             return true;
         }
+        } else if(jxClient.isConnected()){
+        	return Status.Connecting;
+        } else {
+        	return Status.Ready;
+        }
     }
 
 
@@ -295,30 +310,33 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private void scheduleConnect(long delayMs){
     	scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
     }
-
+    
     private class Connect implements Runnable {
 
 
     	public Connect(){
-
+    		
     	}
-
+    	
     	private void reschedule() {
+    		jxClient.disconnect();
+    		jxClient = new JxioConnection(uri, jxioConfigs);
     		scheduleConnect(5000L);
     	}
-
+    	
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			input = jxClient.getInputStream();
 			output = jxClient.getOutputStream();
-
-			if(input == null || output == null){ // �����ߴ��� ������ �������� �ؾ��ϳ�...��
+			
+			if(jxClient.osCon.connectErrorType == EventName.SESSION_CLOSED || jxClient.osCon.connectErrorType == EventName.SESSION_REJECT ||
+					jxClient.osCon.connectErrorType == EventName.SESSION_ERROR){
 				reschedule();
 			}
 		}
-
-
+    	
+    	
     }	
     	
 

@@ -42,7 +42,7 @@ public class JxioConnection {
 	private OutputStream     output         = null;
 	private final String     name;
 	private ISConnection     isCon;
-	private OSConnection     osCon;
+	public OSConnection     osCon;
 	private URI              uri;
 	private int msgPoolSize;
 
@@ -159,7 +159,7 @@ public class JxioConnection {
 		}
 	}
 
-	private class OSConnection extends SimpleConnection implements BufferSupplier {
+	public class OSConnection extends SimpleConnection implements BufferSupplier {
 		private final String name;
 
 		public OSConnection(URI uri, int msgIn, int msgOut, int msgCount) throws ConnectException {
@@ -204,6 +204,7 @@ public class JxioConnection {
 		public String toString() {
 			return this.name;
 		}
+		
 	}
 
 	public void setRcvSize(long mem) throws UnsupportedOperationException {
@@ -231,4 +232,9 @@ public class JxioConnection {
 	public String toString() {
 		return this.name;
 	}
+	
+	public boolean isConnected() {
+		return osCon.isConnected() || isCon.isConnected();
+	}
+	
 }
