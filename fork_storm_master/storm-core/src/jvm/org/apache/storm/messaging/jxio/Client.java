@@ -8,6 +8,7 @@ import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.messaging.org.accelio.jxio.EventName;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnection;
 import org.apache.storm.metric.api.IStatefulObject;
+import org.apache.storm.utils.StormBoundedExponentialBackoffRetry;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private static final String PREFIX = "JXIO-Client-";
     private static final Timer timer = new Timer("JXIO-SessionAlive-Timer", true);
     private final Context context;
+    private final StormBoundedExponentialBackoffRetry retryPolicy;
 
     private volatile boolean closing = false;
 
@@ -78,6 +80,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
      */
     private final AtomicBoolean saslChannelReady = new AtomicBoolean(false);
 
+    /**
+     * Number of connection attempts since the last disconnect.
+     */
+    private final AtomicInteger connectionAttempts = new AtomicInteger(0);
+
     Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         this.stormConf = stormConf;
         closing = false;
@@ -90,6 +97,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         jxioConfigs.put("is_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)));
         jxioConfigs.put("os_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
 
+        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
+        int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
+        int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
+        retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
+
         try {
             uri = new URI(String.format("rdma://%s:%s", host, port));
             dstAddressPrefixedName = prefixedName(uri);
@@ -99,13 +111,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
 
         try {
-			jxClient = new JxioConnection(uri, jxioConfigs);
-			scheduleConnect(NO_DELAY_MS);
-			
-		} catch (ConnectException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            jxClient = new JxioConnection(uri, jxioConfigs);
+            scheduleConnect(NO_DELAY_MS);
+        } catch (ConnectException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private String prefixedName(URI uri) {
@@ -133,8 +144,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                         return;
                     }
 
-                    if(!jxClient.isConnected())
-                    	scheduleConnect(NO_DELAY_MS);
+                    if (!jxClient.isConnected())
+                        scheduleConnect(NO_DELAY_MS);
 
                 } catch (Exception exp) {
                     LOG.error("channel connection error {}", exp);
@@ -188,9 +199,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         synchronized (writeLock) {
             while (msgs.hasNext()) {
                 try {
-                	output.write(msgs.next().serialize().array());
-                	pendingMessages.incrementAndGet();
-                	messagesSent.incrementAndGet();
+                    output.write(msgs.next().serialize().array());
+                    pendingMessages.incrementAndGet();
+                    messagesSent.incrementAndGet();
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -272,7 +283,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         // TODO Auto-generated method stub
         if (closing) {
             return Status.Closed;
-        } else if (!connectionEstablished()) {
+        } else if (jxClient.isConnected()) {
             return Status.Connecting;
         } else {
             if (saslChannelReady.get()) {
@@ -283,62 +294,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
     }
 
-    public boolean connectionEstablished() {
-        //데이터를 전송할 수 있는 완전한 연결이면 true -> Ready, 하나라도 부족한 부분이 있다면 false -> Connecting
-        if (input == null) {
-            LOG.error("Input Stream disabled");
-            return false;
-        } else if (output == null) {
-            LOG.error("Output Stream disabled");
-            return false;
-        } else {
-            //Need to check other status?
-            return true;
-        }
-        } else if(jxClient.isConnected()){
-        	return Status.Connecting;
-        } else {
-        	return Status.Ready;
-        }
-    }
-
 
     private boolean reconnectingAllowed() {
         return !closing;
     }
-    
-    private void scheduleConnect(long delayMs){
-    	scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
+
+    private void scheduleConnect(long delayMs) {
+        scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
     }
-    
-    private class Connect implements Runnable {
 
-
-    	public Connect(){
-    		
-    	}
-    	
-    	private void reschedule() {
-    		jxClient.disconnect();
-    		jxClient = new JxioConnection(uri, jxioConfigs);
-    		scheduleConnect(5000L);
-    	}
-    	
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			input = jxClient.getInputStream();
-			output = jxClient.getOutputStream();
-			
-			if(jxClient.osCon.connectErrorType == EventName.SESSION_CLOSED || jxClient.osCon.connectErrorType == EventName.SESSION_REJECT ||
-					jxClient.osCon.connectErrorType == EventName.SESSION_ERROR){
-				reschedule();
-			}
-		}
-    	
-    	
-    }	
-    	
 
     public Object getState() {
         LOG.debug("Getting metrics for client connection to {}", dstAddressPrefixedName);
@@ -374,4 +338,38 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return (uri.getHost() + ":" + uri.getPort());
     }
 
+    private class Connect implements Runnable {
+        public Connect() {
+        }
+
+        private void reschedule() {
+            jxClient.disconnect();
+            try {
+                jxClient = new JxioConnection(uri, jxioConfigs);
+            } catch (ConnectException e) {
+                e.printStackTrace();
+            }
+            scheduleConnect(5000L);
+        }
+
+        @Override
+        public void run() {
+            if (reconnectingAllowed()) {
+                try {
+                    input = jxClient.getInputStream();
+                    output = jxClient.getOutputStream();
+                } catch (ConnectException e) {
+                    e.printStackTrace();
+                }
+                if (jxClient.osCon.connectErrorType == EventName.SESSION_CLOSED || jxClient.osCon.connectErrorType == EventName.SESSION_REJECT ||
+                        jxClient.osCon.connectErrorType == EventName.SESSION_ERROR) {
+                    reschedule();
+                }
+            } else {
+                close();
+                throw new RuntimeException("Giving up to scheduleConnect to " + dstAddressPrefixedName + " after " +
+                        connectionAttempts + " failed attempts. " + messagesLost.get() + " messages were lost");
+            }
+        }
+    }
 }

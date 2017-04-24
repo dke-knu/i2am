@@ -51,6 +51,7 @@ public class TransportFactory {
         LOG.info("Storm peer transport plugin:"+transport_plugin_klassName);
 
         IContext transport;
+
         try {
             //create a factory class
             Class klass = Class.forName(transport_plugin_klassName);
@@ -69,7 +70,7 @@ public class TransportFactory {
             }
         } catch(Exception e) {
             throw new RuntimeException("Fail to construct messaging plugin from plugin "+transport_plugin_klassName, e);
-        } 
+        }
         return transport;
     }
 }
