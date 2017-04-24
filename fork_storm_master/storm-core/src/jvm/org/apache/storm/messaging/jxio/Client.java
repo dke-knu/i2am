@@ -28,7 +28,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	private boolean close = false;
 	private boolean established = false;
 	private Msg msg = null;
-	
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
        
@@ -111,14 +110,4 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 		return null;
 	}
 	
-	private class Connect implements Runnable {
-		
-		private void reschedule() {
-			
-		}
-		
-		public void run() {
-			
-		}
-	}
 }
