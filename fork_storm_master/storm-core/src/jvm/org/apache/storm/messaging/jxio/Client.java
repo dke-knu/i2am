@@ -1,5 +1,6 @@
 package org.apache.storm.messaging.jxio;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	private boolean close = false;
 	private boolean established = false;
 	private Msg msg = null;
+	private Map stormConf;
+	private URI uri;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
        
