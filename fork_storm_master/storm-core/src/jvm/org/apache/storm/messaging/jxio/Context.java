@@ -40,8 +40,7 @@ public class Context implements IContext {
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
         connections = new HashMap<>();
-        clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)));
-
+        clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS)));
     }
 
     /*
@@ -95,9 +94,8 @@ public class Context implements IContext {
     @Override
     public IConnection connect(String storm_id, String host, int port) {
         //서버 객체의 ip, port와 겹칠 경우 서버 객체를 리턴??
-        IConnection connection = connections.get(key(host,port));
-        if(connection != null)
-        {
+        IConnection connection = connections.get(key(host, port));
+        if (connection != null) {
             return connection;
         }
         //스케줄러는 필요할꺼 같다..
