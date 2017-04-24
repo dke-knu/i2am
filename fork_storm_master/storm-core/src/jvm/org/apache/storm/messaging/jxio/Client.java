@@ -27,7 +27,7 @@ import org.apache.storm.utils.Utils;
 public class Client extends ConnectionWithStatus implements IStatefulObject {
 
 	private EventQueueHandler eqh;
-	private ClientSession outCs;
+	private ClientSession cs;
 	private MsgPool msgPool;
 	private EventName connectErrorType = null;
 	private boolean close = false;
@@ -50,8 +50,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 		}
     	
     	eqh = JxioResourceManager.getEqh();
-		msgPool = JxioResourceManager.getMsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE), 
-				0, msgOut);
+		msgPool = JxioResourceManager.getMsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
+				0, Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
     	
     }
     
