@@ -1,0 +1,53 @@
+# Object files
+*.o
+*.lo
+*.la
+
+# Libraries
+.libs
+*.lib
+*.a
+
+# Shared objects
+*.so
+*.so.*
+
+# Dependencies
+.dirstamp
+.deps
+
+# Automake
+Makefile.in
+Makefile
+aclocal.m4
+autom4te.cache/
+config.h
+config.h.in
+config.guess
+config.log
+config.sub
+config.status
+config/
+configure
+ltmain.sh
+libtool
+depcomp
+install-sh
+missing
+m4/
+
+# Project/Eclipse
+.cproject
+.project
+.classpath
+
+# Java class
+*.class
+
+# Accellio specific
+
+# JX specific
+/bin
+/docs
+manifest.txt
+version
