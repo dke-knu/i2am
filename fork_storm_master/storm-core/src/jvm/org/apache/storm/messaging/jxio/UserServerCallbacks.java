@@ -17,7 +17,7 @@
 package org.apache.storm.messaging.jxio;
 
 import org.apache.storm.messaging.TaskMessage;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
+import org.accelio.jxio.jxioConnection.JxioConnectionServer;
 import org.apache.storm.serialization.KryoValuesSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
