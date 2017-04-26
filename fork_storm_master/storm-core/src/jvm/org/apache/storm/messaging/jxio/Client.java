@@ -103,6 +103,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
 
         try {
+            LOG.info("host: " + host + ", port: " + port);
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                LOG.info(""+ste);
+            }
+
             uri = new URI(String.format("rdma://%s:%s", host, port));
             dstAddressPrefixedName = prefixedName(uri);
         } catch (URISyntaxException e) {
