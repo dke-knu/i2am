@@ -88,7 +88,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     }
 
     public String jxio_name() {
-        return "JXIO-server" +host + port;
+        return "JXIO-server" +host + ", " + port;
     }
 
     private String getLocalServerIp()

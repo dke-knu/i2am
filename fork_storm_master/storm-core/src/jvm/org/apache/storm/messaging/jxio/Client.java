@@ -16,10 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -104,6 +101,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         try {
             LOG.info("host: " + host + ", port: " + port);
+            LOG.info("getLocalIp: " + getLocalServerIp());
             for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
                 LOG.info(""+ste);
             }
@@ -317,26 +315,32 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         ret.put("pending", pendingMessages.get());
         ret.put("lostOnSend", messagesLost.getAndSet(0));
         ret.put("dest", uriToString(uri));
-        String src = srcAddressName();
+        String src = getLocalServerIp();
         if (src != null) {
             ret.put("src", src);
         }
         return ret;
     }
 
-    //need to get local address from uri...
-    private String srcAddressName() {
-        String name = null;
-        try {
-            Socket tempSocket = new Socket(uri.getHost(), uri.getPort());
-
-            if (tempSocket != null) name = tempSocket.getLocalAddress().toString();
-
-            tempSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private String getLocalServerIp()
+    {
+        try
+        {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+            {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
+                    {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
         }
-        return name;
+        catch (SocketException ex) {}
+        return null;
     }
 
     private String uriToString(URI uri) {
