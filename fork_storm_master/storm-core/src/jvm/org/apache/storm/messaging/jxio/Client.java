@@ -102,11 +102,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         try {
             LOG.info("host: " + host + ", port: " + port);
             LOG.info("getLocalIp: " + getLocalServerIp());
+
+            String hostname = host.split(".")[1];
+            if(hostname == null || hostname.equals("eth")) {
+                LOG.info("host is " + host + ", parsing this to " + hostname.concat(".ib"));
+            } else {
+                LOG.info("host is " + host + ", so remain this");
+            }
             for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
                 LOG.info(""+ste);
             }
 
-            uri = new URI(String.format("rdma://%s:%s", host, port));
+            uri = new URI(String.format("rdma://%s:%s", hostname, port));
             dstAddressPrefixedName = prefixedName(uri);
         } catch (URISyntaxException e) {
             // TODO Auto-generated catch block
