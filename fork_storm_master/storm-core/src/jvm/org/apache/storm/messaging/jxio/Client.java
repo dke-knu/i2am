@@ -1,12 +1,12 @@
 package org.apache.storm.messaging.jxio;
 
+import org.accelio.jxio.EventName;
+import org.accelio.jxio.jxioConnection.JxioConnection;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
-import org.accelio.jxio.EventName;
-import org.accelio.jxio.jxioConnection.JxioConnection;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.utils.StormBoundedExponentialBackoffRetry;
 import org.apache.storm.utils.Utils;
@@ -103,17 +103,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             LOG.info("host: " + host + ", port: " + port);
             LOG.info("getLocalIp: " + getLocalServerIp());
 
-            String hostname = host.split(".")[1];
-            if(hostname == null || hostname.equals("eth")) {
-                LOG.info("host is " + host + ", parsing this to " + hostname.concat(".ib"));
+            String[] hostname = host.split(".");
+            if (hostname[1] == null) {
+                hostname[0] = host;
+                LOG.info("hostname convert to " + hostname);
+            } else if (hostname[1].equals("eth")) {
+                LOG.info("host is " + host + ", convert to " + hostname[0].concat(".ib"));
             } else {
                 LOG.info("host is " + host + ", so remain this");
             }
-            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-                LOG.info(""+ste);
-            }
 
-            uri = new URI(String.format("rdma://%s:%s", hostname, port));
+            LOG.info("now {}:{}",hostname[0], port);
+            uri = new URI(String.format("rdma://%s:%s", hostname[0], port));
             dstAddressPrefixedName = prefixedName(uri);
         } catch (URISyntaxException e) {
             // TODO Auto-generated catch block
@@ -329,24 +330,19 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return ret;
     }
 
-    private String getLocalServerIp()
-    {
-        try
-        {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
-            {
+    private String getLocalServerIp() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
-                {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
                     InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
-                    {
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress()) {
                         return inetAddress.getHostAddress().toString();
                     }
                 }
             }
+        } catch (SocketException ex) {
         }
-        catch (SocketException ex) {}
         return null;
     }
 
