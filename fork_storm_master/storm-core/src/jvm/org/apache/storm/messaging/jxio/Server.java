@@ -6,18 +6,18 @@ import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.impl.MultiBufOutputStream;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.impl.ServerWorker;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.serialization.KryoValuesSerializer;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -65,19 +65,11 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
         jxioConfigs.put("initial_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
 
-        appCallbacks = new UserServerCallbacks(this, _ser, msgpool_buf_size);
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
         try {
             String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
             URI uri = null;
-            try {
-                uri = new URI(uriString);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-            conServer = new JxioConnectionServer(uri, maxWorkers, appCallbacks, jxioConfigs);
-            conServer.start();
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -152,16 +144,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        Iterator<ServerWorker> isw = conServer.getSPWorkers().iterator();
-        while (isw.hasNext()) {
-            ServerWorker sw = isw.next();
-            String[] data = sw.getUri().getQuery().split("stream=");
-            if (data[1].split("&")[0].compareTo("input") == 0) {
-                appCallbacks.setTaskToLoad(taskToLoad);
-                appCallbacks.newSessionOS(sw.getUri(), new MultiBufOutputStream(sw));
-            }
-
-        }
         //            allChannels.write(mb);
 
     }
@@ -199,32 +181,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public Status status() {
-        if (closing) {
-            return Status.Closed;
-        }
-        //세션중 하나라도 false를 리턴하면 Connecting을 리턴한다.
-        else if (!connectionEstablished(conServer.getSPWorkers())) {
-            return Status.Connecting;
-        } else {
-            return Status.Ready;
-        }
+        return null;
     }
 
 //    private boolean connectionEstablished(Channel channel) {
 //        return channel != null && channel.isBound();
 //    }
-
-    private boolean connectionEstablished(ConcurrentLinkedQueue<ServerWorker> workers) {
-        boolean allEstablished = true;
-
-        for(ServerWorker worker : workers) {
-            //세션이 없거나 sessionClosed 플래그가 true(closed)이면 allEstablished = false
-            if(worker.getSession() == null || worker.isSessionClosed())
-                allEstablished = false;
-        }
-
-        return allEstablished;
-    }
 
     public void received(Object message, String remote) throws InterruptedException {
         List<TaskMessage> msgs = (List<TaskMessage>) message;
