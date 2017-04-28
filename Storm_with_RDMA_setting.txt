@@ -1,0 +1,27 @@
+1. git 명령어를 통해 i2am 프로젝트 복제
+	git clone https://github.com/dke-knu/i2am.git _ (if want to specific project name)
+
+2. 프로젝트 빌드
+	2.1 다음 쉘 스크립트를 실행 시켜 JXIO를 빌드한다.(IB 환경이 아니라면 빌드시 에러 발생)
+		i2am/mdJXIO/build.sh(i2am is default project name)
+	
+	2.2 위 빌드 명령어로 생성된 라이브러리를 메이븐 저장소에 추가
+		mvn install:install-file -Dfile={path_to_mdJXIO}/bin/jxio.jar -DgroupId=org.accelio -DartifactId=jxio -Dversion=1.3 -Dpackaging=jar
+
+	(만약 mdJXIO 내의 소스코드를 수정하였다면 재빌드 필요)
+
+	2.3 Storm 프로젝트 생성
+		cd forked_storm_master
+		mvn clean; mvn isntall -Pdist -DskipTests=true -gpg.skip=true
+		빌드에 성공하면 fork_storm_master/storm-dist/binary/final-package/target/에서 apache-storm-2.0.0-SNAPSHOT.tar.gz를 원하는 장소로 복제 
+
+3. 클러스터 환경설정 및 실행
+	3.1 주키퍼 설정 후 실행
+		주키퍼는 기존 방법과 동일
+
+	3.2 복제한 Storm을 압축 해제 후 실행
+		tar xzf apache-storm-2.0.0-SNAPSHOT.tar.gz
+		
+	(설정시 IP는 IB의 IP로 설정)
+
+...
