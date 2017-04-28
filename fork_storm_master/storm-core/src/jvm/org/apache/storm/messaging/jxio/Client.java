@@ -1,26 +1,21 @@
 package org.apache.storm.messaging.jxio;
 
+import org.accelio.jxio.*;
+import org.accelio.jxio.jxioConnection.impl.JxioResourceManager;
+import org.apache.storm.Config;
+import org.apache.storm.grouping.Load;
+import org.apache.storm.messaging.ConnectionWithStatus;
+import org.apache.storm.messaging.IConnectionCallback;
+import org.apache.storm.messaging.TaskMessage;
+import org.apache.storm.metric.api.IStatefulObject;
+import org.apache.storm.utils.Utils;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import org.apache.storm.Config;
-import org.apache.storm.grouping.Load;
-import org.apache.storm.messaging.ConnectionWithStatus;
-import org.apache.storm.messaging.IConnectionCallback;
-import org.apache.storm.messaging.TaskMessage;
-import org.apache.storm.messaging.org.accelio.jxio.ClientSession;
-import org.apache.storm.messaging.org.accelio.jxio.EventName;
-import org.apache.storm.messaging.org.accelio.jxio.EventQueueHandler;
-import org.apache.storm.messaging.org.accelio.jxio.EventReason;
-import org.apache.storm.messaging.org.accelio.jxio.Msg;
-import org.apache.storm.messaging.org.accelio.jxio.MsgPool;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.impl.JxioResourceManager;
-import org.apache.storm.metric.api.IStatefulObject;
-import org.apache.storm.utils.Utils;
 
 
 

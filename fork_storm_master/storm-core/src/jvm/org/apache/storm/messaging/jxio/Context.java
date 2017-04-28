@@ -52,7 +52,7 @@ public class Context implements IContext {
     * */
     @Override
     public void term() {
-//        clientScheduleService.stop();
+        clientScheduleService.shutdown();
 
         for (IConnection conn : connections.values()) {
             conn.close();

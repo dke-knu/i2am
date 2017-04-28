@@ -1,29 +1,28 @@
 package org.apache.storm.messaging.jxio;
 
+import org.accelio.jxio.*;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
-import org.apache.storm.messaging.org.accelio.jxio.jxioConnection.JxioConnectionServer;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.serialization.KryoValuesSerializer;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URI;
+import java.io.IOException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by seokwoo on 17. 3. 17.
  */
-public class Server extends ConnectionWithStatus implements IStatefulObject {
+public class Server extends ConnectionWithStatus implements IStatefulObject, WorkerCache.WorkerProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(Server.class);
     @SuppressWarnings("rawtypes")
@@ -34,13 +33,18 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     private final AtomicInteger messagesDequeued = new AtomicInteger(0);
 
     private volatile boolean closing = false;
-//    List<TaskMessage> closeMessage = Arrays.asList(new TaskMessage(-1, null));
+    //    List<TaskMessage> closeMessage = Arrays.asList(new TaskMessage(-1, null));
     private KryoValuesSerializer _ser;
     private IConnectionCallback _cb = null;
 
-    protected JxioConnectionServer conServer;
-    private UserServerCallbacks appCallbacks;
     private HashMap<String, Integer> jxioConfigs = new HashMap<>();
+
+    //    private boolean close = false;
+    private EventQueueHandler listen_eqh;
+    private ServerPortal listener;
+    private static ConcurrentLinkedQueue<ServerPortalHandler> SPWorkers = new ConcurrentLinkedQueue<ServerPortalHandler>();
+    private final PortalServerCallbacks psc;
+    private int numOfWorkers;
 
 
     /*
@@ -59,48 +63,135 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         int msgpool_buf_size = Utils.getInt(storm_conf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE));
         //buffer size = MSGPOOL_BUF_SIZE ??
 //        int backlog = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SOCKET_BACKLOG), 500);
-        int maxWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
+        int initWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
+        numOfWorkers = initWorkers;
 
         jxioConfigs.put("msgpool", msgpool_buf_size);
         jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
         jxioConfigs.put("initial_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
 
-
-        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
+        String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
+        URI uri = null;
         try {
-            String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
-            URI uri = null;
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-            t.getCause().printStackTrace();
+            uri = new URI(uriString);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
 
+        psc = new PortalServerCallbacks();
+        listen_eqh = new EventQueueHandler(null);
+        listener = new ServerPortal(listen_eqh, uri, psc, this);
 
+        for (int i = 1; i <= numOfWorkers; i++) {
+            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), psc, jxioConfigs, this));
+        }
+
+        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
+
+    }
+
+    /**
+     * Thread entry point when running as a new thread
+     */
+    public void run() {
+        work();
+        listen_eqh.close();
+        LOG.info("server done");
+    }
+
+    /**
+     * Entry point when running on the user thread
+     */
+    public void work() {
+        for (ServerPortalHandler worker : SPWorkers) {
+            worker.start();
+        }
+        listen_eqh.run();
+    }
+
+    @Override
+    public WorkerCache.Worker getWorker() {
+        for (WorkerCache.Worker w : SPWorkers) {
+            if (w.isFree()) {
+                return w;
+            }
+        }
+        return createNewWorker();
+    }
+
+    private ServerPortalHandler createNewWorker() {
+        LOG.info(this.toString() + "Creating new worker");
+        numOfWorkers++;
+        ServerPortalHandler sph = new ServerPortalHandler(numOfWorkers, listener.getUriForServer(), psc, jxioConfigs, this);
+        sph.start();
+        return sph;
+    }
+
+    /**
+     * Disconnect the server and all worker threads, This can't be undone
+     */
+    public void disconnect() {
+        if (closing)
+            return;
+
+        closing = true;
+        for (Iterator<ServerPortalHandler> it = SPWorkers.iterator(); it.hasNext(); ) {
+            it.next().disconnect();
+        }
+        listen_eqh.stop();
+    }
+
+    /**
+     * Callbacks for the listener server portal
+     */
+    public class PortalServerCallbacks implements ServerPortal.Callbacks {
+
+        public void onSessionEvent(EventName event, EventReason reason) {
+            LOG.info(Server.this.toString() + " GOT EVENT " + event.toString() + "because of " + reason.toString());
+        }
+
+        public void onSessionNew(ServerSession.SessionKey sesKey, String srcIP, WorkerCache.Worker workerHint) {
+            if (closing) {
+                LOG.info(this.toString() + "Rejecting session");
+                listener.reject(sesKey, EventReason.CONNECT_ERROR, "Server is closed");
+                return;
+            }
+            ServerPortalHandler sph;
+            if (workerHint == null) {
+                listener.reject(sesKey, EventReason.CONNECT_ERROR, "No availabe worker was found in cache");
+                return;
+            } else {
+                sph = (ServerPortalHandler) workerHint;
+            }
+            // add last -> why remove??
+            SPWorkers.remove(sph);
+            SPWorkers.add(sph);
+            LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
+                    + " got new session");
+            ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
+            listener.forward(sph.getPortal(), ss);
+
+            //set remote ip
+        }
     }
 
     public String jxio_name() {
-        return "JXIO-server" +host + port;
+        return "JXIO-server-" + host + "-" + port;
     }
 
-    private String getLocalServerIp()
-    {
-        try
-        {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
-            {
+    private String getLocalServerIp() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
-                {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
                     InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress())
-                    {
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress()) {
                         return inetAddress.getHostAddress().toString();
                     }
                 }
             }
+        } catch (SocketException ex) {
         }
-        catch (SocketException ex) {}
         return null;
     }
 
@@ -144,8 +235,19 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        //            allChannels.write(mb);
+        for (ServerPortalHandler worker : SPWorkers) {
+            try {
+                Msg msg = worker.getMsg();
+                if (msg != null) {
+                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                    msg.getOut().put(tm.serialize());
+                    worker.getSession().sendResponse(msg);
+                }
 
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /*
@@ -176,7 +278,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void close() {
-        conServer.disconnect();
+
     }
 
     @Override
@@ -213,4 +315,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         ret.put("enqueued", enqueued);
         return ret;
     }
+
+
 }
