@@ -55,9 +55,14 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         this.storm_conf = storm_conf;
         this.port = port;
         _ser = new KryoValuesSerializer(storm_conf);
-        host = getLocalServerIp();
 
-        LOG.info("host IP = " + host);
+        if (storm_conf.containsKey(Config.STORM_LOCAL_HOSTNAME)) {
+            host = (String) storm_conf.get(Config.STORM_LOCAL_HOSTNAME);
+            LOG.info("host IP = " + host);
+        } else {
+            host = getLocalServerIp();
+            LOG.info("No Configuration associated host, get local host -> {}", host);
+        }
 
         //Configure the Server.
         int msgpool_buf_size = Utils.getInt(storm_conf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE));
@@ -88,6 +93,144 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
 
+    }
+
+    private void addReceiveCount(String from, int amount) {
+        //This is possibly lossy in the case where a value is deleted
+        // because it has received no messages over the metrics collection
+        // period and new messages are starting to come in.  This is
+        // because I don't want the overhead of a synchronize just to have
+        // the metric be absolutely perfect.
+        AtomicInteger i = messagesEnqueued.get(from);
+        if (i == null) {
+            i = new AtomicInteger(amount);
+            AtomicInteger prev = messagesEnqueued.putIfAbsent(from, i);
+            if (prev != null) {
+                prev.addAndGet(amount);
+            }
+        } else {
+            i.addAndGet(amount);
+        }
+    }
+
+    /**
+     * enqueue a received message
+     *
+     * @throws InterruptedException
+     */
+    protected void enqueue(List<TaskMessage> msgs, String from) throws InterruptedException {
+        if (null == msgs || msgs.size() == 0 || closing) {
+            return;
+        }
+        addReceiveCount(from, msgs.size());
+        if (_cb != null) {
+            _cb.recv(msgs);
+        }
+    }
+
+    @Override
+    public void registerRecv(IConnectionCallback cb) {
+        _cb = cb;
+    }
+
+    @Override
+    public void close() {
+        disconnect();
+    }
+
+    @Override
+    public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
+        for (ServerPortalHandler worker : SPWorkers) {
+            try {
+                Msg msg = worker.getMsg();
+                if (msg != null) {
+                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                    msg.getOut().put(tm.serialize());
+                    worker.getSession().sendResponse(msg);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*
+    * Server가 Load를 보내고 Client가 읽어 exception을 출력한다.
+    * */
+    @Override
+    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
+        throw new RuntimeException("Server connection cannot get load");
+    }
+
+    /*
+    * 서버는 Send 함수를 호출하면 안된다.
+    * Client로 send 하는 유일한 메시지는 Load Metrics
+    * */
+    @Override
+    public void send(int taskId, byte[] payload) {
+        throw new UnsupportedOperationException("Server connection should not send any messages");
+    }
+
+    /*
+    * 서버는 Send 함수를 호출하면 안된다.
+    * Client로 send 하는 유일한 메시지는 Load Metrics
+    * */
+    @Override
+    public void send(Iterator<TaskMessage> msgs) {
+        throw new UnsupportedOperationException("Server connection should not send any messages");
+    }
+
+    @Override
+    public Status status() {
+        if (closing) {
+            return Status.Closed;
+        } else if (!connectionEstablished(SPWorkers)) {
+            return Status.Connecting;
+        } else {
+            return Status.Ready;
+        }
+    }
+
+    private boolean connectionEstablished(ConcurrentLinkedQueue<ServerPortalHandler> workers) {
+        boolean allEstablished = true;
+        for (ServerPortalHandler h : workers) {
+            if (!connectionEstablished(h)) {
+                allEstablished = false;
+                break;
+            }
+        }
+        return allEstablished;
+    }
+
+    private boolean connectionEstablished(ServerPortalHandler h) {
+        return h != null && h.isSessionAlive();
+    }
+
+    public void received(Object message, String remote) throws InterruptedException {
+        List<TaskMessage> msgs = (List<TaskMessage>) message;
+        enqueue(msgs, remote);
+    }
+
+    @Override
+    public Object getState() {
+        LOG.debug("Getting metrics for server on port {}", port);
+        HashMap<String, Object> ret = new HashMap<>();
+        ret.put("dequeuedMessages", messagesDequeued.getAndSet(0));
+        HashMap<String, Integer> enqueued = new HashMap<String, Integer>();
+        Iterator<Map.Entry<String, AtomicInteger>> it = messagesEnqueued.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, AtomicInteger> ent = it.next();
+            //Yes we can delete something that is not 0 because of races, but that is OK for metrics
+            AtomicInteger i = ent.getValue();
+            if (i.get() == 0) {
+                it.remove();
+            } else {
+                enqueued.put(ent.getKey(), i.getAndSet(0));
+            }
+        }
+        ret.put("enqueued", enqueued);
+        return ret;
     }
 
     /**
@@ -162,6 +305,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                 return;
             } else {
                 sph = (ServerPortalHandler) workerHint;
+                sph.setRemoteIp(srcIP);
             }
             // add last -> why remove??
             SPWorkers.remove(sph);
@@ -171,7 +315,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
             listener.forward(sph.getPortal(), ss);
 
-            //set remote ip
         }
     }
 
@@ -194,127 +337,4 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
         return null;
     }
-
-    private void addReceiveCount(String from, int amount) {
-        //This is possibly lossy in the case where a value is deleted
-        // because it has received no messages over the metrics collection
-        // period and new messages are starting to come in.  This is
-        // because I don't want the overhead of a synchronize just to have
-        // the metric be absolutely perfect.
-        AtomicInteger i = messagesEnqueued.get(from);
-        if (i == null) {
-            i = new AtomicInteger(amount);
-            AtomicInteger prev = messagesEnqueued.putIfAbsent(from, i);
-            if (prev != null) {
-                prev.addAndGet(amount);
-            }
-        } else {
-            i.addAndGet(amount);
-        }
-    }
-
-    /**
-     * enqueue a received message
-     *
-     * @throws InterruptedException
-     */
-    protected void enqueue(List<TaskMessage> msgs, String from) throws InterruptedException {
-        if (null == msgs || msgs.size() == 0 || closing) {
-            return;
-        }
-        addReceiveCount(from, msgs.size());
-        if (_cb != null) {
-            _cb.recv(msgs);
-        }
-    }
-
-    @Override
-    public void registerRecv(IConnectionCallback cb) {
-        _cb = cb;
-    }
-
-    @Override
-    public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        for (ServerPortalHandler worker : SPWorkers) {
-            try {
-                Msg msg = worker.getMsg();
-                if (msg != null) {
-                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                    msg.getOut().put(tm.serialize());
-                    worker.getSession().sendResponse(msg);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /*
-    * 서버는 Send 함수를 호출하면 안된다.
-    * Client로 send 하는 유일한 메시지는 Load Metrics
-    * */
-    @Override
-    public void send(int taskId, byte[] payload) {
-        throw new UnsupportedOperationException("Server connection should not send any messages");
-    }
-
-    /*
-    * 서버는 Send 함수를 호출하면 안된다.
-    * Client로 send 하는 유일한 메시지는 Load Metrics
-    * */
-    @Override
-    public void send(Iterator<TaskMessage> msgs) {
-        throw new UnsupportedOperationException("Server connection should not send any messages");
-    }
-
-    /*
-    * Server가 Load를 보내고 Client가 읽어 exception을 출력한다.
-    * */
-    @Override
-    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
-        throw new RuntimeException("Server connection cannot get load");
-    }
-
-    @Override
-    public void close() {
-
-    }
-
-    @Override
-    public Status status() {
-        return null;
-    }
-
-//    private boolean connectionEstablished(Channel channel) {
-//        return channel != null && channel.isBound();
-//    }
-
-    public void received(Object message, String remote) throws InterruptedException {
-        List<TaskMessage> msgs = (List<TaskMessage>) message;
-        enqueue(msgs, remote);
-    }
-
-    @Override
-    public Object getState() {
-        LOG.debug("Getting metrics for server on port {}", port);
-        HashMap<String, Object> ret = new HashMap<>();
-        ret.put("dequeuedMessages", messagesDequeued.getAndSet(0));
-        HashMap<String, Integer> enqueued = new HashMap<String, Integer>();
-        Iterator<Map.Entry<String, AtomicInteger>> it = messagesEnqueued.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, AtomicInteger> ent = it.next();
-            //Yes we can delete something that is not 0 because of races, but that is OK for metrics
-            AtomicInteger i = ent.getValue();
-            if (i.get() == 0) {
-                it.remove();
-            } else {
-                enqueued.put(ent.getKey(), i.getAndSet(0));
-            }
-        }
-        ret.put("enqueued", enqueued);
-        return ret;
-    }
-
-
 }

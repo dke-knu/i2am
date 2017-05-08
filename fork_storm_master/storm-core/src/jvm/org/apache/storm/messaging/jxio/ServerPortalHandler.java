@@ -31,6 +31,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     private boolean waitingToClose = false;
     private boolean sessionClosed = false;
     private boolean stop = false;
+    private String remoteIp;
 
 
     public ServerPortalHandler(int index, URI uri, Server.PortalServerCallbacks psc, HashMap<String, Integer> jxioConfigs, Server server) {
@@ -49,15 +50,24 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         LOG.info(this.toString() + " is up and waiting for requests");
     }
 
+    public void setRemoteIp(String remoteIp) {
+        this.remoteIp = remoteIp;
+    }
+
+    public boolean isSessionAlive() {
+        return (session != null);
+    }
+
     public Msg getMsg() {
         for (MsgPool pool : msgPools) {
             Msg msg = pool.getMsg();
-            if(msg != null) {
+            if (msg != null) {
                 return msg;
             }
         }
         return null;
     }
+
     /**
      * Main loop of worker thread.
      * waits in eqh until first msgs is recieved
@@ -122,6 +132,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         eqh.breakEventLoop();
     }
 
+    // if session null return true, else false
     @Override
     public boolean isFree() {
         return (session == null);
@@ -157,16 +168,20 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
 
     public class ServerSessionCallbacks implements ServerSession.Callbacks {
         List<TaskMessage> messages = new ArrayList<>();
+
         @Override
         public void onRequest(Msg msg) {
 //            msg.getOut().position(msg.getOut().capacity()); // simulate 'out_msgSize' was written into buffer
 
-//            How to store msg from client...?
             ByteBuffer bb = msg.getIn();
             TaskMessage tm = new TaskMessage(0, null);
             tm.deserialize(bb);
             messages.add(tm);
-            server.received(messages, /*remoteip)*/ );
+            try {
+                server.received(messages, remoteIp);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         @Override
@@ -192,5 +207,4 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
             return true;
         }
     }
-
 }
