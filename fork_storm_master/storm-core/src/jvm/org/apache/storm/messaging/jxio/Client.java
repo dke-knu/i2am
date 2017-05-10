@@ -2,6 +2,8 @@ package org.apache.storm.messaging.jxio;
 
 import org.accelio.jxio.*;
 import org.accelio.jxio.jxioConnection.impl.JxioResourceManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
@@ -21,6 +23,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
 public class Client extends ConnectionWithStatus implements IStatefulObject, Callable<Integer> {
+
 
 	private EventQueueHandler eqh;
 	private ClientSession cs;
@@ -44,9 +47,14 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, Cal
 		}
     	
     	eqh = new EventQueueHandler(null);
-		msgPool = JxioResourceManager.getMsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
-				0, Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
+		msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
+				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)), 
+				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
     	
+    }
+    private void connect(URI uri){
+    	cs = new ClientSession(eqh, uri, new ClientCallbacks() );
+    	eqh.runEventLoop(1, -1);
     }
     
     public class ClientCallbacks implements ClientSession.Callbacks {
@@ -66,7 +74,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, Cal
 		@Override
 		public void onSessionEvent(EventName event, EventReason reason) {
 			// TODO Auto-generated method stub
-			
+			if(event == EventName.SESSION_CLOSED || event == EventName.SESSION_ERROR 
+					|| event == EventName.SESSION_REJECT){
+				
+			}
 		}
 
 		@Override
@@ -80,12 +91,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, Cal
 	@Override
 	public void registerRecv(IConnectionCallback cb) {
 		// TODO Auto-generated method stub
-		
+		throw new UnsupportedOperationException("Client connection should not receive any messages");
 	}
 
 	@Override
 	public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
 		// TODO Auto-generated method stub
+		throw new RuntimeException("Client connection should not send load metrics");
 		
 	}
 
