@@ -14,8 +14,10 @@ import org.apache.storm.utils.Utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -104,7 +106,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, Cal
 	@Override
 	public void send(int taskId, byte[] payload) {
 		// TODO Auto-generated method stub
-		
+		TaskMessage msg = new TaskMessage(taskId, payload);
+        List<TaskMessage> wrapper = new ArrayList<TaskMessage>(1);
+        wrapper.add(msg);
+        send(wrapper.iterator());
 	}
 
 	@Override
