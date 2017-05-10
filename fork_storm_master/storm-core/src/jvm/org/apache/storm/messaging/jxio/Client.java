@@ -15,19 +15,18 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
 
-public class Client extends ConnectionWithStatus implements IStatefulObject {
+public class Client extends ConnectionWithStatus implements IStatefulObject, Callable<Integer> {
 
 	private EventQueueHandler eqh;
 	private ClientSession cs;
 	private MsgPool msgPool;
-	private EventName connectErrorType = null;
 	private boolean close = false;
 	private boolean established = false;
-	private Msg msg = null;
 	private Map stormConf;
 	private URI uri;
 	
@@ -122,6 +121,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
 	@Override
 	public Status status() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Integer call() throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
