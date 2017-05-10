@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 
@@ -34,8 +35,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	private EventQueueHandler eqh;
 	private ClientSession cs;
 	private MsgPool msgPool;
-	private boolean close = false;
-	private boolean established = false;
+	private AtomicBoolean close = new AtomicBoolean(false);
+	private AtomicBoolean established = new AtomicBoolean(false);
 	private Map stormConf;
 	private URI uri;
 	ScheduledThreadPoolExecutor scheduler;
@@ -77,7 +78,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 		@Override
 		public void onSessionEstablished() {
 			// TODO Auto-generated method stub
-			established = true;
+			established.set(true);
 		}
 
 		@Override
@@ -85,7 +86,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 			// TODO Auto-generated method stub
 			if(event == EventName.SESSION_CLOSED || event == EventName.SESSION_ERROR 
 					|| event == EventName.SESSION_REJECT){
-				if(close == false)
+				if(!close.get())
 				{
 					eqh.stop();
 					connect(0);
@@ -127,7 +128,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	@Override
 	public void send(Iterator<TaskMessage> msgs) {
 		// TODO Auto-generated method stub
-		if(close) {
+		if(close.get()) {
 			return;
 		}
 		if(!hasMessages(msgs)) {
@@ -165,7 +166,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
-		close = true;
+		close.set(true);
 		cs.close();
 		eqh.close();
 		msgPool.deleteMsgPool();
@@ -180,9 +181,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	@Override
 	public Status status() {
 		// TODO Auto-generated method stub
-		if(close == true) return Status.Closed;
-		else if(established == false) return Status.Ready;
-		else return Status.Connecting;
+		if(close.get()) return Status.Closed;
+		else if(established.get()) return Status.Connecting;
+		else return Status.Ready;
 		
 	}
 	
