@@ -44,7 +44,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 			e.printStackTrace();
 		}
     	
-    	eqh = JxioResourceManager.getEqh();
+    	eqh = new EventQueueHandler(null);
 		msgPool = JxioResourceManager.getMsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
 				0, Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
     	
