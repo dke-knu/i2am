@@ -93,6 +93,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
 
+        run();
+
     }
 
     private void addReceiveCount(String from, int amount) {
@@ -334,7 +336,17 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                 }
             }
         } catch (SocketException ex) {
+            ex.printStackTrace();
         }
         return null;
+    }
+
+    public String name() {
+        return (String) storm_conf.get(Config.TOPOLOGY_NAME);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Netty server listening on port %s", port);
     }
 }

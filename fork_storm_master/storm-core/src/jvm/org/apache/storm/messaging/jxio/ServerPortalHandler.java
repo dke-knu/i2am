@@ -75,7 +75,8 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     public void run() {
         while (!stop) {
             LOG.info(this.toString() + " waiting for a new connection");
-            eqh.runEventLoop(1, EventQueueHandler.INFINITE_DURATION); // to get the forward going
+            //infinitly
+            eqh.run(); // to get the forward going
             if (notifyDisconnect) {
                 stop = true;
                 close();
