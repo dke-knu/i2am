@@ -56,14 +56,16 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 		msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
 				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)), 
 				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
-    	scheduledConnect(0);
+    	
+		connect();
+		scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
     	
     }
-    private ScheduledFuture<?> scheduledConnect(long delayMs){
+    private void connect(){
     	
     	cs = new ClientSession(eqh, uri, new ClientCallbacks() );
+    	eqh.runEventLoop(1, -1);
     	
-    	return scheduler.schedule(eqh, delayMs, TimeUnit.MILLISECONDS);
     }
         
     class ClientCallbacks implements ClientSession.Callbacks {
@@ -88,9 +90,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 				if(!close.get())
 				{
 					cs.close();
-					cs = new ClientSession(eqh, uri, new ClientCallbacks());
+					connect();
+					return;
 				}
-				
+				eqh.stop();
 			}
 		}
 
