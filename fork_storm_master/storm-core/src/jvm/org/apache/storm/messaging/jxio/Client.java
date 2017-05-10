@@ -180,7 +180,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 	@Override
 	public Status status() {
 		// TODO Auto-generated method stub
-		return null;
+		if(close == true) return Status.Closed;
+		else if(established == false) return Status.Ready;
+		else return Status.Connecting;
+		
 	}
 	
 }
