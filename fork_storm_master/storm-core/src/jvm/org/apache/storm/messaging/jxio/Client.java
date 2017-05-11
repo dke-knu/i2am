@@ -84,19 +84,14 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         dstAddressPrefixedName = prefixedName(dstAddress);
         LOG.info("creating JXIO Client, connecting to {}:{}", host, port);
         connect();
-        scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
-        LOG.info("Success!");
+        
     }
 
     private void connect() {
-        if(reconn) {
-            LOG.info("Reconnect to uri: {}", uri.toString());
-            if(eqh.getInRunEventLoop()) eqh.stop();
-            cs = null;
-        }
+        
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
         Thread task = new Thread(() -> {
-            eqh.run();
+            eqh.runEventLoop(1, -1);
         });
         task.setName("JXIO Client eqh-run thread");
         task.start();
@@ -117,6 +112,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         public void onSessionEstablished() {
             // TODO Auto-generated method stub
             established.set(true);
+            scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
+            LOG.info("Success!");
         }
 
         @Override
