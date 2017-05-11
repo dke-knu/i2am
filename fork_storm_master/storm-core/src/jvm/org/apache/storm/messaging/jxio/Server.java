@@ -258,6 +258,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             LOG.info("listen_eqh done");
         });
         LOG.info("start thread");
+        task.setName("JXIO Server listen_eqh run thread");
         task.start();
         LOG.info("end??");
 

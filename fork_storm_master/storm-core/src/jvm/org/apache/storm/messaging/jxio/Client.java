@@ -38,6 +38,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     protected final String dstAddressPrefixedName;
     private static final String PREFIX = "JXIO-Client-";
     private final InetSocketAddress dstAddress;
+    private boolean reconn = false;
 
     private volatile Map<Integer, Double> serverLoad = null;
 
@@ -88,8 +89,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private void connect() {
+        if(reconn) {
+            LOG.info("Reconnect to host: {}, port: {}", uri.toString());
+            if(eqh.getInRunEventLoop()) eqh.stop();
+            cs = null;
+        }
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
-        eqh.run();
+        Thread task = new Thread(() -> {
+            eqh.run();
+        });
+        task.setName("JXIO Client eqh-run thread");
+        task.start();
+
 
     }
 
@@ -116,6 +127,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
                     cs.close();
+                    reconn = true;
                     LOG.info("Do reconnecting");
                     connect();
                     return;
