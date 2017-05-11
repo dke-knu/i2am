@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,6 +41,24 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private volatile Map<Integer, Double> serverLoad = null;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
+
+    	this.stormConf = stormConf;
+    	
+    	try {
+			uri = new URI(String.format("rdma://%s:%s", host, port));
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	this.scheduler = scheduler;
+    	eqh = new EventQueueHandler(null);
+		msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
+				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)), 
+				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
+
+		connect();
+		scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
 
         this.stormConf = stormConf;
 
@@ -65,7 +82,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
         return scheduler.schedule(eqh, delayMs, TimeUnit.MILLISECONDS);
 
+    private void connect(){
+
+    	cs = new ClientSession(eqh, uri, new ClientCallbacks() );
+    	eqh.runEventLoop(1, -1);
+
     }
+
 
     class ClientCallbacks implements ClientSession.Callbacks {
 
@@ -82,6 +105,20 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             established.set(true);
         }
 
+		@Override
+		public void onSessionEvent(EventName event, EventReason reason) {
+			// TODO Auto-generated method stub
+			if(event == EventName.SESSION_CLOSED || event == EventName.SESSION_ERROR 
+					|| event == EventName.SESSION_REJECT){
+				if(!close.get())
+				{
+					cs.close();
+					connect();
+					return;
+				}
+				eqh.stop();
+			}
+		}
         @Override
         public void onSessionEvent(EventName event, EventReason reason) {
             // TODO Auto-generated method stub
