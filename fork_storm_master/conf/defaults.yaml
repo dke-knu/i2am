@@ -22,6 +22,17 @@ java.library.path: "/usr/local/lib:/opt/local/lib:/usr/lib:/usr/lib64"
 
 ### storm.* configs are general configurations
 # the local dir is where jars are kept
+storm.messaging.msgpool.buffer.size: 65536
+storm.messaging.jxio.client.input.buffer.count: 100
+storm.messaging.jxio.client.output.buffer.count: 100
+storm.messaging.jxio.server.initial.buffer.count: 500
+storm.messaging.jxio.server.inc.buffer.count: 100
+storm.messaging.jxio.client_worker_threads: 1
+storm.messaging.jxio.server_worker_threads: 1
+storm.messaging.jxio.socket.backlog: 500
+storm.messaging.jxio.max_retries: 300
+storm.messaging.jxio.max_wait_ms: 1000
+storm.messaging.jxio.min_wait_ms: 100
 storm.messaging.transfer.mode: "Netty"
 storm.local.dir: "storm-local"
 storm.log4j2.conf.dir: "log4j2"
