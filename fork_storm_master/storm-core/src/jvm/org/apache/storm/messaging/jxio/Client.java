@@ -11,6 +11,8 @@ import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
 
-
+    private static final Logger LOG = LoggerFactory.getLogger(Client.class);
     private EventQueueHandler eqh;
     private ClientSession cs;
     private MsgPool msgPool;
@@ -49,13 +51,14 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-//		LOG.info("creating Netty Client, connecting to {}:{}, bufferSize: {}", host, port, bufferSize);
+        LOG.info("creating JXIO Client, connecting to {}:{}", host, port);
         this.scheduler = scheduler;
         eqh = new EventQueueHandler(null);
         msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
         connect(0);
+        LOG.info("Success!");
     }
 
     private ScheduledFuture<?> connect(long delayMs) {
@@ -84,8 +87,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated method stub
             if (event == EventName.SESSION_CLOSED || event == EventName.SESSION_ERROR
                     || event == EventName.SESSION_REJECT) {
+                LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
                     eqh.stop();
+                    LOG.info("Do reconnecting");
                     connect(0);
                 }
 
@@ -95,11 +100,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         @Override
         public void onMsgError(Msg msg, EventReason reason) {
             // TODO Auto-generated method stub
+            //pending??
+            LOG.error("Got a MsgError, reason: {}", reason);
             msg.returnToParentPool();
         }
 
     }
 
+    /**
+     * Receiving messages is not supported by a client.
+     *
+     * @throws java.lang.UnsupportedOperationException whenever this method is being called.
+     */
     @Override
     public void registerRecv(IConnectionCallback cb) {
         // TODO Auto-generated method stub
@@ -179,7 +191,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     public Status status() {
         // TODO Auto-generated method stub
         if (close.get()) return Status.Closed;
-        else if (established.get()) return Status.Connecting;
+        else if (!established.get()) return Status.Connecting;
         else return Status.Ready;
 
     }
