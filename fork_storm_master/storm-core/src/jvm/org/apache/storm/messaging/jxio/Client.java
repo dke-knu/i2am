@@ -90,7 +90,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     private void connect() {
         if(reconn) {
-            LOG.info("Reconnect to host: {}, port: {}", uri.toString());
+            LOG.info("Reconnect to uri: {}", uri.toString());
             if(eqh.getInRunEventLoop()) eqh.stop();
             cs = null;
         }
