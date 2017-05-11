@@ -93,7 +93,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
 
-        run();
+        runServer();
 
     }
 
@@ -137,7 +137,14 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public void close() {
-        disconnect();
+        if (closing)
+            return;
+
+        closing = true;
+        for (Iterator<ServerPortalHandler> it = SPWorkers.iterator(); it.hasNext(); ) {
+            it.next().disconnect();
+        }
+        listen_eqh.stop();
     }
 
     @Override
@@ -238,20 +245,22 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     /**
      * Thread entry point when running as a new thread
      */
-    public void run() {
-        work();
-        listen_eqh.close();
-        LOG.info("server done");
-    }
-
-    /**
-     * Entry point when running on the user thread
-     */
-    public void work() {
+    public void runServer() {
+        LOG.info("invoke run");
         for (ServerPortalHandler worker : SPWorkers) {
+            LOG.info("handler worker start!");
             worker.start();
+            LOG.info("handler worker started!");
         }
-        listen_eqh.run();
+        Thread task = new Thread(() -> {
+            LOG.info("listen_eqh run");
+            listen_eqh.run();
+            LOG.info("listen_eqh done");
+        });
+        LOG.info("start thread");
+        task.start();
+        LOG.info("end??");
+
     }
 
     @Override
@@ -270,20 +279,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         ServerPortalHandler sph = new ServerPortalHandler(numOfWorkers, listener.getUriForServer(), psc, jxioConfigs, this);
         sph.start();
         return sph;
-    }
-
-    /**
-     * Disconnect the server and all worker threads, This can't be undone
-     */
-    public void disconnect() {
-        if (closing)
-            return;
-
-        closing = true;
-        for (Iterator<ServerPortalHandler> it = SPWorkers.iterator(); it.hasNext(); ) {
-            it.next().disconnect();
-        }
-        listen_eqh.stop();
     }
 
     /**
@@ -347,6 +342,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public String toString() {
-        return String.format("Netty server listening on port %s", port);
+        return String.format("JXIO server listening on port %s", port);
     }
 }

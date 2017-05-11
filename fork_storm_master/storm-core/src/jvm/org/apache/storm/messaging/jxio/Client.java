@@ -89,7 +89,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     private void connect() {
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
-        eqh.runEventLoop(1, -1);
+        eqh.run();
 
     }
 
