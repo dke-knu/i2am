@@ -14,16 +14,13 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
@@ -38,27 +35,34 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private URI uri;
     ScheduledThreadPoolExecutor scheduler;
 
+    protected final String dstAddressPrefixedName;
+    private static final String PREFIX = "JXIO-Client-";
+    private final InetSocketAddress dstAddress;
+
     private volatile Map<Integer, Double> serverLoad = null;
 
+    /**
+     * Total number of connection attempts.
+     */
+    private final AtomicInteger totalConnectionAttempts = new AtomicInteger(0);
+
+    /**
+     * Number of messages successfully sent to the remote destination.
+     */
+    private final AtomicInteger messagesSent = new AtomicInteger(0);
+
+    /**
+     * Number of messages buffered in memory.
+     */
+    private final AtomicLong pendingMessages = new AtomicLong(0);
+
+    /**
+     * Number of messages that could not be sent to the remote destination.
+     */
+    private final AtomicInteger messagesLost = new AtomicInteger(0);
+
+
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
-
-    	this.stormConf = stormConf;
-    	
-    	try {
-			uri = new URI(String.format("rdma://%s:%s", host, port));
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	this.scheduler = scheduler;
-    	eqh = new EventQueueHandler(null);
-		msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 
-				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)), 
-				Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
-
-		connect();
-		scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
 
         this.stormConf = stormConf;
 
@@ -68,27 +72,26 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        LOG.info("creating JXIO Client, connecting to {}:{}", host, port);
+
         this.scheduler = scheduler;
         eqh = new EventQueueHandler(null);
         msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
-        connect(0);
+
+        dstAddress = new InetSocketAddress(host, port);
+        dstAddressPrefixedName = prefixedName(dstAddress);
+        LOG.info("creating JXIO Client, connecting to {}:{}", host, port);
+        connect();
+        scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
         LOG.info("Success!");
     }
 
-    private ScheduledFuture<?> connect(long delayMs) {
+    private void connect() {
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
-        return scheduler.schedule(eqh, delayMs, TimeUnit.MILLISECONDS);
-
-    private void connect(){
-
-    	cs = new ClientSession(eqh, uri, new ClientCallbacks() );
-    	eqh.runEventLoop(1, -1);
+        eqh.runEventLoop(1, -1);
 
     }
-
 
     class ClientCallbacks implements ClientSession.Callbacks {
 
@@ -105,20 +108,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             established.set(true);
         }
 
-		@Override
-		public void onSessionEvent(EventName event, EventReason reason) {
-			// TODO Auto-generated method stub
-			if(event == EventName.SESSION_CLOSED || event == EventName.SESSION_ERROR 
-					|| event == EventName.SESSION_REJECT){
-				if(!close.get())
-				{
-					cs.close();
-					connect();
-					return;
-				}
-				eqh.stop();
-			}
-		}
         @Override
         public void onSessionEvent(EventName event, EventReason reason) {
             // TODO Auto-generated method stub
@@ -126,11 +115,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                     || event == EventName.SESSION_REJECT) {
                 LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
-                    eqh.stop();
+                    cs.close();
                     LOG.info("Do reconnecting");
-                    connect(0);
+                    connect();
+                    return;
                 }
-
+                eqh.stop();
             }
         }
 
@@ -205,8 +195,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
-        // TODO Auto-generated method stub
-        return null;
+        Map<Integer, Double> loadCache = serverLoad;
+        Map<Integer, Load> ret = new HashMap<Integer, Load>();
+        if (loadCache != null) {
+            double clientLoad = Math.min(pendingMessages.get(), 1024)/1024.0;
+            for (Integer task : tasks) {
+                Double found = loadCache.get(task);
+                if (found != null) {
+                    ret.put(task, new Load(true, found, clientLoad));
+                }
+            }
+        }
+        return ret;
     }
 
     @Override
@@ -220,7 +220,34 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public Object getState() {
-        // TODO Auto-generated method stub
+        LOG.debug("Getting metrics for client connection to {}", dstAddressPrefixedName);
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+        ret.put("reconnects", totalConnectionAttempts.getAndSet(0));
+        ret.put("sent", messagesSent.getAndSet(0));
+        ret.put("pending", pendingMessages.get());
+        ret.put("lostOnSend", messagesLost.getAndSet(0));
+        ret.put("dest", dstAddress.toString());
+        String src = getLocalServerIp();
+        if (src != null) {
+            ret.put("src", src);
+        }
+        return ret;
+    }
+
+    private String getLocalServerIp() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && !inetAddress.isLinkLocalAddress() && inetAddress.isSiteLocalAddress()) {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
+        }
         return null;
     }
 
@@ -231,6 +258,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         else if (!established.get()) return Status.Connecting;
         else return Status.Ready;
 
+    }
+
+    private String prefixedName(InetSocketAddress dstAddress) {
+        if (null != dstAddress) {
+            return PREFIX + dstAddress.toString();
+        }
+        return "";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("JXIO client for connecting to %s", dstAddressPrefixedName);
     }
 
 }
