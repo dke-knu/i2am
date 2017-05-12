@@ -223,6 +223,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         // TODO Auto-generated method stub
         close.set(true);
         cs.close();
+        eqh.stop();
         eqh.close();
         msgPool.deleteMsgPool();
     }
