@@ -82,7 +82,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         dstAddress = new InetSocketAddress(host, port);
         dstAddressPrefixedName = prefixedName(dstAddress);
-        LOG.info("creating JXIO Client, connecting to {}:{}", host, port);
+        LOG.info(", ThreadName: " + Thread.currentThread().getName() + " creating JXIO Client, connecting to {}:{}", host, port);
         connect();
         
     }
@@ -125,7 +125,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 if (!close.get()) {
                     cs.close();
                     reconn = true;
-                    LOG.info("Do reconnecting");
+                    LOG.info("Do reconnecting threadName: " + Thread.currentThread().getName());
                     connect();
                     return;
                 }
@@ -265,7 +265,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     public Status status() {
         // TODO Auto-generated method stub
         if (close.get()) return Status.Closed;
-        else if (!established.get()) return Status.Connecting;
+        else if (!established.get() && cs != null) return Status.Connecting;
         else return Status.Ready;
 
     }

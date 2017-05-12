@@ -1,6 +1,8 @@
 package org.apache.storm.messaging.jxio;
 
 import org.accelio.jxio.*;
+import org.accelio.jxio.exceptions.JxioGeneralException;
+import org.accelio.jxio.exceptions.JxioSessionClosedException;
 import org.apache.storm.messaging.TaskMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     private final ServerSessionCallbacks ssCallbacks;
     public final int portalIndex;
     private final String name;
-    private ArrayList<MsgPool> msgPools;
+    private MsgPool msgPool;
     private Msg msg = null;
     private boolean notifyDisconnect = false;
     private boolean waitingToClose = false;
@@ -38,16 +40,13 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         this.server = server;
         portalIndex = index;
         name = "[ServerPortalHandler " + portalIndex + " ]";
-        eqh = new EventQueueHandler(new EqhCallbacks(jxioConfigs.get("inc_buf_count"), jxioConfigs.get("msgpool"),
-                jxioConfigs.get("msgpool")));
-        this.msgPools = new ArrayList<MsgPool>();
-        MsgPool pool = new MsgPool(jxioConfigs.get("initial_buf_count"), jxioConfigs.get("msgpool"),
+        eqh = new EventQueueHandler(new EqhCallbacks());
+        msgPool = new MsgPool(jxioConfigs.get("initial_buf_count"), jxioConfigs.get("msgpool"),
                 jxioConfigs.get("msgpool"));
-        msgPools.add(pool);
-        eqh.bindMsgPool(pool);
+        eqh.bindMsgPool(msgPool);
         ssCallbacks = new ServerSessionCallbacks();
         sp = new ServerPortal(eqh, uri, psc);
-        LOG.info(this.toString() + " is up and waiting for requests");
+        LOG.info(this.toString() + " is up and waiting for requests" + Thread.currentThread().getName());
     }
 
     public void setRemoteIp(String remoteIp) {
@@ -58,14 +57,17 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         return (session != null);
     }
 
-    public Msg getMsg() {
-        for (MsgPool pool : msgPools) {
-            Msg msg = pool.getMsg();
-            if (msg != null) {
-                return msg;
-            }
+    public void sendMsg(TaskMessage message) {
+        try {
+            Msg msg = msgPool.getMsg();
+            msg.getOut().put(message.serialize());
+            session.sendResponse(msg);
+        } catch (JxioGeneralException e) {
+            e.printStackTrace();
+        } catch (JxioSessionClosedException e) {
+            e.printStackTrace();
         }
-        return null;
+
     }
 
     /**
@@ -84,10 +86,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         }
         eqh.stop();
         eqh.close();
-        for (MsgPool mp : msgPools) {
-            mp.deleteMsgPool();
-        }
-        msgPools.clear();
+        msgPool.deleteMsgPool();
         LOG.info(this.toString() + " worker done");
     }
 
@@ -148,22 +147,10 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {
-        private final ServerPortalHandler outer = ServerPortalHandler.this;
-        private final int numMsgs;
-        private final int inMsgSize;
-        private final int outMsgSize;
-
-        public EqhCallbacks(int msgs, int in, int out) {
-            numMsgs = msgs;
-            inMsgSize = in;
-            outMsgSize = out;
-        }
 
         public MsgPool getAdditionalMsgPool(int in, int out) {
-            MsgPool mp = new MsgPool(numMsgs, inMsgSize, outMsgSize);
-            LOG.warn(this.outer.toString() + " " + outer.toString() + ": new MsgPool: " + mp);
-            outer.msgPools.add(mp);
-            return mp;
+            LOG.info("Messages in Server's message ran out, Aborting test");
+            return null;
         }
     }
 

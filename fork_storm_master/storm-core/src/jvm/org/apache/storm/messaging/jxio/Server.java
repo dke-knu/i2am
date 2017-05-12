@@ -17,6 +17,8 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,6 +47,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     private static ConcurrentLinkedQueue<ServerPortalHandler> SPWorkers = new ConcurrentLinkedQueue<ServerPortalHandler>();
     private final PortalServerCallbacks psc;
     private int numOfWorkers;
+    private ExecutorService workers;
 
 
     /*
@@ -89,7 +92,14 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
         for (int i = 1; i <= numOfWorkers; i++) {
             SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), psc, jxioConfigs, this));
+
         }
+//        if(numOfWorkers > 0) {
+//            workers = Executors.newFixedThreadPool(numOfWorkers, new JxioRenameThreadFactory(jxio_name() + "-handler"));
+//        } else {
+//            workers = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-handler"));
+//        }
+
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
 
@@ -149,16 +159,16 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
+        TaskMessage tm;
         for (ServerPortalHandler worker : SPWorkers) {
+            if (worker == null) {
+                LOG.error("Handler not initialized worker: {}", worker.getSession().toString());
+            }
             try {
-                Msg msg = worker.getMsg();
-                if (msg != null) {
-                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                    msg.getOut().put(tm.serialize());
-                    worker.getSession().sendResponse(msg);
-                }
-
+                    tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                    worker.sendMsg(tm);
             } catch (IOException e) {
+                LOG.error("sendLoadMetrics error...");
                 e.printStackTrace();
             }
         }
@@ -246,10 +256,11 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
      * Thread entry point when running as a new thread
      */
     public void runServer() {
+        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
         LOG.info("invoke run");
         for (ServerPortalHandler worker : SPWorkers) {
             LOG.info("handler worker start!");
-            worker.start();
+            threads.submit(worker);
             LOG.info("handler worker started!");
         }
         Thread task = new Thread(() -> {
@@ -309,7 +320,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             SPWorkers.remove(sph);
             SPWorkers.add(sph);
             LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
-                    + " got new session");
+                    + " got new session from {}", srcIP);
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
             listener.forward(sph.getPortal(), ss);
 
