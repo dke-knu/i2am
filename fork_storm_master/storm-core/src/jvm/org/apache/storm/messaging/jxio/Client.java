@@ -61,6 +61,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
      * Number of messages that could not be sent to the remote destination.
      */
     private final AtomicInteger messagesLost = new AtomicInteger(0);
+    
+    private final AtomicInteger connectionAttempts = new AtomicInteger(0);
 
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
@@ -84,7 +86,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         dstAddressPrefixedName = prefixedName(dstAddress);
         LOG.info(", ThreadName: " + Thread.currentThread().getName() + " creating JXIO Client, connecting to {}:{}", host, port);
         connect();
-        
+
     }
 
     private void connect() {
@@ -94,7 +96,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             eqh.runEventLoop(1, -1);
         });
         task.setName("JXIO Client eqh-run thread");
-        task.start();
+        scheduler.schedule( task, connectionAttempts.getAndIncrement(), TimeUnit.SECONDS);
 
 
     }
@@ -113,6 +115,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated method stub
             established.set(true);
             scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
+            connectionAttempts.set(0);
             LOG.info("Success!");
         }
 
