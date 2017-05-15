@@ -82,7 +82,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         this.scheduler = scheduler;
         eqh = new EventQueueHandler(new ClientEQHCallbacks());
 
-        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
+        int maxReconnectionAttempts = 29; //Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES)); //deprecated
         int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
         int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
         msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
@@ -100,15 +100,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private void connect(long delayMs) {
         final int connectionAttempt = connectionAttempts.getAndIncrement();
         totalConnectionAttempts.getAndIncrement();
-        LOG.info("connecting to {}:{} [attempt {}]", uri.getHost(), uri.getPort(), connectionAttempt);
+        LOG.info("connecting to {}:{} [attempt {}], total attempt: {}", uri.getHost(), uri.getPort(), connectionAttempt, totalConnectionAttempts);
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
         Thread task = new Thread(() -> {
             eqh.runEventLoop(1, -1);
         });
         task.setName(Thread.currentThread().getName() + "JXIO Client eqh-run thread");
         scheduler.schedule(task, delayMs, TimeUnit.SECONDS);
-
-
     }
 
     class ClientEQHCallbacks implements EventQueueHandler.Callbacks {

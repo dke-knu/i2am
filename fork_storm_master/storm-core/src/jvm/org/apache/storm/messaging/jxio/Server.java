@@ -255,10 +255,16 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     public void runServer() {
 //        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
         for (ServerPortalHandler worker : SPWorkers) {
-//            threads.submit(worker);
-            new JxioRenameThreadFactory(jxio_name() + "-worker").newThread(worker).start();
+            worker.start();
+//            new JxioRenameThreadFactory(jxio_name() + "-worker").newThread(worker).start();
         }
-        new JxioRenameThreadFactory(jxio_name() + "eqh handler").newThread(listen_eqh).start();
+//        new JxioRenameThreadFactory(jxio_name() + "eqh handler").newThread(listen_eqh).start();
+        Thread task = new Thread(() -> {
+            listen_eqh.run();
+        });
+        task.setName("server EQH thread");
+        task.start();
+        LOG.info("listen_eqh is run? => " + listen_eqh.getInRunEventLoop());
         LOG.info("runServer");
 
     }
@@ -273,7 +279,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         return createNewWorker();*/
 
         // retrieve next spw and update its position in the queue
+        LOG.info("getWorker invoked");
         ServerPortalHandler s = SPWorkers.poll();
+        if(s != null) {
+            LOG.info(s.getPortal().toString());
+            LOG.info(s.getSession().toString());
+        }
         s.incrNumOfSessions();
         SPWorkers.add(s);
         return s;

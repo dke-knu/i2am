@@ -49,7 +49,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         eqh.bindMsgPool(msgPool);
         ssCallbacks = new ServerSessionCallbacks();
         sp = new ServerPortal(eqh, uri, psc);
-        LOG.info(this.toString() + " is up and waiting for requests" + Thread.currentThread().getName());
+        LOG.info(this.toString() + " is up and waiting for requests");
     }
 
     public void incrNumOfSessions() {
@@ -220,7 +220,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         @Override
         public boolean onMsgError(Msg msg, EventReason reason) {
             if (session.getIsClosing()) {
-                LOG.debug("On Message Error while closing. Reason is=" + reason);
+                LOG.info("On Message Error while closing. Reason is=" + reason);
             } else if (reason == EventReason.MSG_FLUSHED) {
                 LOG.warn(ServerPortalHandler.this.toString() + " onMsgErrorCallback. reason is " + reason);
             } else {
