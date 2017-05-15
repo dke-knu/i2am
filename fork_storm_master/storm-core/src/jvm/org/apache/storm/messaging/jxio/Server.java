@@ -218,7 +218,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     private boolean connectionEstablished(ServerPortalHandler h) {
-        LOG.debug("handler: {} session: {}", h.toString(), h.isSessionAlive());
+        LOG.info("handler: {} session: {}", h.toString(), h.isSessionAlive());
         return h != null && h.isSessionAlive();
     }
 
@@ -230,6 +230,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     @Override
     public Object getState() {
         LOG.debug("Getting metrics for server on port {}", port);
+        LOG.info("Getting metrics for server on port {}", port);
         HashMap<String, Object> ret = new HashMap<>();
         ret.put("dequeuedMessages", messagesDequeued.getAndSet(0));
         HashMap<String, Integer> enqueued = new HashMap<String, Integer>();
