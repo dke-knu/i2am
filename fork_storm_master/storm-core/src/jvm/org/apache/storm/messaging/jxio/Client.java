@@ -80,7 +80,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
 
         this.scheduler = scheduler;
-        eqh = new EventQueueHandler(null);
+        eqh = new EventQueueHandler(new ClientEQHCallbacks());
 
         int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
         int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
@@ -100,6 +100,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private void connect(long delayMs) {
         final int connectionAttempt = connectionAttempts.getAndIncrement();
         totalConnectionAttempts.getAndIncrement();
+        LOG.info("connecting to {}:{} [attempt {}]", uri.getHost(), uri.getPort(), connectionAttempt);
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
         Thread task = new Thread(() -> {
             eqh.runEventLoop(1, -1);
@@ -108,6 +109,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         scheduler.schedule(task, delayMs, TimeUnit.SECONDS);
 
 
+    }
+
+    class ClientEQHCallbacks implements EventQueueHandler.Callbacks {
+
+        @Override
+        public MsgPool getAdditionalMsgPool(int i, int i1) {
+            LOG.info("Messages in Client's message pool ran out, Aborting test");
+            return null;
+        }
     }
 
     class ClientCallbacks implements ClientSession.Callbacks {
@@ -122,9 +132,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         @Override
         public void onSessionEstablished() {
             // TODO Auto-generated method stub
+            LOG.debug("successfully connected to {}:{}, [attempt {}]", uri.getHost(), uri.getPort());
             established.set(true);
             scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
-            LOG.info("Success!");
         }
 
         @Override
@@ -136,7 +146,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 if (!close.get()) {
                     cs.close();
                     reconn = true;
-                    LOG.info("Do reconnecting to {}:{} threadName {}", uri.getHost(),uri.getPort(), Thread.currentThread().getName());
+                    LOG.info("Do reconnecting to {}:{} threadName {}", uri.getHost(), uri.getPort(), Thread.currentThread().getName());
                     long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
                     connect(nextDelayMs);
                     return;
@@ -149,7 +159,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         public void onMsgError(Msg msg, EventReason reason) {
             // TODO Auto-generated method stub
             //pending??
-            LOG.error("Got a MsgError, reason: {}", reason);
+            if (cs.getIsClosing()) {
+                LOG.info("On Message Error while closing. Reason is=" + reason);
+            } else {
+                LOG.error("On Message Error. Reason is=" + reason);
+            }
             msg.returnToParentPool();
         }
 
@@ -186,12 +200,16 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     public void send(Iterator<TaskMessage> msgs) {
         // TODO Auto-generated method stub
         if (close.get()) {
+            int numMessages = iteratorSize(msgs);
+            LOG.error("discarding {} messages because the JXIO client to {} is being closed", numMessages,
+                    dstAddressPrefixedName);
             return;
         }
         if (!hasMessages(msgs)) {
             return;
         }
         if (cs == null) {
+            dropMessages(msgs);
             return;
         }
         while (msgs.hasNext()) {
@@ -205,13 +223,28 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 e.printStackTrace();
                 msg.returnToParentPool();
             }
-
         }
-
     }
 
     private boolean hasMessages(Iterator<TaskMessage> msgs) {
         return msgs != null && msgs.hasNext();
+    }
+
+    private void dropMessages(Iterator<TaskMessage> msgs) {
+        // We consume the iterator by traversing and thus "emptying" it.
+        int msgCount = iteratorSize(msgs);
+        messagesLost.getAndAdd(msgCount);
+    }
+
+    private int iteratorSize(Iterator<TaskMessage> msgs) {
+        int size = 0;
+        if (msgs != null) {
+            while (msgs.hasNext()) {
+                size++;
+                msgs.next();
+            }
+        }
+        return size;
     }
 
     @Override

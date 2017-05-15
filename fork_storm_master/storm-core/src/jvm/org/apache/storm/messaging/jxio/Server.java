@@ -44,7 +44,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     //    private boolean close = false;
     private EventQueueHandler listen_eqh;
     private ServerPortal listener;
-    private static ConcurrentLinkedQueue<ServerPortalHandler> SPWorkers = new ConcurrentLinkedQueue<ServerPortalHandler>();
+    private static PriorityQueue<ServerPortalHandler> SPWorkers;
     private final PortalServerCallbacks psc;
     private int numOfWorkers;
     private ExecutorService workers;
@@ -73,6 +73,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 //        int backlog = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SOCKET_BACKLOG), 500);
         int initWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
         numOfWorkers = initWorkers;
+        SPWorkers = new PriorityQueue<ServerPortalHandler>(numOfWorkers);
 
         jxioConfigs.put("msgpool", msgpool_buf_size);
         jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
@@ -94,12 +95,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), psc, jxioConfigs, this));
 
         }
-//        if(numOfWorkers > 0) {
-//            workers = Executors.newFixedThreadPool(numOfWorkers, new JxioRenameThreadFactory(jxio_name() + "-handler"));
-//        } else {
-//            workers = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-handler"));
-//        }
-
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
 
@@ -165,8 +160,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                 LOG.error("Handler not initialized worker: {}", worker.getSession().toString());
             }
             try {
-                    tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                    worker.sendMsg(tm);
+                tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                worker.sendMsg(tm);
             } catch (IOException e) {
                 LOG.error("sendLoadMetrics error...");
                 e.printStackTrace();
@@ -211,7 +206,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
     }
 
-    private boolean connectionEstablished(ConcurrentLinkedQueue<ServerPortalHandler> workers) {
+    private boolean connectionEstablished(PriorityQueue<ServerPortalHandler> workers) {
         boolean allEstablished = true;
         for (ServerPortalHandler h : workers) {
             if (!connectionEstablished(h)) {
@@ -257,22 +252,13 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
      * Thread entry point when running as a new thread
      */
     public void runServer() {
-        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
-        LOG.debug("invoke run");
+//        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
         for (ServerPortalHandler worker : SPWorkers) {
-            LOG.debug("handler worker start!");
-            threads.submit(worker);
-            LOG.debug("handler worker started!");
+//            threads.submit(worker);
+            new JxioRenameThreadFactory(jxio_name() + "-worker").newThread(worker).start();
         }
-        Thread task = new Thread(() -> {
-            LOG.debug("listen_eqh run");
-            listen_eqh.run();
-            LOG.debug("listen_eqh done");
-        });
-        LOG.debug("start thread");
-        task.setName("JXIO Server listen_eqh run thread");
-        task.start();
-        LOG.debug("end??");
+        new JxioRenameThreadFactory(jxio_name() + "eqh handler").newThread(listen_eqh).start();
+        LOG.info("runServer");
 
     }
 

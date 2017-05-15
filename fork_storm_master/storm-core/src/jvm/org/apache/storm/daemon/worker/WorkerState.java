@@ -377,7 +377,7 @@ public class WorkerState {
         // Add new connections atomically
         cachedNodeToPortSocket.getAndUpdate(prev -> {
             Map<NodeInfo, IConnection> next = new HashMap<>(prev);
-            LOG.debug("check list connection");
+            LOG.info("check list connection");
             for (NodeInfo nodeInfo : newConnections) {
                 next.put(nodeInfo,
                     mqContext.connect(
@@ -440,7 +440,7 @@ public class WorkerState {
     }
 
     public void refreshLoad() {
-        LOG.debug("is sendLoadMetrics called??");
+        LOG.info("is sendLoadMetrics called??1");
         Set<Integer> remoteTasks = Sets.difference(new HashSet<Integer>(outboundTasks), new HashSet<>(taskIds));
         Long now = System.currentTimeMillis();
         Map<Integer, Double> localLoad = shortExecutorReceiveQueueMap.entrySet().stream().collect(Collectors.toMap(
@@ -456,7 +456,7 @@ public class WorkerState {
         loadMapping.setRemote(remoteLoad);
 
         if (now > nextUpdate.get()) {
-            LOG.debug("is sendLoadMetrics called??");
+            LOG.info("is sendLoadMetrics called??2");
             receiver.sendLoadMetrics(localLoad);
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }

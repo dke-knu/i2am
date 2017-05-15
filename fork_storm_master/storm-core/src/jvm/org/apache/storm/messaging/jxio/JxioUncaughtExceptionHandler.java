@@ -14,7 +14,7 @@ public class JxioUncaughtExceptionHandler implements Thread.UncaughtExceptionHan
         try {
             Utils.handleUncaughtException(e);
         } catch (Error error) {
-            LOG.error("Received error in JXIO tread.. terminating server...");
+            LOG.error("Received error in JXIO thread.. terminating server...");
             Runtime.getRuntime().exit(1);
         }
     }

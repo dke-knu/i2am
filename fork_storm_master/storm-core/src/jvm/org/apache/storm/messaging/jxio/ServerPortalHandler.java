@@ -54,12 +54,12 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
 
     public void incrNumOfSessions() {
         num_of_sessions.incrementAndGet();
-        System.out.println("Server worker number " + (portalIndex + 1) + " got new Session, now handling " + num_of_sessions + " sessions");
+        LOG.info("Server worker number " + (portalIndex + 1) + " got new Session, now handling " + num_of_sessions + " sessions");
     }
 
     private void decrNumOfSessions() {
         num_of_sessions.decrementAndGet();
-        System.out.println("Server worker number " + (portalIndex + 1) + " disconnected from a Session, now handling " + num_of_sessions
+        LOG.info("Server worker number " + (portalIndex + 1) + " disconnected from a Session, now handling " + num_of_sessions
                 + " sessions");
         server.updateWorkers(this);
     }
@@ -69,6 +69,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     }
 
     public void setRemoteIp(String remoteIp) {
+        LOG.info("set ip: {}", remoteIp);
         this.remoteIp = remoteIp;
     }
 
@@ -180,7 +181,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         }
 
         public MsgPool getAdditionalMsgPool(int in, int out) {
-            LOG.debug("getAdditionalMsgPool in: {}, out: {}", in, out);
+            LOG.info("Need MsgPool, getAdditionalMsgPool in: {}, out: {}", in, out);
             MsgPool mp = new MsgPool(numMsgs, inMsgSize, outMsgSize);
             return mp;
         }
