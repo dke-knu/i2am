@@ -271,11 +271,8 @@ public class WorkerState {
             (long) topologyConf.get(Config.TOPOLOGY_DISRUPTOR_BATCH_TIMEOUT_MILLIS));
 
         this.conf = conf;
-        LOG.info("check list1");
         this.mqContext = (null != mqContext) ? mqContext : TransportFactory.makeContext(topologyConf);
-        LOG.info("check list2");
         this.receiver = this.mqContext.bind(topologyId, port);
-        LOG.info("check list3");
         this.topologyId = topologyId;
         this.assignmentId = assignmentId;
         this.port = port;
@@ -380,7 +377,7 @@ public class WorkerState {
         // Add new connections atomically
         cachedNodeToPortSocket.getAndUpdate(prev -> {
             Map<NodeInfo, IConnection> next = new HashMap<>(prev);
-            LOG.info("check list4");
+            LOG.debug("check list connection");
             for (NodeInfo nodeInfo : newConnections) {
                 next.put(nodeInfo,
                     mqContext.connect(
@@ -443,6 +440,7 @@ public class WorkerState {
     }
 
     public void refreshLoad() {
+        LOG.debug("is sendLoadMetrics called??");
         Set<Integer> remoteTasks = Sets.difference(new HashSet<Integer>(outboundTasks), new HashSet<>(taskIds));
         Long now = System.currentTimeMillis();
         Map<Integer, Double> localLoad = shortExecutorReceiveQueueMap.entrySet().stream().collect(Collectors.toMap(
@@ -458,6 +456,7 @@ public class WorkerState {
         loadMapping.setRemote(remoteLoad);
 
         if (now > nextUpdate.get()) {
+            LOG.debug("is sendLoadMetrics called??");
             receiver.sendLoadMetrics(localLoad);
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }

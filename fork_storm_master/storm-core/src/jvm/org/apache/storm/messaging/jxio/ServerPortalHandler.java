@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by seokwoo on 2017-04-27.
@@ -34,19 +35,37 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     private boolean sessionClosed = false;
     private boolean stop = false;
     private String remoteIp;
+    private AtomicInteger num_of_sessions;
 
 
     public ServerPortalHandler(int index, URI uri, Server.PortalServerCallbacks psc, HashMap<String, Integer> jxioConfigs, Server server) {
         this.server = server;
         portalIndex = index;
         name = "[ServerPortalHandler " + portalIndex + " ]";
-        eqh = new EventQueueHandler(new EqhCallbacks());
+        eqh = new EventQueueHandler(new EqhCallbacks(jxioConfigs.get("initial_buf_count"), jxioConfigs.get("msgpool"),
+                jxioConfigs.get("msgpool")));
         msgPool = new MsgPool(jxioConfigs.get("initial_buf_count"), jxioConfigs.get("msgpool"),
                 jxioConfigs.get("msgpool"));
         eqh.bindMsgPool(msgPool);
         ssCallbacks = new ServerSessionCallbacks();
         sp = new ServerPortal(eqh, uri, psc);
         LOG.info(this.toString() + " is up and waiting for requests" + Thread.currentThread().getName());
+    }
+
+    public void incrNumOfSessions() {
+        num_of_sessions.incrementAndGet();
+        System.out.println("Server worker number " + (portalIndex + 1) + " got new Session, now handling " + num_of_sessions + " sessions");
+    }
+
+    private void decrNumOfSessions() {
+        num_of_sessions.decrementAndGet();
+        System.out.println("Server worker number " + (portalIndex + 1) + " disconnected from a Session, now handling " + num_of_sessions
+                + " sessions");
+        server.updateWorkers(this);
+    }
+
+    public void decreaseSession() {
+        decrNumOfSessions();
     }
 
     public void setRemoteIp(String remoteIp) {
@@ -150,10 +169,20 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {
+        private final int numMsgs;
+        private final int inMsgSize;
+        private final int outMsgSize;
+
+        public EqhCallbacks(int num, int in, int out) {
+            numMsgs = num;
+            inMsgSize = in;
+            outMsgSize = out;
+        }
 
         public MsgPool getAdditionalMsgPool(int in, int out) {
-            LOG.info("Messages in Server's message ran out, Aborting test");
-            return null;
+            LOG.debug("getAdditionalMsgPool in: {}, out: {}", in, out);
+            MsgPool mp = new MsgPool(numMsgs, inMsgSize, outMsgSize);
+            return mp;
         }
     }
 
@@ -180,6 +209,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
             LOG.info(this.toString() + " got event " + event.toString() + ", the reason is "
                     + reason.toString());
             if (event == EventName.SESSION_CLOSED) {
+                decreaseSession();
                 sessionClosed = true;
                 waitingToClose = true;
                 eqh.breakEventLoop();

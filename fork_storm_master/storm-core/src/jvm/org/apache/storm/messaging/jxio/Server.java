@@ -278,12 +278,18 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public WorkerCache.Worker getWorker() {
-        for (WorkerCache.Worker w : SPWorkers) {
+     /*   for (WorkerCache.Worker w : SPWorkers) {
             if (w.isFree()) {
                 return w;
             }
         }
-        return createNewWorker();
+        return createNewWorker();*/
+
+        // retrieve next spw and update its position in the queue
+        ServerPortalHandler s = SPWorkers.poll();
+        s.incrNumOfSessions();
+        SPWorkers.add(s);
+        return s;
     }
 
     private ServerPortalHandler createNewWorker() {
@@ -319,7 +325,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             }
             // add last -> why remove??
 //            SPWorkers.remove(sph);
-            SPWorkers.add(sph);
+//            SPWorkers.add(sph);
             LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
                     + " got new session from {}", srcIP);
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
@@ -327,6 +333,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             LOG.info("forward this event");
 
         }
+    }
+
+    public synchronized static void updateWorkers(ServerPortalHandler s) {
+        // remove & add the ServerPortalWorker in order.
+        SPWorkers.remove(s);
+        SPWorkers.add(s);
     }
 
     public String jxio_name() {
