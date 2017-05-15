@@ -271,8 +271,11 @@ public class WorkerState {
             (long) topologyConf.get(Config.TOPOLOGY_DISRUPTOR_BATCH_TIMEOUT_MILLIS));
 
         this.conf = conf;
+        LOG.info("check list1");
         this.mqContext = (null != mqContext) ? mqContext : TransportFactory.makeContext(topologyConf);
+        LOG.info("check list2");
         this.receiver = this.mqContext.bind(topologyId, port);
+        LOG.info("check list3");
         this.topologyId = topologyId;
         this.assignmentId = assignmentId;
         this.port = port;
@@ -377,6 +380,7 @@ public class WorkerState {
         // Add new connections atomically
         cachedNodeToPortSocket.getAndUpdate(prev -> {
             Map<NodeInfo, IConnection> next = new HashMap<>(prev);
+            LOG.info("check list4");
             for (NodeInfo nodeInfo : newConnections) {
                 next.put(nodeInfo,
                     mqContext.connect(

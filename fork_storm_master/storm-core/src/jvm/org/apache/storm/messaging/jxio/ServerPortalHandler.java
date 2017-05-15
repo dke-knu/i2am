@@ -59,6 +59,9 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
 
     public void sendMsg(TaskMessage message) {
         try {
+
+            if(session == null) LOG.info("session null...");
+
             Msg msg = msgPool.getMsg();
             msg.getOut().put(message.serialize());
             session.sendResponse(msg);

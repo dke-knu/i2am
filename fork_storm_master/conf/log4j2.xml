@@ -24,7 +24,7 @@
   </Appenders>
   <Loggers>
     <Logger name="org.apache.zookeeper" level="WARN"/>
-    <Root level="info">
+    <Root level="DEBUG">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>

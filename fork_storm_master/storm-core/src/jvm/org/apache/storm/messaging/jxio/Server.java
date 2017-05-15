@@ -223,6 +223,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     private boolean connectionEstablished(ServerPortalHandler h) {
+        LOG.debug("handler: {} session: {}", h.toString(), h.isSessionAlive());
         return h != null && h.isSessionAlive();
     }
 
@@ -257,21 +258,21 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
      */
     public void runServer() {
         ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
-        LOG.info("invoke run");
+        LOG.debug("invoke run");
         for (ServerPortalHandler worker : SPWorkers) {
-            LOG.info("handler worker start!");
+            LOG.debug("handler worker start!");
             threads.submit(worker);
-            LOG.info("handler worker started!");
+            LOG.debug("handler worker started!");
         }
         Thread task = new Thread(() -> {
-            LOG.info("listen_eqh run");
+            LOG.debug("listen_eqh run");
             listen_eqh.run();
-            LOG.info("listen_eqh done");
+            LOG.debug("listen_eqh done");
         });
-        LOG.info("start thread");
+        LOG.debug("start thread");
         task.setName("JXIO Server listen_eqh run thread");
         task.start();
-        LOG.info("end??");
+        LOG.debug("end??");
 
     }
 
@@ -323,6 +324,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                     + " got new session from {}", srcIP);
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
             listener.forward(sph.getPortal(), ss);
+            LOG.info("forward this event");
 
         }
     }
