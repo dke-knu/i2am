@@ -10,6 +10,7 @@ import org.apache.storm.messaging.ConnectionWithStatus;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.metric.api.IStatefulObject;
+import org.apache.storm.utils.StormBoundedExponentialBackoffRetry;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     protected final String dstAddressPrefixedName;
     private static final String PREFIX = "JXIO-Client-";
     private final InetSocketAddress dstAddress;
-    private boolean reconn = false;
+
+    private final StormBoundedExponentialBackoffRetry retryPolicy;
 
     private volatile Map<Integer, Double> serverLoad = null;
 
@@ -75,6 +77,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        
+        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
+        int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
+        int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
+        retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
 
         this.scheduler = scheduler;
         eqh = new EventQueueHandler(null);
@@ -96,7 +103,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             eqh.runEventLoop(1, -1);
         });
         task.setName("JXIO Client eqh-run thread");
-        scheduler.schedule( task, connectionAttempts.getAndIncrement(), TimeUnit.SECONDS);
+        scheduler.schedule( task, retryPolicy.getSleepTimeMs(connectionAttempts.getAndIncrement() ,0), TimeUnit.MILLISECONDS);
 
 
     }
@@ -115,7 +122,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated method stub
             established.set(true);
             scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
-            connectionAttempts.set(0);
             LOG.info("Success!");
         }
 
@@ -127,7 +133,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
                     cs.close();
-                    reconn = true;
                     LOG.info("Do reconnecting threadName: " + Thread.currentThread().getName());
                     connect();
                     return;
