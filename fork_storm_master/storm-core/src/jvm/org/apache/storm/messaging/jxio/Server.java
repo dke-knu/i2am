@@ -317,7 +317,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                 sph.setRemoteIp(srcIP);
             }
             // add last -> why remove??
-            SPWorkers.remove(sph);
+//            SPWorkers.remove(sph);
             SPWorkers.add(sph);
             LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
                     + " got new session from {}", srcIP);

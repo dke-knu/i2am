@@ -34,12 +34,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private AtomicBoolean established = new AtomicBoolean(false);
     private Map stormConf;
     private URI uri;
+    private static final long NO_DELAY_MS = 0L;
     ScheduledThreadPoolExecutor scheduler;
 
     protected final String dstAddressPrefixedName;
     private static final String PREFIX = "JXIO-Client-";
     private final InetSocketAddress dstAddress;
-
+    private boolean reconn = false;
     private final StormBoundedExponentialBackoffRetry retryPolicy;
 
     private volatile Map<Integer, Double> serverLoad = null;
@@ -63,7 +64,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
      * Number of messages that could not be sent to the remote destination.
      */
     private final AtomicInteger messagesLost = new AtomicInteger(0);
-    
+
     private final AtomicInteger connectionAttempts = new AtomicInteger(0);
 
 
@@ -77,33 +78,34 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
-        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
-        int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
-        int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
-        retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
 
         this.scheduler = scheduler;
         eqh = new EventQueueHandler(null);
+
+        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
+        int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
+        int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
         msgPool = new MsgPool(Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)),
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
 
+        retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
         dstAddress = new InetSocketAddress(host, port);
         dstAddressPrefixedName = prefixedName(dstAddress);
         LOG.info(", ThreadName: " + Thread.currentThread().getName() + " creating JXIO Client, connecting to {}:{}", host, port);
-        connect();
+        connect(NO_DELAY_MS);
 
     }
 
-    private void connect() {
-        
+    private void connect(long delayMs) {
+        final int connectionAttempt = connectionAttempts.getAndIncrement();
+        totalConnectionAttempts.getAndIncrement();
         cs = new ClientSession(eqh, uri, new ClientCallbacks());
         Thread task = new Thread(() -> {
             eqh.runEventLoop(1, -1);
         });
-        task.setName("JXIO Client eqh-run thread");
-        scheduler.schedule( task, retryPolicy.getSleepTimeMs(connectionAttempts.getAndIncrement() ,0), TimeUnit.MILLISECONDS);
+        task.setName(Thread.currentThread().getName() + "JXIO Client eqh-run thread");
+        scheduler.schedule(task, delayMs, TimeUnit.SECONDS);
 
 
     }
@@ -133,8 +135,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
                     cs.close();
-                    LOG.info("Do reconnecting threadName: " + Thread.currentThread().getName());
-                    connect();
+                    reconn = true;
+                    LOG.info("Do reconnecting to {}:{} threadName {}", uri.getHost(),uri.getPort(), Thread.currentThread().getName());
+                    long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
+                    connect(nextDelayMs);
                     return;
                 }
                 eqh.stop();
@@ -215,7 +219,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         Map<Integer, Double> loadCache = serverLoad;
         Map<Integer, Load> ret = new HashMap<Integer, Load>();
         if (loadCache != null) {
-            double clientLoad = Math.min(pendingMessages.get(), 1024)/1024.0;
+            double clientLoad = Math.min(pendingMessages.get(), 1024) / 1024.0;
             for (Integer task : tasks) {
                 Double found = loadCache.get(task);
                 if (found != null) {
