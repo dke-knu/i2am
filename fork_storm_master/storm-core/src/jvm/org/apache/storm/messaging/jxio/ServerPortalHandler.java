@@ -21,7 +21,6 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
     private static final Logger LOG = LoggerFactory.getLogger(ServerPortalHandler.class);
 
     private Server server;
-    private int numOfWorkers;
     private ServerSession session = null;
     private final EventQueueHandler eqh;
     private final ServerPortal sp;

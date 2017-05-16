@@ -40,13 +40,11 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     private HashMap<String, Integer> jxioConfigs = new HashMap<>();
 
-    //    private boolean close = false;
     private EventQueueHandler listen_eqh;
     private ServerPortal listener;
     private static PriorityQueue<ServerPortalHandler> SPWorkers;
     private final PortalServerCallbacks psc;
     private int numOfWorkers;
-    private ExecutorService workers;
 
 
     /*
@@ -140,9 +138,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     @Override
-    public void close() {
-        if (closing)
-            return;
+    public synchronized void close() {
 
         closing = true;
         for (Iterator<ServerPortalHandler> it = SPWorkers.iterator(); it.hasNext(); ) {
@@ -157,13 +153,16 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         for (ServerPortalHandler worker : SPWorkers) {
             if (worker == null) {
                 LOG.error("Handler not initialized worker: {}", worker.getSession().toString());
-            }
-            try {
-                tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                worker.sendMsg(tm);
-            } catch (IOException e) {
-                LOG.error("sendLoadMetrics error...");
-                e.printStackTrace();
+            } else if (worker.getPortal() == null) LOG.error("Portal or Session null");
+            else if (worker.getPortal().getSessions() == null) LOG.error("Sesion null");
+            else {
+                try {
+                    tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                    worker.sendMsg(tm);
+                } catch (IOException e) {
+                    LOG.error("sendLoadMetrics error...");
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -320,7 +319,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             }
             // add last -> why remove??
 //            SPWorkers.remove(sph);
-//            SPWorkers.add(sph);
+            SPWorkers.add(sph);
             LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
                     + " got new session from {}", srcIP);
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
