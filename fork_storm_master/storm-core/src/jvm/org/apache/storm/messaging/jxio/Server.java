@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -253,20 +252,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
      * Thread entry point when running as a new thread
      */
     public void runServer() {
-//        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
+        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
         for (ServerPortalHandler worker : SPWorkers) {
-            worker.start();
-//            new JxioRenameThreadFactory(jxio_name() + "-worker").newThread(worker).start();
+            threads.submit(worker);
         }
-//        new JxioRenameThreadFactory(jxio_name() + "eqh handler").newThread(listen_eqh).start();
-        Thread task = new Thread(() -> {
-            listen_eqh.run();
-        });
-        task.setName("server EQH thread");
-        task.start();
-        LOG.info("listen_eqh is run? => " + listen_eqh.getInRunEventLoop());
-        LOG.info("runServer");
-
+        new JxioRenameThreadFactory(jxio_name() + "-EQH thread").newThread(listen_eqh).start();
+        LOG.info("Server & EQH thread started");
     }
 
     @Override
@@ -278,16 +269,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
         return createNewWorker();*/
 
-        // retrieve next spw and update its position in the queue
-        LOG.info("getWorker invoked");
-        ServerPortalHandler s = SPWorkers.poll();
-        if(s != null) {
-            LOG.info(s.getPortal().toString());
-            LOG.info(s.getSession().toString());
-        }
-        s.incrNumOfSessions();
-        SPWorkers.add(s);
-        return s;
+
+        return getNextWorker();
     }
 
     private ServerPortalHandler createNewWorker() {
@@ -296,6 +279,20 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         ServerPortalHandler sph = new ServerPortalHandler(numOfWorkers, listener.getUriForServer(), psc, jxioConfigs, this);
         sph.start();
         return sph;
+    }
+
+    private synchronized static ServerPortalHandler getNextWorker() {
+        // retrieve next spw and update its position in the queue
+        ServerPortalHandler s = SPWorkers.poll();
+        s.incrNumOfSessions();
+        SPWorkers.add(s);
+        return s;
+    }
+
+    public synchronized static void updateWorkers(ServerPortalHandler s) {
+        // remove & add the ServerPortalWorker in order.
+        SPWorkers.remove(s);
+        SPWorkers.add(s);
     }
 
     /**
@@ -328,15 +325,9 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                     + " got new session from {}", srcIP);
             ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
             listener.forward(sph.getPortal(), ss);
-            LOG.info("forward this event");
+            LOG.info("forward this session");
 
         }
-    }
-
-    public synchronized static void updateWorkers(ServerPortalHandler s) {
-        // remove & add the ServerPortalWorker in order.
-        SPWorkers.remove(s);
-        SPWorkers.add(s);
     }
 
     public String jxio_name() {

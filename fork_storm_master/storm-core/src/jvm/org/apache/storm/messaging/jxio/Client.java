@@ -106,6 +106,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             eqh.runEventLoop(1, -1);
         });
         task.setName(Thread.currentThread().getName() + "JXIO Client eqh-run thread");
+        LOG.info("Client EQH run? => " + eqh.getInRunEventLoop());
         scheduler.schedule(task, delayMs, TimeUnit.SECONDS);
     }
 
@@ -133,8 +134,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         public void onSessionEstablished() {
             // TODO Auto-generated method stub
             LOG.debug("successfully connected to {}:{}, [attempt {}]", uri.getHost(), uri.getPort());
+            LOG.info("Client EQH run? => " + eqh.getInRunEventLoop());
             established.set(true);
             scheduler.schedule(eqh, 0, TimeUnit.MILLISECONDS);
+            LOG.info("Client EQH run? => " + eqh.getInRunEventLoop());
         }
 
         @Override

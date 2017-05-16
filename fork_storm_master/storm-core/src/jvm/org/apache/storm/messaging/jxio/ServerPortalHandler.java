@@ -61,7 +61,7 @@ public class ServerPortalHandler extends Thread implements WorkerCache.Worker {
         num_of_sessions.decrementAndGet();
         LOG.info("Server worker number " + (portalIndex + 1) + " disconnected from a Session, now handling " + num_of_sessions
                 + " sessions");
-        server.updateWorkers(this);
+        Server.updateWorkers(this);
     }
 
     public void decreaseSession() {
