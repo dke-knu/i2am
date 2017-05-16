@@ -125,6 +125,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             // TODO Auto-generated method stub
             //StormClientHandler 참조
             msg.returnToParentPool();
+            messagesSent.incrementAndGet();
+            pendingMessages.decrementAndGet();
         }
 
         @Override
@@ -163,6 +165,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 LOG.error("On Message Error. Reason is=" + reason);
             }
             msg.returnToParentPool();
+            messagesLost.incrementAndGet();
+            pendingMessages.decrementAndGet();
         }
 
     }
@@ -216,6 +220,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
             try {
                 cs.sendRequest(msg);
+                pendingMessages.incrementAndGet();
             } catch (JxioGeneralException | JxioSessionClosedException | JxioQueueOverflowException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
