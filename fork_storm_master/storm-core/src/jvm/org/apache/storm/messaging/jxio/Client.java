@@ -101,8 +101,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         final int connectionAttempt = connectionAttempts.getAndIncrement();
         totalConnectionAttempts.getAndIncrement();
         LOG.info("connecting to {}:{} [attempt {}], total attempt: {}", uri.getHost(), uri.getPort(), connectionAttempt, totalConnectionAttempts);
-        cs = new ClientSession(eqh, uri, new ClientCallbacks());
         Thread task = new Thread(() -> {
+        	cs = new ClientSession(eqh, uri, new ClientCallbacks());
             eqh.runEventLoop(1, -1);
         });
         task.setName(Thread.currentThread().getName() + "JXIO Client eqh-run thread");
