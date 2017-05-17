@@ -40,7 +40,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     protected final String dstAddressPrefixedName;
     private static final String PREFIX = "JXIO-Client-";
     private final InetSocketAddress dstAddress;
-    private boolean reconn = false;
     private final StormBoundedExponentialBackoffRetry retryPolicy;
 
     private volatile Map<Integer, Double> serverLoad = null;
@@ -100,9 +99,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private void connect(long delayMs) {
         final int connectionAttempt = connectionAttempts.getAndIncrement();
         totalConnectionAttempts.getAndIncrement();
-        LOG.info("connecting to {}:{} [attempt {}], total attempt: {}", uri.getHost(), uri.getPort(), connectionAttempt, totalConnectionAttempts);
+      
         Thread task = new Thread(() -> {
         	cs = new ClientSession(eqh, uri, new ClientCallbacks());
+        	LOG.info("connecting to {}:{} [attempt {}], total attempt: {}", uri.getHost(), uri.getPort(), connectionAttempt, totalConnectionAttempts);
             eqh.runEventLoop(1, -1);
         });
         task.setName(Thread.currentThread().getName() + "JXIO Client eqh-run thread");
@@ -148,7 +148,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 LOG.error("Got a event: {}, reason: {}", event, reason);
                 if (!close.get()) {
                     cs.close();
-                    reconn = true;
                     LOG.info("Do reconnecting to {}:{} threadName {}", uri.getHost(), uri.getPort(), Thread.currentThread().getName());
                     long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
                     connect(nextDelayMs);
