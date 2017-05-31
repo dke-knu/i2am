@@ -26,5 +26,6 @@
   <modules>
     <module>dynamic-tagcloud</module>
     <module>dynamic-anomaly-detection</module>
+    <module>locality-aware-grouping</module>
   </modules>
 </project>
