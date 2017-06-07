@@ -22,11 +22,13 @@ java.library.path: "/usr/local/lib:/opt/local/lib:/usr/lib:/usr/lib64"
 
 ### storm.* configs are general configurations
 # the local dir is where jars are kept
+# If the Netty messaging layer is busy(netty internal buffer not writable), the Netty client will try to batch message as more as possible up to the size of storm.messaging.netty.transfer.batch.size bytes, otherwise it will try to flush message as soon as possible to reduce latency.
+storm.messaging.jxio.transfer.batch.size: 262144
 storm.messaging.msgpool.buffer.size: 65536
-storm.messaging.jxio.client.input.buffer.count: 100
-storm.messaging.jxio.client.output.buffer.count: 100
+storm.messaging.jxio.client.input.buffer.count: 200
+storm.messaging.jxio.client.output.buffer.count: 200
 storm.messaging.jxio.server.initial.buffer.count: 500
-storm.messaging.jxio.server.inc.buffer.count: 100
+storm.messaging.jxio.server.inc.buffer.count: 200
 storm.messaging.jxio.client_worker_threads: 1
 storm.messaging.jxio.server_worker_threads: 1
 storm.messaging.jxio.socket.backlog: 500
