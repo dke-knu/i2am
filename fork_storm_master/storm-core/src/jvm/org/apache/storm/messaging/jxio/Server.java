@@ -1,6 +1,8 @@
 package org.apache.storm.messaging.jxio;
 
 import org.accelio.jxio.*;
+import org.accelio.jxio.exceptions.JxioGeneralException;
+import org.accelio.jxio.exceptions.JxioSessionClosedException;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
@@ -8,44 +10,46 @@ import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.serialization.KryoValuesSerializer;
-import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by seokwoo on 17. 3. 17.
  */
-public class Server extends ConnectionWithStatus implements IStatefulObject, WorkerCache.WorkerProvider {
+public class Server extends ConnectionWithStatus implements IStatefulObject {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Server.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Server.class.getCanonicalName());
+
     @SuppressWarnings("rawtypes")
     Map storm_conf;
     int port;
     String host;
+    private volatile boolean closing = false;
+    private KryoValuesSerializer _ser;
+    private IConnectionCallback _cb = null;
     private final ConcurrentHashMap<String, AtomicInteger> messagesEnqueued = new ConcurrentHashMap<>();
     private final AtomicInteger messagesDequeued = new AtomicInteger(0);
 
-    private volatile boolean closing = false;
-    //    List<TaskMessage> closeMessage = Arrays.asList(new TaskMessage(-1, null));
-    private KryoValuesSerializer _ser;
-    private IConnectionCallback _cb = null;
 
-    private HashMap<String, Integer> jxioConfigs = new HashMap<>();
+    //JXIO's
+//    private int num_of_workers;
+    private final ServerPortalCallbacks spc;
+    private final EventQueueHandler listen_eqh;
+    private final ServerPortal listener;
+    //    private static PriorityQueue<ServerPortalHandler> SPWorkers;
+    private final MsgPool msgPool;
+    private ServerSession session;
+    Set<ServerSession> allSessions;
 
-    private EventQueueHandler listen_eqh;
-    private ServerPortal listener;
-    private static PriorityQueue<ServerPortalHandler> SPWorkers;
-    private final PortalServerCallbacks psc;
-    private int numOfWorkers;
-
+    private Map<Integer, Double> taskToLoad;
+    private volatile boolean loadMetricsFlag = false;
 
     /*
     *서버 객체를 생성하면 bind
@@ -58,45 +62,43 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
         if (storm_conf.containsKey(Config.STORM_LOCAL_HOSTNAME)) {
             host = (String) storm_conf.get(Config.STORM_LOCAL_HOSTNAME);
-            LOG.info("host IP = " + host);
+            LOG.info("host IP = {}", host);
         } else {
             host = getLocalServerIp();
-            LOG.info("No Configuration associated host, get local host -> {}", host);
+            LOG.info("No Configuration associate host,get local host -> {}", host);
         }
 
-        //Configure the Server.
-        int msgpool_buf_size = Utils.getInt(storm_conf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE));
-        //buffer size = MSGPOOL_BUF_SIZE ??
-//        int backlog = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SOCKET_BACKLOG), 500);
-        int initWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
-        numOfWorkers = initWorkers;
-        SPWorkers = new PriorityQueue<ServerPortalHandler>(numOfWorkers);
-
-        jxioConfigs.put("msgpool", msgpool_buf_size);
-        jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
-        jxioConfigs.put("initial_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
-
-        String uriString = String.format("rdma://%s:%s", host, String.valueOf(port));
         URI uri = null;
         try {
-            uri = new URI(uriString);
+            uri = new URI(String.format("rdma://%s:%s", host, String.valueOf(port)));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
-        psc = new PortalServerCallbacks();
-        listen_eqh = new EventQueueHandler(null);
-        listener = new ServerPortal(listen_eqh, uri, psc, this);
+//        num_of_workers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
 
-        for (int i = 1; i <= numOfWorkers; i++) {
-            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), psc, jxioConfigs, this));
-
-        }
-
-        LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + initWorkers);
-
+        listen_eqh = new EventQueueHandler(new EqhCallbacks(65536, 200, 200));
+        msgPool = new MsgPool(65536, 200, 200);
+        listen_eqh.bindMsgPool(msgPool);
+        spc = new ServerPortalCallbacks(this);
+        listener = new ServerPortal(listen_eqh, uri, spc);
+        allSessions = new HashSet<ServerSession>();
+//        SPWorkers = new PriorityQueue<ServerPortalHandler>(num_of_workers);
+//        for (int i = 1; i <= num_of_workers; i++) {
+//            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), spc));
+//        }
+        LOG.info("Create JXIO Server " + jxio_name() + ", worker threads: no");
         runServer();
+    }
 
+    private void runServer() {
+        LOG.info("Starting server portal workers");
+//        ThreadFactory portalWorkers = new JxioRenameThreadFactory(jxio_name() + "worker");
+//        for (ServerPortalHandler sph : SPWorkers) {
+//            sph.start();
+//        }
+        new JxioRenameThreadFactory(jxio_name() + "-EQH").newThread(listen_eqh).start();
+        LOG.info("EQH start!!");
     }
 
     private void addReceiveCount(String from, int amount) {
@@ -138,76 +140,61 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     @Override
-    public synchronized void close() {
-
-        closing = true;
-        for (Iterator<ServerPortalHandler> it = SPWorkers.iterator(); it.hasNext(); ) {
-            it.next().disconnect();
-        }
-        listen_eqh.stop();
-    }
-
-    @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        TaskMessage tm;
-        for (ServerPortalHandler worker : SPWorkers) {
-            if (worker == null) {
-                LOG.error("Handler not initialized worker: {}", worker.getSession().toString());
-            } else if (worker.getPortal() == null) LOG.error("Portal or Session null");
-            else if (worker.getPortal().getSessions() == null) LOG.error("Sesion null");
-            else {
-                try {
-                    tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                    worker.sendMsg(tm);
-                } catch (IOException e) {
-                    LOG.error("sendLoadMetrics error...");
-                    e.printStackTrace();
-                }
-            }
-        }
+        LOG.info("sendLoadMetrics called");
+        //set flag true
+        this.taskToLoad = taskToLoad;
+        loadMetricsFlag = true;
     }
 
-    /*
-    * Server가 Load를 보내고 Client가 읽어 exception을 출력한다.
-    * */
-    @Override
-    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
-        throw new RuntimeException("Server connection cannot get load");
-    }
-
-    /*
-    * 서버는 Send 함수를 호출하면 안된다.
-    * Client로 send 하는 유일한 메시지는 Load Metrics
-    * */
     @Override
     public void send(int taskId, byte[] payload) {
         throw new UnsupportedOperationException("Server connection should not send any messages");
     }
 
-    /*
-    * 서버는 Send 함수를 호출하면 안된다.
-    * Client로 send 하는 유일한 메시지는 Load Metrics
-    * */
     @Override
     public void send(Iterator<TaskMessage> msgs) {
         throw new UnsupportedOperationException("Server connection should not send any messages");
     }
 
     @Override
+    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
+        throw new RuntimeException("Server connection cannot get load");
+    }
+
+    @Override
+    public synchronized void close() {
+        listen_eqh.releaseMsgPool(msgPool);
+        msgPool.deleteMsgPool();
+        listen_eqh.stop();
+        listen_eqh.close();
+        if (allSessions.isEmpty()) {
+            for (ServerSession ss : allSessions) {
+                ss.close();
+            }
+            allSessions = null;
+        }
+    }
+
+    @Override
     public Status status() {
+        LOG.info("[Server]Status is called?");
         if (closing) {
             return Status.Closed;
-        } else if (!connectionEstablished(SPWorkers)) {
+        } else if (!connectionEstablished(allSessions)) {
+            LOG.info("[Server]All session status => Connecting");
             return Status.Connecting;
         } else {
+            LOG.info("[Server]All session status => Ready");
             return Status.Ready;
         }
     }
 
-    private boolean connectionEstablished(PriorityQueue<ServerPortalHandler> workers) {
+    private boolean connectionEstablished(Set<ServerSession> allSessions) {
         boolean allEstablished = true;
-        for (ServerPortalHandler h : workers) {
-            if (!connectionEstablished(h)) {
+        for (ServerSession ss : allSessions) {
+            if (!(connectionEstablished(ss))) {
+                LOG.info("Session Closing or null");
                 allEstablished = false;
                 break;
             }
@@ -215,14 +202,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         return allEstablished;
     }
 
-    private boolean connectionEstablished(ServerPortalHandler h) {
-        LOG.info("handler: {} session: {}", h.toString(), h.isSessionAlive());
-        return h != null && h.isSessionAlive();
-    }
-
-    public void received(Object message, String remote) throws InterruptedException {
-        List<TaskMessage> msgs = (List<TaskMessage>) message;
-        enqueue(msgs, remote);
+    private boolean connectionEstablished(ServerSession ss) {
+        return ss != null && !listen_eqh.getInRunEventLoop();
     }
 
     @Override
@@ -247,90 +228,9 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         return ret;
     }
 
-    /**
-     * Thread entry point when running as a new thread
-     */
-    public void runServer() {
-        ExecutorService threads = Executors.newCachedThreadPool(new JxioRenameThreadFactory(jxio_name() + "-worker"));
-        for (ServerPortalHandler worker : SPWorkers) {
-            threads.submit(worker);
-        }
-        new JxioRenameThreadFactory(jxio_name() + "-EQH thread").newThread(listen_eqh).start();
-        LOG.info("Server & EQH thread started");
-    }
-
-    @Override
-    public WorkerCache.Worker getWorker() {
-     /*   for (WorkerCache.Worker w : SPWorkers) {
-            if (w.isFree()) {
-                return w;
-            }
-        }
-        return createNewWorker();*/
-
-
-        return getNextWorker();
-    }
-
-    private ServerPortalHandler createNewWorker() {
-        LOG.info(this.toString() + "Creating new worker");
-        numOfWorkers++;
-        ServerPortalHandler sph = new ServerPortalHandler(numOfWorkers, listener.getUriForServer(), psc, jxioConfigs, this);
-        sph.start();
-        return sph;
-    }
-
-    private synchronized static ServerPortalHandler getNextWorker() {
-        // retrieve next spw and update its position in the queue
-        ServerPortalHandler s = SPWorkers.poll();
-        s.incrNumOfSessions();
-        SPWorkers.add(s);
-        return s;
-    }
-
-    public synchronized static void updateWorkers(ServerPortalHandler s) {
-        // remove & add the ServerPortalWorker in order.
-        SPWorkers.remove(s);
-        SPWorkers.add(s);
-    }
-
-    /**
-     * Callbacks for the listener server portal
-     */
-    public class PortalServerCallbacks implements ServerPortal.Callbacks {
-
-        public void onSessionEvent(EventName event, EventReason reason) {
-            LOG.info(Server.this.toString() + " GOT EVENT " + event.toString() + "because of " + reason.toString());
-        }
-
-        public void onSessionNew(ServerSession.SessionKey sesKey, String srcIP, WorkerCache.Worker workerHint) {
-            if (closing) {
-                LOG.info(this.toString() + "Rejecting session");
-                listener.reject(sesKey, EventReason.CONNECT_ERROR, "Server is closed");
-                return;
-            }
-            ServerPortalHandler sph;
-            if (workerHint == null) {
-                listener.reject(sesKey, EventReason.CONNECT_ERROR, "No availabe worker was found in cache");
-                return;
-            } else {
-                sph = (ServerPortalHandler) workerHint;
-                sph.setRemoteIp(srcIP);
-            }
-            // add last -> why remove??
-//            SPWorkers.remove(sph);
-            SPWorkers.add(sph);
-            LOG.info(Server.this.toString() + " Server worker number " + sph.portalIndex
-                    + " got new session from {}", srcIP);
-            ServerSession ss = new ServerSession(sesKey, sph.getSessionCallbacks());
-            listener.forward(sph.getPortal(), ss);
-            LOG.info("forward this session");
-
-        }
-    }
-
-    public String jxio_name() {
-        return "JXIO-server-" + host + "-" + port;
+    public void received(Object message, String remote) throws InterruptedException {
+        List<TaskMessage> msgs = (List<TaskMessage>) message;
+        enqueue(msgs, remote);
     }
 
     private String getLocalServerIp() {
@@ -350,12 +250,233 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         return null;
     }
 
-    public String name() {
-        return (String) storm_conf.get(Config.TOPOLOGY_NAME);
+    public String jxio_name() {
+        return "JXIO-server-localhost-" + port;
     }
 
-    @Override
     public String toString() {
         return String.format("JXIO server listening on port %s", port);
+    }
+
+//    private synchronized static ServerPortalHandler getNextWorker() {
+//        // retrieve next spw and update its position in the queue
+//        ServerPortalHandler s = SPWorkers.poll();
+//        s.incrNumOfSessions();
+//        SPWorkers.add(s);
+//        return s;
+//    }
+//
+//    public synchronized static void updateWorkers(ServerPortalHandler s) {
+//        // remove & add the ServerPortalWorker in order.
+//        SPWorkers.remove(s);
+//        SPWorkers.add(s);
+//    }
+
+    public class ServerPortalCallbacks implements ServerPortal.Callbacks {
+        private Server server;
+
+        public ServerPortalCallbacks(Server server) {
+            this.server = server;
+        }
+
+        @Override
+        public void onSessionNew(ServerSession.SessionKey sesKey, String srcIP, WorkerCache.Worker workerHint) {
+            if (closing) {
+                LOG.info("[Server]onSessionNew, CONNECT_ERROR, Rejecting session");
+                listener.reject(sesKey, EventReason.CONNECT_ERROR, "Server is closed");
+                return;
+            }
+//            ServerPortalHandler sph;
+//            if (workerHint == null) {
+//                listener.reject(sesKey, EventReason.CONNECT_ERROR, "No available worker was found in cache");
+//                return;
+//            } else {
+//                sph = (ServerPortalHandler) workerHint;
+////                sph.setRemoteIp(srcIP);
+//            }
+            LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
+            session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
+            listener.accept(session);
+//            allSessions.add(session);
+//            LOG.info("Server worker number {} got new session from {}", sph.portalIndex, srcIP);
+//            listener.forward(sph.getPortal(), (new ServerSessionHandler(sesKey, sph, server)).getSession());
+//            LOG.info("forward this session from {}", srcIP);
+        }
+
+        @Override
+        public void onSessionEvent(EventName eventName, EventReason eventReason) {
+            LOG.info("[Server]onSessionEvent, GOT EVENT {} because of {}", eventName.toString(), eventReason.toString());
+        }
+    }
+
+    public class ServerSessionCallbacks implements ServerSession.Callbacks {
+        private Server server;
+        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
+        private AtomicInteger failure_count;
+
+        public ServerSessionCallbacks(Server server) {
+            this.server = server;
+            failure_count = new AtomicInteger(0);
+        }
+
+        private Object decoder(ByteBuffer buf) {
+            long available = buf.remaining();
+            if(available < 2) {
+                //need more data
+                return null;
+            }
+            List<Object> ret = new ArrayList<>();
+
+            //Use while loop, try to decode as more messages as possible in single call
+            while (available >= 2) {
+
+                // Mark the current buffer position before reading task/len field
+                // because the whole frame might not be in the buffer yet.
+                // We will reset the buffer position to the marked position if
+                // there's not enough bytes in the buffer.
+                buf.mark();
+
+                short code = buf.getShort();
+                available -= 2;
+
+                //case 1: Control message
+                //who send controlmessage?
+                ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
+                if(ctrl_msg != null) {
+                    if(ctrl_msg == ControlMessage.EOB_MESSAGE) {
+                        continue;
+                    } else {
+                        return ctrl_msg;
+                    }
+                }
+
+                //case 2: SaslTokenMeesageRequest
+                //skip
+
+                //case 3: TaskMessage
+                //Make sure that we have received at least an integer (length)
+                if(available < 4) {
+                    //need more data
+                    buf.reset();
+                    break;
+                }
+                //Read the length field.
+                int length = buf.getInt();
+                available -= 4;
+
+                if(length <= 0) {
+                    ret.add(new TaskMessage(code, null));
+                    break;
+                }
+
+                //Make sure if there's enough bytes in the buffer.
+                if(available < length) {
+                    //The whole bytes were not received yet - return null.
+                    buf.reset();
+                    break;
+                }
+                available -= length;
+
+                //There's enough bytes in the buffer. Read it.
+                byte[] payload = new byte[length];
+                buf.get(payload);
+
+                //Successfully decoded a frame.
+                //Return a TaskMessage object
+                ret.add(new TaskMessage(code, payload));
+            }
+
+            if(ret.size() == 0) {
+                return null;
+            } else {
+                return ret;
+            }
+        }
+
+        @Override
+        public void onRequest(Msg msg) {
+            /*if (loadMetricsFlag) {
+                LOG.info("sendLoadMetrics@@@@@");
+                try {
+                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                    msg.getOut().put(tm.serialize());
+                    session.sendResponse(msg);
+                    loadMetricsFlag = false;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }*/
+            if(!msg.getIn().hasRemaining()) {
+                LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
+                return;
+            }
+
+            ByteBuffer bb = msg.getIn();
+            byte[] ipByte = new byte[13];
+            bb.get(ipByte);
+            String ipStr = new String(ipByte);
+
+            //single TaskMessage
+            /*int taskId = bb.getShort();
+            byte[] tempByte = new byte[bb.limit()-15];
+            bb.get(tempByte);
+            TaskMessage tm = new TaskMessage(taskId, tempByte);
+            messages.add(tm);*/
+
+            //batch TaskMessage
+            List<TaskMessage> messages = (ArrayList<TaskMessage>)decoder(msg.getIn());
+
+            try {
+                server.received(messages, ipStr);
+                LOG.info("[onRequest]received messages {}", msg.getIn().toString());
+            } catch (InterruptedException e) {
+                LOG.info("failed to enqueue a request message", e);
+                failure_count.incrementAndGet();
+                e.printStackTrace();
+            }
+            char ch = 's';
+            msg.getOut().put((byte)ch);
+            try {
+                session.sendResponse(msg);
+            } catch (JxioGeneralException e) {
+                e.printStackTrace();
+            } catch (JxioSessionClosedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onSessionEvent(EventName eventName, EventReason eventReason) {
+            String str = "[ServerSession][EVENT] Got event " + eventName + " because of " + eventReason;
+            if (eventName == EventName.SESSION_CLOSED) { // normal exit
+                LOG.info(str);
+            } else {
+                LOG.error(str);
+            }
+        }
+
+        @Override
+        public boolean onMsgError(Msg msg, EventReason eventReason) {
+            LOG.error("[ServerSession][ERROR] onMsgErrorCallback. reason=" + eventReason);
+            return true;
+        }
+    }
+
+    class EqhCallbacks implements EventQueueHandler.Callbacks {
+        private final int numMsgs;
+        private final int inMsgSize;
+        private final int outMsgSize;
+
+        public EqhCallbacks(int msgs, int in, int out) {
+            numMsgs = msgs;
+            inMsgSize = in;
+            outMsgSize = out;
+        }
+
+        public MsgPool getAdditionalMsgPool(int in, int out) {
+            MsgPool mp = new MsgPool(numMsgs, inMsgSize, outMsgSize);
+            LOG.warn("new MsgPool: " + mp);
+            return mp;
+        }
     }
 }

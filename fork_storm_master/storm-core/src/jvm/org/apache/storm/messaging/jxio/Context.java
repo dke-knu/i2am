@@ -8,6 +8,7 @@ import org.apache.storm.utils.Utils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by seokwoo on 17. 3. 17.
@@ -40,7 +41,10 @@ public class Context implements IContext {
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
         connections = new HashMap<>();
-        clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)));
+        ThreadFactory workerFactory = new JxioRenameThreadFactory("Client Thread");
+        clientScheduleService = new ScheduledThreadPoolExecutor(
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)),
+                workerFactory);
 
     }
 
