@@ -56,6 +56,11 @@ public class Config extends HashMap<String, Object> {
 
 
     /**
+     * If the Netty messaging layer is busy, the Netty client will try to batch message as more as possible up to the size of STORM_NETTY_MESSAGE_BATCH_SIZE bytes
+     */
+    @isInteger
+    public static final String STORM_JXIO_MESSAGE_BATCH_SIZE = "storm.messaging.jxio.transfer.batch.size";
+    /**
      * JXIO based messaging: The msgpool buffer size for send/recv at server/client
      */
     @isInteger
