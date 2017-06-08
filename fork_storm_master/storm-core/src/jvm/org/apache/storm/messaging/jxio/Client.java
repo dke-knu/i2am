@@ -67,14 +67,14 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final AtomicReference<ClientSession> sessionRef = new AtomicReference<>();
     private ClientSession cs;
     private URI uri;
-    ExecutorService eqhThread;
+    private ExecutorService eqhThread;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         this.eqh = new EventQueueHandler(null);
         this.msgPool = new MsgPool(
-                Utils.getInt(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE),
-                Utils.getInt(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT),
-                Utils.getInt(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT));
+                Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_BUFFER_COUNT)),
+                200,
+                Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)));
 
         this.storm_conf = stormConf;
         this.context = context;
@@ -185,6 +185,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 MessageBatch full = batcher.add(message);
                 if (full != null) {
                     //Need to make Msg each time.
+                    LOG.info("[Client-send] send batch");
                     flushMessages(full);
                 }
             }
@@ -194,6 +195,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         synchronized (writeLock) {
             MessageBatch batch = batcher.drain();
             if (batch != null) {
+                LOG.info("[Client-send] send immediately");
                 flushMessages(batch);
             }
         }
@@ -236,16 +238,26 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         Msg msg = msgPool.getMsg();
         String fromIp = getLocalServerIp();
+        //need 13 bytes to store ip address ex) 192.168.1.100
         msg.getOut().put(fromIp.getBytes());
         try {
-            msg.getOut().put(batch.buffer().array());
+            //maximum batch size is 262144B (256KB)
+            //so, Msg size must be upper than 256KB
+            ByteBuffer bb = batch.buffer();
+            LOG.info("[Client] bb info = {}", bb.toString());
+            byte[] tempByte = new byte[bb.limit()];
+            bb.flip();
+            bb.get(tempByte);
+            LOG.info("[Client] tempByte size = {}", tempByte.length);
+            msg.getOut().put(tempByte);
+            LOG.info("[Client] msg info = {}", msg.getOut().toString());
         } catch (Exception e) {
             LOG.error("[Client-flushMessages] put message to bytebuffer error");
             e.printStackTrace();
         }
         try {
             cs.sendRequest(msg);
-            LOG.info("send msg from {} to {}:{}", getLocalServerIp(), uri.getHost(), uri.getPort());
+            LOG.info("send msg: {} from {} to {}:{}",msg.toString(), getLocalServerIp(), uri.getHost(), uri.getPort());
         } catch (JxioGeneralException e) {
             failSendMessages(numMessages);
             e.printStackTrace();

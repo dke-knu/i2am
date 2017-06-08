@@ -10,6 +10,7 @@ import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.metric.api.IStatefulObject;
 import org.apache.storm.serialization.KryoValuesSerializer;
+import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +29,15 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     private static final Logger LOG = LoggerFactory.getLogger(Server.class.getCanonicalName());
 
     @SuppressWarnings("rawtypes")
-    Map storm_conf;
-    int port;
-    String host;
-    private volatile boolean closing = false;
-    private KryoValuesSerializer _ser;
-    private IConnectionCallback _cb = null;
+    private Map storm_conf;
+    private int port;
+    private String host;
     private final ConcurrentHashMap<String, AtomicInteger> messagesEnqueued = new ConcurrentHashMap<>();
     private final AtomicInteger messagesDequeued = new AtomicInteger(0);
 
+    private volatile boolean closing = false;
+    private KryoValuesSerializer _ser;
+    private IConnectionCallback _cb = null;
 
     //JXIO's
 //    private int num_of_workers;
@@ -46,10 +47,9 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     //    private static PriorityQueue<ServerPortalHandler> SPWorkers;
     private final MsgPool msgPool;
     private ServerSession session;
-    Set<ServerSession> allSessions;
+    private volatile Set<ServerSession> allSessions;
 
-    private Map<Integer, Double> taskToLoad;
-    private volatile boolean loadMetricsFlag = false;
+//    private volatile boolean loadMetricsFlag = false;
 
     /*
     *서버 객체를 생성하면 bind
@@ -77,8 +77,14 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
 //        num_of_workers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
 
-        listen_eqh = new EventQueueHandler(new EqhCallbacks(65536, 200, 200));
-        msgPool = new MsgPool(65536, 200, 200);
+        listen_eqh = new EventQueueHandler(new EqhCallbacks(
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)),
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 200));
+
+        msgPool = new MsgPool(
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)),
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 200);
+
         listen_eqh.bindMsgPool(msgPool);
         spc = new ServerPortalCallbacks(this);
         listener = new ServerPortal(listen_eqh, uri, spc);
@@ -142,9 +148,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
         LOG.info("sendLoadMetrics called");
-        //set flag true
-        this.taskToLoad = taskToLoad;
-        loadMetricsFlag = true;
     }
 
     @Override
@@ -167,8 +170,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         listen_eqh.releaseMsgPool(msgPool);
         msgPool.deleteMsgPool();
         listen_eqh.stop();
-        listen_eqh.close();
-        if (allSessions.isEmpty()) {
+        if (allSessions != null) {
             for (ServerSession ss : allSessions) {
                 ss.close();
             }
@@ -178,14 +180,11 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public Status status() {
-        LOG.info("[Server]Status is called?");
         if (closing) {
             return Status.Closed;
         } else if (!connectionEstablished(allSessions)) {
-            LOG.info("[Server]All session status => Connecting");
             return Status.Connecting;
         } else {
-            LOG.info("[Server]All session status => Ready");
             return Status.Ready;
         }
     }
@@ -194,7 +193,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         boolean allEstablished = true;
         for (ServerSession ss : allSessions) {
             if (!(connectionEstablished(ss))) {
-                LOG.info("Session Closing or null");
                 allEstablished = false;
                 break;
             }
@@ -203,7 +201,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private boolean connectionEstablished(ServerSession ss) {
-        return ss != null && !listen_eqh.getInRunEventLoop();
+        return ss != null && (listen_eqh.getInRunEventLoop() == true);
     }
 
     @Override
@@ -297,7 +295,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
             session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
             listener.accept(session);
-//            allSessions.add(session);
+            allSessions.add(session);
 //            LOG.info("Server worker number {} got new session from {}", sph.portalIndex, srcIP);
 //            listener.forward(sph.getPortal(), (new ServerSessionHandler(sesKey, sph, server)).getSession());
 //            LOG.info("forward this session from {}", srcIP);
@@ -349,7 +347,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
                         return ctrl_msg;
                     }
                 }
-
                 //case 2: SaslTokenMeesageRequest
                 //skip
 

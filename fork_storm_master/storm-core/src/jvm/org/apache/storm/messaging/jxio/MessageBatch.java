@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 class MessageBatch {
+
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
@@ -41,7 +42,6 @@ class MessageBatch {
         msgs.add(msg);
         encoded_length += msgEncodeLength(msg);
     }
-
 
     private int msgEncodeLength(TaskMessage taskMsg) {
         if (taskMsg == null) return 0;
@@ -77,15 +77,13 @@ class MessageBatch {
      * create a buffer containing the encoding of this batch
      */
     ByteBuffer buffer() throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(encoded_length);
-
+        ByteBuffer buffer = ByteBuffer.allocate(encoded_length);
         for (TaskMessage msg : msgs) {
             writeTaskMessage(buffer, msg);
         }
 
         //add a END_OF_BATCH indicator
         ControlMessage.EOB_MESSAGE.write(buffer);
-
 
         return buffer;
     }
@@ -103,6 +101,7 @@ class MessageBatch {
         if (message.message() != null)
             payload_len = message.message().length;
 
+
         int task_id = message.task();
         if (task_id > Short.MAX_VALUE)
             throw new RuntimeException("Task ID should not exceed " + Short.MAX_VALUE);
@@ -112,5 +111,4 @@ class MessageBatch {
         if (payload_len > 0)
             buffer.put(message.message());
     }
-
 }
