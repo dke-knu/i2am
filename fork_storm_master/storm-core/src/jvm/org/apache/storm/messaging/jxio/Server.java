@@ -3,6 +3,8 @@ package org.apache.storm.messaging.jxio;
 import org.accelio.jxio.*;
 import org.accelio.jxio.exceptions.JxioGeneralException;
 import org.accelio.jxio.exceptions.JxioSessionClosedException;
+import org.accelio.jxio.WorkerCache.Worker;
+import org.accelio.jxio.WorkerCache.WorkerProvider;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
@@ -19,12 +21,15 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by seokwoo on 17. 3. 17.
  */
-public class Server extends ConnectionWithStatus implements IStatefulObject {
+public class Server extends ConnectionWithStatus implements IStatefulObject, WorkerProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(Server.class.getCanonicalName());
 
@@ -40,16 +45,19 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
     private IConnectionCallback _cb = null;
 
     //JXIO's
-//    private int num_of_workers;
+    private int num_of_workers;
     private final ServerPortalCallbacks spc;
     private final EventQueueHandler listen_eqh;
     private final ServerPortal listener;
-    //    private static PriorityQueue<ServerPortalHandler> SPWorkers;
+    private static PriorityQueue<ServerPortalHandler> SPWorkers;
     private final MsgPool msgPool;
     private ServerSession session;
     private volatile Set<ServerSession> allSessions;
+    private ExecutorService executor;
 
 //    private volatile boolean loadMetricsFlag = false;
+
+    private volatile Map<Integer, Double> taskToLoad;
 
     /*
     *서버 객체를 생성하면 bind
@@ -75,7 +83,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             e.printStackTrace();
         }
 
-//        num_of_workers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
+        num_of_workers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
 
         listen_eqh = new EventQueueHandler(new EqhCallbacks(
                 Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)),
@@ -89,20 +97,26 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         spc = new ServerPortalCallbacks(this);
         listener = new ServerPortal(listen_eqh, uri, spc);
         allSessions = new HashSet<ServerSession>();
-//        SPWorkers = new PriorityQueue<ServerPortalHandler>(num_of_workers);
-//        for (int i = 1; i <= num_of_workers; i++) {
-//            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), spc));
-//        }
-        LOG.info("Create JXIO Server " + jxio_name() + ", worker threads: no");
+
+        SPWorkers = new PriorityQueue<ServerPortalHandler>(num_of_workers);
+        for (int i = 1; i <= num_of_workers; i++) {
+            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), spc));
+        }
+
+        LOG.info("Create JXIO Server " + jxio_name() + ", worker threads: " + num_of_workers);
+
         runServer();
     }
 
     private void runServer() {
         LOG.info("Starting server portal workers");
-//        ThreadFactory portalWorkers = new JxioRenameThreadFactory(jxio_name() + "worker");
-//        for (ServerPortalHandler sph : SPWorkers) {
-//            sph.start();
-//        }
+        ThreadFactory factory = new JxioRenameThreadFactory(jxio_name() + "-worker");
+        executor = Executors.newCachedThreadPool(factory);
+
+        for(ServerPortalHandler sph : SPWorkers) {
+            executor.submit(sph);
+        }
+
         new JxioRenameThreadFactory(jxio_name() + "-EQH").newThread(listen_eqh).start();
         LOG.info("EQH start!!");
     }
@@ -147,7 +161,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        LOG.info("sendLoadMetrics called");
+        LOG.info("[server] set taskToLoad");
+        this.taskToLoad = taskToLoad;
     }
 
     @Override
@@ -256,19 +271,24 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         return String.format("JXIO server listening on port %s", port);
     }
 
-//    private synchronized static ServerPortalHandler getNextWorker() {
-//        // retrieve next spw and update its position in the queue
-//        ServerPortalHandler s = SPWorkers.poll();
-//        s.incrNumOfSessions();
-//        SPWorkers.add(s);
-//        return s;
-//    }
-//
-//    public synchronized static void updateWorkers(ServerPortalHandler s) {
-//        // remove & add the ServerPortalWorker in order.
-//        SPWorkers.remove(s);
-//        SPWorkers.add(s);
-//    }
+    @Override
+    public WorkerCache.Worker getWorker() {
+        return null;
+    }
+
+    private synchronized static ServerPortalHandler getNextWorker() {
+        // retrieve next spw and update its position in the queue
+        ServerPortalHandler s = SPWorkers.poll();
+        s.incrNumOfSessions();
+        SPWorkers.add(s);
+        return s;
+    }
+
+    public synchronized static void updateWorkers(ServerPortalHandler s) {
+        // remove & add the ServerPortalWorker in order.
+        SPWorkers.remove(s);
+        SPWorkers.add(s);
+    }
 
     public class ServerPortalCallbacks implements ServerPortal.Callbacks {
         private Server server;
@@ -284,21 +304,24 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
                 listener.reject(sesKey, EventReason.CONNECT_ERROR, "Server is closed");
                 return;
             }
-//            ServerPortalHandler sph;
-//            if (workerHint == null) {
-//                listener.reject(sesKey, EventReason.CONNECT_ERROR, "No available worker was found in cache");
-//                return;
-//            } else {
-//                sph = (ServerPortalHandler) workerHint;
-////                sph.setRemoteIp(srcIP);
-//            }
+
+            ServerPortalHandler sph;
+            if (workerHint == null) {
+                listener.reject(sesKey, EventReason.CONNECT_ERROR, "No available worker was found in cache");
+                return;
+            } else {
+                sph = (ServerPortalHandler) workerHint;
+            }
+
             LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
-            session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
+            /*session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
             listener.accept(session);
-            allSessions.add(session);
-//            LOG.info("Server worker number {} got new session from {}", sph.portalIndex, srcIP);
-//            listener.forward(sph.getPortal(), (new ServerSessionHandler(sesKey, sph, server)).getSession());
-//            LOG.info("forward this session from {}", srcIP);
+            allSessions.add(session);*/
+
+
+            LOG.info("Server worker number {} got new session from {}", sph.portalIndex, srcIP);
+            listener.forward(sph.getPortal(), (new ServerSessionHandler(sesKey, sph, server)).getSession());
+            LOG.info("forward this session from {}", srcIP);
         }
 
         @Override
@@ -319,7 +342,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
         private Object decoder(ByteBuffer buf) {
             long available = buf.remaining();
-            if(available < 2) {
+            if (available < 2) {
                 //need more data
                 return null;
             }
@@ -340,8 +363,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
                 //case 1: Control message
                 //who send controlmessage?
                 ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
-                if(ctrl_msg != null) {
-                    if(ctrl_msg == ControlMessage.EOB_MESSAGE) {
+                if (ctrl_msg != null) {
+                    if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
                         continue;
                     } else {
                         return ctrl_msg;
@@ -352,7 +375,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
                 //case 3: TaskMessage
                 //Make sure that we have received at least an integer (length)
-                if(available < 4) {
+                if (available < 4) {
                     //need more data
                     buf.reset();
                     break;
@@ -361,13 +384,13 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
                 int length = buf.getInt();
                 available -= 4;
 
-                if(length <= 0) {
+                if (length <= 0) {
                     ret.add(new TaskMessage(code, null));
                     break;
                 }
 
                 //Make sure if there's enough bytes in the buffer.
-                if(available < length) {
+                if (available < length) {
                     //The whole bytes were not received yet - return null.
                     buf.reset();
                     break;
@@ -383,7 +406,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
                 ret.add(new TaskMessage(code, payload));
             }
 
-            if(ret.size() == 0) {
+            if (ret.size() == 0) {
                 return null;
             } else {
                 return ret;
@@ -392,53 +415,65 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
         @Override
         public void onRequest(Msg msg) {
-            /*if (loadMetricsFlag) {
-                LOG.info("sendLoadMetrics@@@@@");
-                try {
-                    TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                    msg.getOut().put(tm.serialize());
-                    session.sendResponse(msg);
-                    loadMetricsFlag = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }*/
-            if(!msg.getIn().hasRemaining()) {
+
+            if (!msg.getIn().hasRemaining()) {
                 LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
                 return;
             }
 
-            ByteBuffer bb = msg.getIn();
-            byte[] ipByte = new byte[13];
-            bb.get(ipByte);
-            String ipStr = new String(ipByte);
+            Object obj = decoder(msg.getIn());
+            if (obj instanceof ControlMessage) {
+                LOG.info("[Server] onRequest2");
+                ControlMessage ctrl_msg = (ControlMessage) obj;
+                LOG.info("[Server] onRequest3");
+                if (ctrl_msg == ControlMessage.LOADMETRICS_REQUEST) {
+                    LOG.info("[Server] onRequest4");
+                    try {
+                        LOG.info("[Server] onRequest5");
+                        TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
+                        LOG.info("[Server] onRequest6");
+                        msg.getOut().put(tm.serialize());
+                        LOG.info("[Server] onRequest7");
+                        session.sendResponse(msg);
+                        LOG.info("[Server] onRequest8");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                msg.getIn().rewind();
+                ByteBuffer bb = msg.getIn();
+                byte[] ipByte = new byte[13];
+                bb.get(ipByte);
+                String ipStr = new String(ipByte);
+                LOG.info("[Server] normal messages from {}", ipStr);
 
-            //single TaskMessage
+                //single TaskMessage
             /*int taskId = bb.getShort();
             byte[] tempByte = new byte[bb.limit()-15];
             bb.get(tempByte);
             TaskMessage tm = new TaskMessage(taskId, tempByte);
             messages.add(tm);*/
 
-            //batch TaskMessage
-            List<TaskMessage> messages = (ArrayList<TaskMessage>)decoder(msg.getIn());
+                //batch TaskMessage
+                List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());
 
-            try {
-                server.received(messages, ipStr);
-                LOG.info("[onRequest]received messages {}", msg.getIn().toString());
-            } catch (InterruptedException e) {
-                LOG.info("failed to enqueue a request message", e);
-                failure_count.incrementAndGet();
-                e.printStackTrace();
-            }
-            char ch = 's';
-            msg.getOut().put((byte)ch);
-            try {
-                session.sendResponse(msg);
-            } catch (JxioGeneralException e) {
-                e.printStackTrace();
-            } catch (JxioSessionClosedException e) {
-                e.printStackTrace();
+                try {
+                    server.received(messages, ipStr);
+                } catch (InterruptedException e) {
+                    LOG.info("failed to enqueue a request message", e);
+                    failure_count.incrementAndGet();
+                    e.printStackTrace();
+                }
+                char ch = 's';
+                msg.getOut().put((byte) ch);
+                try {
+                    session.sendResponse(msg);
+                } catch (JxioGeneralException e) {
+                    e.printStackTrace();
+                } catch (JxioSessionClosedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

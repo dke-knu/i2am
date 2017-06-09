@@ -67,7 +67,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final AtomicReference<ClientSession> sessionRef = new AtomicReference<>();
     private ClientSession cs;
     private URI uri;
-    private ExecutorService eqhThread;
+//    private ExecutorService eqhThread;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         this.eqh = new EventQueueHandler(null);
@@ -86,7 +86,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         saslChannelReady.set(!Utils.getBoolean(stormConf.get(Config.STORM_MESSAGING_NETTY_AUTHENTICATION), false));
         int messageBatchSize = Utils.getInt(stormConf.get(Config.STORM_JXIO_MESSAGE_BATCH_SIZE), 262144);
 
-        eqhThread = Executors.newCachedThreadPool(new JxioRenameThreadFactory("Client EQH thread"));
+//        eqhThread = Executors.newCachedThreadPool(new JxioRenameThreadFactory("Client EQH thread"));
 
         try {
             uri = new URI(String.format("rdma://%s:%s", host, port));
@@ -105,7 +105,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             public void run() {
                 try {
                     LOG.debug("running timer task, address {}", dstAddress);
-                    LOG.info("[Client-AliveThread] running timer task, address {}", dstAddress);
+//                    LOG.info("[Client-AliveThread] running timer task, address {}", dstAddress);
                     if (closing) {
                         LOG.info("[Client-AliveThread] closing");
                         this.cancel();
@@ -177,7 +177,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         int count = 0;
         synchronized (writeLock) {
             while (msgs.hasNext()) {
-                LOG.info("[Client-while] count = {}", ++count);
 //                flushMessages(msgs.next());
 
                 //use batch
@@ -185,7 +184,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 MessageBatch full = batcher.add(message);
                 if (full != null) {
                     //Need to make Msg each time.
-                    LOG.info("[Client-send] send batch");
                     flushMessages(full);
                 }
             }
@@ -195,7 +193,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         synchronized (writeLock) {
             MessageBatch batch = batcher.drain();
             if (batch != null) {
-                LOG.info("[Client-send] send immediately");
                 flushMessages(batch);
             }
         }
@@ -216,7 +213,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         try {
             cs.sendRequest(msg);
-            LOG.info("send msg from {} to {}:{}", getLocalServerIp(), uri.getHost(), uri.getPort());
         } catch (JxioGeneralException e) {
             e.printStackTrace();
         } catch (JxioSessionClosedException e) {
@@ -233,7 +229,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
         final int numMessages = batch.size();
         LOG.debug("writing {} messages to session {}", batch.size(), uri.toString());
-        LOG.info("writing {} messages to session {}", batch.size(), uri.toString());
         pendingMessages.addAndGet(numMessages);
 
         Msg msg = msgPool.getMsg();
@@ -244,20 +239,17 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             //maximum batch size is 262144B (256KB)
             //so, Msg size must be upper than 256KB
             ByteBuffer bb = batch.buffer();
-            LOG.info("[Client] bb info = {}", bb.toString());
             byte[] tempByte = new byte[bb.limit()];
             bb.flip();
             bb.get(tempByte);
-            LOG.info("[Client] tempByte size = {}", tempByte.length);
             msg.getOut().put(tempByte);
-            LOG.info("[Client] msg info = {}", msg.getOut().toString());
         } catch (Exception e) {
             LOG.error("[Client-flushMessages] put message to bytebuffer error");
             e.printStackTrace();
         }
         try {
             cs.sendRequest(msg);
-            LOG.info("send msg: {} from {} to {}:{}",msg.toString(), getLocalServerIp(), uri.getHost(), uri.getPort());
+            LOG.info("send msg: {} from {} to {}:{}", msg.toString(), getLocalServerIp(), uri.getHost(), uri.getPort());
         } catch (JxioGeneralException e) {
             failSendMessages(numMessages);
             e.printStackTrace();
@@ -327,22 +319,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     @Override
-    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
-        Map<Integer, Double> loadCache = serverLoad;
-        Map<Integer, Load> ret = new HashMap<Integer, Load>();
-        if (loadCache != null) {
-            double clientLoad = Math.min(pendingMessages.get(), 1024) / 1024.0;
-            for (Integer task : tasks) {
-                Double found = loadCache.get(task);
-                if (found != null) {
-                    ret.put(task, new Load(true, found, clientLoad));
-                }
-            }
-        }
-        return ret;
-    }
-
-    @Override
     public void close() {
         if (!closing) {
             LOG.info("closing JXIO Client {}", uri.toString());
@@ -395,7 +371,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     public void releaseResources() {
         msgPool.deleteMsgPool();
-        eqhThread.shutdown();
+//        eqhThread.shutdown();
     }
 
     private String getLocalServerIp() {
@@ -421,6 +397,51 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     public void setServerLoad(Map<Integer, Double> serverLoad) {
         this.serverLoad = serverLoad;
+    }
+
+    @Override
+    public Map<Integer, Load> getLoad(Collection<Integer> tasks) {
+        Map<Integer, Double> loadCache = serverLoad;
+        Map<Integer, Load> ret = new HashMap<Integer, Load>();
+        if (loadCache != null) {
+            double clientLoad = Math.min(pendingMessages.get(), 1024) / 1024.0;
+            for (Integer task : tasks) {
+                Double found = loadCache.get(task);
+                if (found != null) {
+                    ret.put(task, new Load(true, found, clientLoad));
+                }
+            }
+        }
+        return ret;
+    }
+
+    @Override
+    public void requestLoadMectrics() {
+        Msg loadMsg = msgPool.getMsg();
+        try {
+            ByteBuffer bb = ControlMessage.LOADMETRICS_REQUEST.buffer();
+            byte[] loadByte = new byte[2];
+            bb.flip();
+            bb.put(loadByte);
+            loadMsg.getOut().put(loadByte);
+            loadMsg.getOut().flip();
+            LOG.info("[Client] LoadMetrics message = {}", loadMsg.getOut().getShort());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            cs.sendRequest(loadMsg);
+            LOG.info("[Client] request load metrics");
+        } catch (JxioGeneralException e) {
+            e.printStackTrace();
+        } catch (JxioSessionClosedException e) {
+            e.printStackTrace();
+        } catch (JxioQueueOverflowException e) {
+            e.printStackTrace();
+        }
+        LOG.info("[Client] run event loop");
+        eqh.runEventLoop(1, -1);
+        LOG.info("[Client] complete event loop");
     }
 
     private void waitForPendingMessagesToBeSent() {
@@ -505,29 +526,34 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         @Override
         public void onResponse(Msg msg) {
-            LOG.info("onResponse called");
             if (msg.getIn().remaining() >= 2) {
+                LOG.info("[Client] load metrics response");
                 ByteBuffer bb = msg.getIn();
                 int taskId = bb.getShort();
                 byte[] message = new byte[bb.limit() - 2];
                 bb.get(message);
                 TaskMessage taskMessage = new TaskMessage(taskId, message);
+                LOG.info("[Client] load metrics response2");
                 try {
                     if (taskMessage.task() != -1) {
                         throw new RuntimeException("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + taskMessage);
                     }
+                    LOG.info("[Client] load metrics response3");
                     List metrics = _des.deserialize(taskMessage.message());
+                    LOG.info("[Client] load metrics response4");
                     if (metrics.size() < 1) {
                         throw new RuntimeException("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
                     }
                     if (!(metrics.get(0) instanceof Map)) {
                         throw new RuntimeException("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") " + metrics);
                     }
+                    LOG.info("[Client] load metrics response5");
                     client.setServerLoad((Map<Integer, Double>) metrics.get(0));
+                    LOG.info("[Client] load metrics response6");
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                LOG.info("Metrics message received");
+                LOG.info("Metrics message received7");
                 msg.returnToParentPool();
                 return;
             } else {
@@ -547,7 +573,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 //            eqhThread.submit(eqh);
             LOG.info("Successfully connected to {}:{}", uri.getHost(), uri.getPort());
 
-            if(messagesLost.get() > 0) {
+            if (messagesLost.get() > 0) {
                 LOG.warn("Re-connection to {} was successful but {} messages has been lost so far ", uri.toString(), messagesLost.get());
             }
         }

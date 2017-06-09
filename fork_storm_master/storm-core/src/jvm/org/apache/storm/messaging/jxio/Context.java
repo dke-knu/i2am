@@ -41,7 +41,7 @@ public class Context implements IContext {
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
         connections = new HashMap<>();
-        ThreadFactory workerFactory = new JxioRenameThreadFactory("Client Thread");
+        ThreadFactory workerFactory = new JxioRenameThreadFactory("[Client-connection-scheduler]");
         clientScheduleService = new ScheduledThreadPoolExecutor(
                 Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)),
                 workerFactory);
