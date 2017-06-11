@@ -41,7 +41,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     private final AtomicInteger messagesDequeued = new AtomicInteger(0);
 
     private volatile boolean closing = false;
-    private KryoValuesSerializer _ser;
+    public KryoValuesSerializer _ser;
     private IConnectionCallback _cb = null;
 
     //JXIO's
@@ -57,7 +57,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
 //    private volatile boolean loadMetricsFlag = false;
 
-    private volatile Map<Integer, Double> taskToLoad;
+    public volatile Map<Integer, Double> taskToLoad;
 
     /*
     *서버 객체를 생성하면 bind
@@ -273,7 +273,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public WorkerCache.Worker getWorker() {
-        return null;
+        return getNextWorker();
     }
 
     private synchronized static ServerPortalHandler getNextWorker() {
@@ -313,13 +313,13 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
                 sph = (ServerPortalHandler) workerHint;
             }
 
-            LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
+//            LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
             /*session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
             listener.accept(session);
             allSessions.add(session);*/
 
 
-            LOG.info("Server worker number {} got new session from {}", sph.portalIndex, srcIP);
+            LOG.info("Server worker number {} got new session from {}", sph.portal_index, srcIP);
             listener.forward(sph.getPortal(), (new ServerSessionHandler(sesKey, sph, server)).getSession());
             LOG.info("forward this session from {}", srcIP);
         }

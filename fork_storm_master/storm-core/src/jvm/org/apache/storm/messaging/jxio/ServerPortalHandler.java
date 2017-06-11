@@ -3,6 +3,7 @@ package org.apache.storm.messaging.jxio;
 import org.accelio.jxio.EventQueueHandler;
 import org.accelio.jxio.MsgPool;
 import org.accelio.jxio.ServerPortal;
+import org.accelio.jxio.WorkerCache;
 import org.apache.storm.Config;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
@@ -14,13 +15,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by admin on 17. 6. 8.
  */
-public class ServerPortalHandler extends Thread {
+public class ServerPortalHandler extends Thread implements Comparable<ServerPortalHandler>, WorkerCache.Worker {
     private final static Logger LOG = LoggerFactory.getLogger(ServerPortalHandler.class.getCanonicalName());
 
     private final ServerPortal sp;
     private final EventQueueHandler eqh;
     private final MsgPool msgPool;
-    private final int portal_index;
+    public final int portal_index;
     private AtomicInteger num_of_sessions;
 
     public ServerPortalHandler(int index, URI uri, ServerPortal.Callbacks c) {
@@ -34,7 +35,41 @@ public class ServerPortalHandler extends Thread {
 
     @Override
     public void run() {
-        LOG.info("Server worker");
+        LOG.info("Server worker number " + portal_index + " is up and waiting for requests");
+        eqh.run();
+    }
+
+    public ServerPortal getPortal() {
+        return sp;
+    }
+
+    public void incrNumOfSessions() {
+        num_of_sessions.incrementAndGet();
+        LOG.info("Server worker number " + portal_index + " got new session, now handling " + num_of_sessions + " sessions");
+    }
+
+    private void decrNumOfSessions() {
+        num_of_sessions.decrementAndGet();
+        LOG.info("Server worker number " + portal_index + " disconnected from a Session, now handling " + num_of_sessions + " sessions");
+        Server.updateWorkers(this);
+    }
+
+    public void sessionClosed() {
+        decrNumOfSessions();
+    }
+
+    @Override
+    public int compareTo(ServerPortalHandler s) {
+        if (this.num_of_sessions.get() <= s.num_of_sessions.get()) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    @Override
+    public boolean isFree() {
+        return true;
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {
