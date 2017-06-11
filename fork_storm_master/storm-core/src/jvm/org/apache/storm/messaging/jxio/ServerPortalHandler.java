@@ -25,8 +25,16 @@ public class ServerPortalHandler extends Thread {
 
     public ServerPortalHandler(int index, URI uri, ServerPortal.Callbacks c) {
         portal_index = index;
-        eqh = new EventQueueHandler(new EqhCallbacks(262160, 200, 200));
+        eqh = new EventQueueHandler(new EqhCallbacks(200, 262160, 200));
+        msgPool = new MsgPool(500, 262160, 200);
+        eqh.bindMsgPool(msgPool);
+        sp = new ServerPortal(eqh, uri, c);
+        num_of_sessions = new AtomicInteger(0);
+    }
 
+    @Override
+    public void run() {
+        LOG.info("Server worker");
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {
