@@ -65,21 +65,14 @@ public class Config extends HashMap<String, Object> {
      */
     @isInteger
     @isPositiveNumber
-    public static final String STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.msgpool.buffer.size";
+    public static final String STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.msgpool.buffer.size";
 
     /**
      * JXIO based messaging: The # of MSG for client-side input
      */
     @isInteger
     @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT = "storm.messaging.jxio.client.input.buffer.count";
-
-    /**
-     * JXIO based messaging: The # of MSG for client-side output
-     */
-    @isInteger
-    @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT = "storm.messaging.jxio.client.output.buffer.count";
+    public static final String STORM_MESSAGING_JXIO_CLIENT_BUFFER_COUNT = "storm.messaging.jxio.client.buffer.count";
 
     /**
      * JXIO based messaging: capacity(number of msg that this pool will contain. Max is 100064)
