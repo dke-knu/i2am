@@ -23,8 +23,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerSessionHandler {
     private final static Logger LOG = LoggerFactory.getLogger(ServerSessionHandler.class.getCanonicalName());
 
-    private final ServerSession session;
+    private ServerSession session;
     private final ServerPortalHandler sph;
+
     public ServerSessionHandler(ServerSession.SessionKey sesKey, ServerPortalHandler sph, Server server) {
         session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
         this.sph = sph;
@@ -68,9 +69,15 @@ public class ServerSessionHandler {
                 //who send controlmessage?
                 ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
                 if (ctrl_msg != null) {
+                    LOG.info("[ServerSessionHandler-decoder] ctrl messgae transport");
                     if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
                         continue;
                     } else {
+                        try {
+                            LOG.info("[ServerSessionHandler-decoder] ctrl messgae transport {}", ctrl_msg.buffer().getShort());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         return ctrl_msg;
                     }
                 }
@@ -119,7 +126,6 @@ public class ServerSessionHandler {
 
         @Override
         public void onRequest(Msg msg) {
-
             if (!msg.getIn().hasRemaining()) {
                 LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
                 return;
@@ -138,9 +144,17 @@ public class ServerSessionHandler {
                         LOG.info("[Server] onRequest6");
                         msg.getOut().put(tm.serialize());
                         LOG.info("[Server] onRequest7");
-                        session.sendResponse(msg);
-                        LOG.info("[Server] onRequest8");
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        LOG.info("[Server] onRequest8");
+                        session.sendResponse(msg);
+                        LOG.info("[Server] onRequest9");
+                    } catch (JxioGeneralException e) {
+                        e.printStackTrace();
+                    } catch (JxioSessionClosedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -186,10 +200,10 @@ public class ServerSessionHandler {
             String str = "[ServerSession][EVENT] Got event " + eventName + " because of " + eventReason;
             if (eventName == EventName.SESSION_CLOSED) { // normal exit
                 LOG.info(str);
-                sph.sessionClosed();
             } else {
                 LOG.error(str);
             }
+            session.close();
         }
 
         @Override

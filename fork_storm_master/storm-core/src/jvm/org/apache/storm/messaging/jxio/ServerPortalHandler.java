@@ -1,9 +1,6 @@
 package org.apache.storm.messaging.jxio;
 
-import org.accelio.jxio.EventQueueHandler;
-import org.accelio.jxio.MsgPool;
-import org.accelio.jxio.ServerPortal;
-import org.accelio.jxio.WorkerCache;
+import org.accelio.jxio.*;
 import org.apache.storm.Config;
 import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
@@ -23,6 +20,7 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
     private final MsgPool msgPool;
     public final int portal_index;
     private AtomicInteger num_of_sessions;
+    private ServerSessionHandler handler;
 
     public ServerPortalHandler(int index, URI uri, ServerPortal.Callbacks c) {
         portal_index = index;
@@ -33,7 +31,6 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
         num_of_sessions = new AtomicInteger(0);
     }
 
-    @Override
     public void run() {
         LOG.info("Server worker number " + portal_index + " is up and waiting for requests");
         eqh.run();
@@ -43,19 +40,8 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
         return sp;
     }
 
-    public void incrNumOfSessions() {
-        num_of_sessions.incrementAndGet();
-        LOG.info("Server worker number " + portal_index + " got new session, now handling " + num_of_sessions + " sessions");
-    }
-
-    private void decrNumOfSessions() {
-        num_of_sessions.decrementAndGet();
-        LOG.info("Server worker number " + portal_index + " disconnected from a Session, now handling " + num_of_sessions + " sessions");
-        Server.updateWorkers(this);
-    }
-
-    public void sessionClosed() {
-        decrNumOfSessions();
+    public EventQueueHandler getEqh() {
+        return eqh;
     }
 
     @Override
@@ -69,7 +55,20 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
 
     @Override
     public boolean isFree() {
-        return true;
+        if (handler == null) {
+            return true;
+        } else {
+            return (handler.getSession() == null);
+        }
+    }
+
+    public void setSessionHandler(ServerSessionHandler handler) {
+        this.handler = handler;
+    }
+
+    public void disconnect() {
+        handler.getSession().close();
+        eqh.breakEventLoop();
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {

@@ -174,7 +174,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             dropMessages(msgs);
             return;
         }
-        int count = 0;
         synchronized (writeLock) {
             while (msgs.hasNext()) {
 //                flushMessages(msgs.next());
@@ -245,6 +244,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             msg.getOut().put(tempByte);
         } catch (Exception e) {
             LOG.error("[Client-flushMessages] put message to bytebuffer error");
+            LOG.info("msg size = {}",msg.getOut().toString());
             e.printStackTrace();
         }
         try {
@@ -280,7 +280,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 // Log the connection error only once
                 LOG.error("connection to {} is unavailable", uri.toString());
             }
-            LOG.info("[Client-getAliveSession] ClientSession is null");
             return null;
         }
     }
@@ -564,6 +563,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                     return;
                 }
             }
+            msg.returnToParentPool();
         }
 
         @Override
