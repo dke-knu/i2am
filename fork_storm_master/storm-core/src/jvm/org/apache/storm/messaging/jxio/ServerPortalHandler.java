@@ -62,6 +62,10 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
         }
     }
 
+    public ServerSessionHandler getHandler() {
+        return handler;
+    }
+
     public void setSessionHandler(ServerSessionHandler handler) {
         this.handler = handler;
     }

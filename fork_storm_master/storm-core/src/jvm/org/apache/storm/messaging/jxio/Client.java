@@ -249,7 +249,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
         try {
             cs.sendRequest(msg);
-            LOG.info("send msg: {} from {} to {}:{}", msg.toString(), getLocalServerIp(), uri.getHost(), uri.getPort());
+//            LOG.info("send msg: {} from {} to {}:{}", msg.toString(), getLocalServerIp(), uri.getHost(), uri.getPort());
         } catch (JxioGeneralException e) {
             failSendMessages(numMessages);
             e.printStackTrace();
@@ -558,7 +558,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             } else {
                 byte message = msg.getIn().get();
                 if ((char) message == 's') {
-                    LOG.info("[Client-onResponse] success");
+//                    LOG.info("[Client-onResponse] success");
                     msg.returnToParentPool();
                     return;
                 }
@@ -598,6 +598,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 //                eqh.breakEventLoop();
                 long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
                 LOG.info("nextDelayMS = {}", nextDelayMs);
+                cs.close();
+                cs = null;
                 scheduleConnect(nextDelayMs);
             }
         }

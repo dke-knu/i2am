@@ -69,15 +69,9 @@ public class ServerSessionHandler {
                 //who send controlmessage?
                 ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
                 if (ctrl_msg != null) {
-                    LOG.info("[ServerSessionHandler-decoder] ctrl messgae transport");
                     if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
                         continue;
                     } else {
-                        try {
-                            LOG.info("[ServerSessionHandler-decoder] ctrl messgae transport {}", ctrl_msg.buffer().getShort());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                         return ctrl_msg;
                     }
                 }
@@ -164,7 +158,7 @@ public class ServerSessionHandler {
                 byte[] ipByte = new byte[13];
                 bb.get(ipByte);
                 String ipStr = new String(ipByte);
-                LOG.info("[Server] normal messages from {}", ipStr);
+//                LOG.info("[Server] normal messages from {}", ipStr);
 
                 //single TaskMessage
             /*int taskId = bb.getShort();

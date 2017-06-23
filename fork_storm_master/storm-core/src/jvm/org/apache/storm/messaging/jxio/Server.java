@@ -167,6 +167,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             it.next().disconnect();
         }
         listen_eqh.stop();
+        listen_eqh.close();
     }
 
     @Override
@@ -192,11 +193,10 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     private boolean connectionEstablished(ServerPortalHandler sph) {
-        for (ServerSession ss : sph.getPortal().getSessions()) {
-            if (ss != null && listen_eqh.getInRunEventLoop()) {
-                if (sph.getEqh().getInRunEventLoop()) {
-                    return true;
-                }
+        ServerSession ss = sph.getHandler().getSession();
+        if (ss != null && listen_eqh.getInRunEventLoop()) {
+            if (sph.getEqh().getInRunEventLoop()) {
+                return true;
             }
         }
         return false;
