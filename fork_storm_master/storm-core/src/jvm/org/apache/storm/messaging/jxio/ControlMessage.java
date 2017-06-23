@@ -32,7 +32,7 @@ public enum ControlMessage {
     private short code;
 
     //private constructor
-    ControlMessage(short code) {
+    private ControlMessage(short code) {
         this.code = code;
     }
 

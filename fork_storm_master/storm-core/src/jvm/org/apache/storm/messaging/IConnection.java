@@ -60,4 +60,8 @@ public interface IConnection {
      * close this connection
      */
     public void close();
+
+    public default void requestLoadMectrics() {
+        throw new UnsupportedOperationException("Only client call this method, also to use this method need implement");
+    }
 }

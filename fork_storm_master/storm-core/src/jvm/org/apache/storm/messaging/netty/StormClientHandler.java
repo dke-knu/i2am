@@ -48,6 +48,7 @@ public class StormClientHandler extends SimpleChannelUpstreamHandler  {
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) {
+        LOG.info("[ClientHandler]Got a message from {} message is = [{}]", event.getRemoteAddress().toString(), event.getMessage().toString());
         //examine the response message from server
         Object message = event.getMessage();
         if (message instanceof ControlMessage) {

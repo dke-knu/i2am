@@ -169,7 +169,7 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
         try {
-            LOG.debug("is sendLoadMetrics called??");
+            LOG.info("[Server]is sendLoadMetrics called");
             MessageBatch mb = new MessageBatch(1);
             mb.add(new TaskMessage(-1, _ser.serialize(Arrays.asList((Object)taskToLoad))));
             allChannels.write(mb);
@@ -199,13 +199,16 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
 
     @Override
     public Status status() {
+        LOG.info("[Server] status called");
         if (closing) {
           return Status.Closed;
         }
         else if (!connectionEstablished(allChannels)) {
+            LOG.info("[Server] status called Connecting");
             return Status.Connecting;
         }
         else {
+            LOG.info("[Server] status called Ready");
             return Status.Ready;
         }
     }
