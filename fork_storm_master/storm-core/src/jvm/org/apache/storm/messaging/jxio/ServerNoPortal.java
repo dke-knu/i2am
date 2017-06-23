@@ -166,7 +166,7 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
         if (closing) return;
 
         closing = true;
-        for (ServerSession ss : listener.getSessions()) {
+        for (ServerSession ss : allSessions) {
             ss.close();
         }
         listen_eqh.stop();
