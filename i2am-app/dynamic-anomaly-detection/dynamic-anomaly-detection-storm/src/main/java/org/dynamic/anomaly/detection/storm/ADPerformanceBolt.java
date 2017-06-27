@@ -11,11 +11,9 @@ import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.Values;
 
-public class AD3SigmaBolt implements IRichBolt {
+public class ADPerformanceBolt implements IRichBolt {
 	private OutputCollector collector;
 	
 	private Connection conn;
@@ -25,30 +23,12 @@ public class AD3SigmaBolt implements IRichBolt {
 	}
 
 	public void execute(Tuple input) {
-		String cluster = input.getStringByField("cluster");
-		String host = input.getStringByField("host");
-		String key = input.getStringByField("key");
-		double value = input.getDoubleByField("value");
-		double ma = input.getDoubleByField("mvAvg");
-		double msd = input.getDoubleByField("mvStd");
-		long time = input.getLongByField("time");
-		// for performance.
 		long startTime = input.getLongByField("startTime");
+		long endTime = input.getLongByField("endTime");
+		long loggingTime = input.getLongByField("loggingTime");
 		
-		double upper = ma+(3*msd);
-		double lower = ma-(3*msd);
-		boolean isAnomaly = false;
-		if(value > upper || value < lower)
-			isAnomaly = true;
-		
-		// for performance.
-		collector.ack(input);
-		long endTime = new Date().getTime();
-
 		if (conn == null)	conn = getConnection();
-		transmit(conn, cluster, host, key, value, upper, lower, isAnomaly, time);
-		
-		if (endTime>startTime)	collector.emit(new Values(startTime, endTime, time));
+		transmit(conn, startTime, endTime, loggingTime);
 	}
 
 	public void cleanup() {
@@ -58,8 +38,7 @@ public class AD3SigmaBolt implements IRichBolt {
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		// for performance.
-		declarer.declare(new Fields("startTime", "endTime", "loggingTime"));
+
 	}
 
 	public Map<String, Object> getComponentConfiguration() {
@@ -87,20 +66,14 @@ public class AD3SigmaBolt implements IRichBolt {
 		return conn;
 	}
 	
-	private void transmit(Connection conn,
-			String clusterName, String hostName, String logKey, 
-			double logValue, double upperBound, double lowerBound,
-			boolean isAnomaly, long loggingTime) {
+	private void transmit(Connection conn, long startTime, long endTime, long loggingTime) {
 		Statement stmt = null;
 
 		try{
 			stmt = conn.createStatement();
 
-			String sql = "INSERT INTO TBL_ANOMALY_DETECTION VALUES ("
-					+ "'" + clusterName + "', '" + hostName + "', '" + logKey + "', "
-					+ logValue + ", " + upperBound + ", " + lowerBound + ", "
-					+ isAnomaly + ", FROM_UNIXTIME(" + loggingTime + "))";
-			System.out.println(sql);
+			String sql = "INSERT INTO TBL_PERFORMANCE VALUES "
+					+ "(" + startTime + ", " + endTime + ", FROM_UNIXTIME(" + loggingTime + "))";
 			int result = stmt.executeUpdate(sql);
 
 			stmt.close();

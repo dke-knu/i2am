@@ -15,7 +15,7 @@ public class ADMovAvgStdBolt implements IRichBolt {
 	private OutputCollector collector;
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("cluster", "host", "key", "value", "mvAvg", "mvStd", "time"));
+		declarer.declare(new Fields("cluster", "host", "key", "value", "mvAvg", "mvStd", "time", "startTime"));
 	}
 
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -42,11 +42,26 @@ public class ADMovAvgStdBolt implements IRichBolt {
 		String key = input.getStringByField("key");
 		double currentValue = values.get(values.size()-1);
 		long time = input.getLongByField("time");
+		// for performance.
+		long startTime = input.getLongByField("startTime");
 		
 		double mvAvg = sum / windowSize;
 		double mvStd = Math.sqrt( (sqr_sum / windowSize) - Math.pow(mvAvg, 2) );
+		mvStd = !Double.isNaN(mvStd)?mvStd:0;
 		
-		collector.emit(new Values(cluster, host, key, currentValue, mvAvg, mvStd, time));
+		StringBuffer sb = new StringBuffer();
+		for (double d : values) {
+			sb.append(d + ",");
+		}
+		System.out.println("************************************");
+		System.out.println("1818181818 : " + host + "," + mvAvg + "," + mvStd + "," + sb.toString());
+		System.out.println("************************************");
+		
+		collector.emit(new Values(cluster, host, key, currentValue, 
+				Math.round(mvAvg*10000)/10000.0, Math.round(mvStd*10000)/10000.0, time,
+				// for performance.
+				startTime
+				));
 	}
 
 	public void cleanup() {
