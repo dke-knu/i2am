@@ -168,6 +168,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
         listen_eqh.stop();
         listen_eqh.close();
+        LOG.info(jxio_name() + " shutting down");
     }
 
     @Override
@@ -205,7 +206,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     @Override
     public Object getState() {
         LOG.debug("Getting metrics for server on port {}", port);
-        LOG.info("Getting metrics for server on port {}", port);
         HashMap<String, Object> ret = new HashMap<>();
         ret.put("dequeuedMessages", messagesDequeued.getAndSet(0));
         HashMap<String, Integer> enqueued = new HashMap<String, Integer>();

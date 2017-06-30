@@ -177,7 +177,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
             public void run() {
                 try {
                     LOG.debug("running timer task, address {}", dstAddress);
-                    LOG.info("running timer task, address {}", dstAddress);
                     if(closing) {
                         this.cancel();
                         return;
@@ -380,7 +379,6 @@ int count = 0;
 
         final int numMessages = batch.size();
         LOG.debug("writing {} messages to channel {}", batch.size(), channel.toString());
-        LOG.info("writing {} messages to channel {}", batch.size(), channel.toString());
         pendingMessages.addAndGet(numMessages);
 
         ChannelFuture future = channel.write(batch);
