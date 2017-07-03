@@ -125,6 +125,11 @@ public class ServerSessionHandler {
                 return;
             }
 
+            if(msg.getIn().limit() <= 2) {
+                LOG.info("[Server] LoadMetrics message = {}", msg.getIn().getShort());
+                return;
+            }
+
             Object obj = decoder(msg.getIn());
             if (obj instanceof ControlMessage) {
                 LOG.info("[Server] onRequest2");

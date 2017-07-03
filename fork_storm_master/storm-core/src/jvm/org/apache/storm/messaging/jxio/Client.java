@@ -122,7 +122,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     @Override
     public Object getState() {
         LOG.debug("Getting metrics for client connection to {}", uri.toString());
-        LOG.info("Getting metrics for client connection to {}", uri.toString());
         HashMap<String, Object> ret = new HashMap<String, Object>();
         ret.put("reconnects", totalConnectionAttempts.getAndSet(0));
         ret.put("sent", messagesSent.getAndSet(0));
@@ -334,11 +333,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         if (closing) {
             return Status.Closed;
         } else if (!connectionEstablished(sessionRef.get())) {
-            LOG.info("[Client] to uri = {} Connecting session={}", uri.toString(), (sessionRef.get() != null));
             return Status.Connecting;
         } else {
             if (saslChannelReady.get()) {
-                LOG.info("[Client] to uri = {} Ready", uri.toString());
                 return Status.Ready;
             } else {
                 return Status.Connecting; // need to wait until sasl channel is also ready
@@ -351,11 +348,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             if (!cs.getIsClosing()) {
                 return true;
             } else {
-                LOG.info("[Client-connectionEstablished] cs.getIsClosing={}", !cs.getIsClosing());
                 return false;
             }
         } else {
-            LOG.info("[Client-connectionEstablished] Client Session is null");
             return false;
         }
     }
@@ -422,7 +417,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             byte[] loadByte = new byte[2];
             bb.flip();
             bb.put(loadByte);
-            loadMsg.getOut().put(loadByte);
+            LOG.info("[Client] LoadMetrics message buffer = {}", bb.getShort());
+            loadMsg.getOut().put((byte)-111);
             loadMsg.getOut().flip();
             LOG.info("[Client] LoadMetrics message = {}", loadMsg.getOut().getShort());
         } catch (IOException e) {
@@ -444,7 +440,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private void waitForPendingMessagesToBeSent() {
-        LOG.info("waiting up to {} ms to send {} pending messages to {}",
+        LOG.debug("waiting up to {} ms to send {} pending messages to {}",
                 PENDING_MESSAGES_FLUSH_TIMEOUT_MS, pendingMessages.get(), uri.toString());
         long totalPendingMsgs = pendingMessages.get();
         long startMs = System.currentTimeMillis();
@@ -468,7 +464,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         if (cs != null) {
             cs.close();
             LOG.debug("channel to {} closed", uri.toString());
-            LOG.info("channel to {} closed", uri.toString());
         }
     }
 
