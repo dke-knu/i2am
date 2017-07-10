@@ -38,4 +38,8 @@ public class PlanList {
 		mPlans.remove(plan.getPlanID());
 		return true;
 	}
+	
+	public synchronized int size() {
+		return mPlans.size();
+	}
 }

@@ -34,12 +34,14 @@ public class Plan {
 	}
 	public void submitTopologies() {
 		// TODO Auto-generated method stub
+		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
 			topology.submitTopology();
 		}
 	}
 	public void killTopologies() {
 		// TODO Auto-generated method stub
+		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
 			topology.killTopology();
 		}

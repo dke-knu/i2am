@@ -6,27 +6,35 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class CommandServerSocket {
-    protected int          serverPort   = 8080;
+import knu.cs.dke.topology_manager_v2_test.TestClient2CreatePlan;
+
+public class CommandServerSocket implements Runnable {
+    protected int          serverPort   = 11111;
     protected ServerSocket serverSocket = null;
     protected boolean      isStopped    = false;
-    protected Thread       runningThread= null;
+//    protected Thread       runningThread= null;
     protected ExecutorService threadPool =
         Executors.newCachedThreadPool();
     
     private PlanList plans = null;
     
     public static void main(String[] args) {
+    	new Thread(new CommandServerSocket()).start();
+    	
+    	// for test.
+    	for (int i=0; i<10; i++)
+    		new Thread(new TestClient2CreatePlan()).start();
     }
 
     public CommandServerSocket(){
     	plans = PlanList.getInstance();
     }
 
+    @Override
     public void run(){
-        synchronized(this){
-            this.runningThread = Thread.currentThread();
-        }
+//        synchronized(this){
+//            this.runningThread = Thread.currentThread();
+//        }
         openServerSocket();
         while(! isStopped()){
             Socket clientSocket = null;
