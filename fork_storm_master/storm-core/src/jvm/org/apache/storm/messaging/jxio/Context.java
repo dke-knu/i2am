@@ -39,6 +39,7 @@ public class Context implements IContext {
     @SuppressWarnings("rawtypes")
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
+        Constants.setStorm_conf(storm_conf);
         connections = new HashMap<>();
         clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS)));
     }

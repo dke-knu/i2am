@@ -37,10 +37,10 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 //    List<TaskMessage> closeMessage = Arrays.asList(new TaskMessage(-1, null));
     private KryoValuesSerializer _ser;
     private IConnectionCallback _cb = null;
+    public Map<Integer, Double> taskToLoad = null;
 
     protected JxioConnectionServer conServer;
     private UserServerCallbacks appCallbacks;
-    private HashMap<String, Integer> jxioConfigs = new HashMap<>();
 
 
     /*
@@ -56,16 +56,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
         LOG.info("host IP = " + host);
 
         //Configure the Server.
-        int msgpool_buf_size = Utils.getInt(storm_conf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE));
+        int msgpool_buf_size = Constants.MSGPOOL_BUF_SIZE;
         //buffer size = MSGPOOL_BUF_SIZE ??
 //        int backlog = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SOCKET_BACKLOG), 500);
         int maxWorkers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
 
-        jxioConfigs.put("msgpool", msgpool_buf_size);
-        jxioConfigs.put("inc_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)));
-        jxioConfigs.put("initial_buf_count", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
-
-        appCallbacks = new UserServerCallbacks(this, _ser, msgpool_buf_size);
+        appCallbacks = new UserServerCallbacks(this, _ser);
 
         LOG.info("Create JXIO Server " + jxio_name() + ", buffer_size: " + msgpool_buf_size + ", maxWorkers: " + maxWorkers);
         try {
@@ -76,7 +72,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
-            conServer = new JxioConnectionServer(uri, maxWorkers, appCallbacks, jxioConfigs);
+            conServer = new JxioConnectionServer(uri, maxWorkers, appCallbacks);
             conServer.start();
 
         } catch (Throwable t) {
@@ -152,17 +148,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        Iterator<ServerWorker> isw = conServer.getSPWorkers().iterator();
-        while (isw.hasNext()) {
-            ServerWorker sw = isw.next();
-            String[] data = sw.getUri().getQuery().split("stream=");
-            if (data[1].split("&")[0].compareTo("input") == 0) {
-                appCallbacks.setTaskToLoad(taskToLoad);
-                appCallbacks.newSessionOS(sw.getUri(), new MultiBufOutputStream(sw));
-            }
-
-        }
-        //            allChannels.write(mb);
+        LOG.info("set loadmetrics");
+        this.taskToLoad = taskToLoad;
 
     }
 
@@ -203,27 +190,11 @@ public class Server extends ConnectionWithStatus implements IStatefulObject {
             return Status.Closed;
         }
         //세션중 하나라도 false를 리턴하면 Connecting을 리턴한다.
-        else if (!connectionEstablished(conServer.getSPWorkers())) {
+        else if (conServer.isAlive() && conServer == null) {
             return Status.Connecting;
         } else {
             return Status.Ready;
         }
-    }
-
-//    private boolean connectionEstablished(Channel channel) {
-//        return channel != null && channel.isBound();
-//    }
-
-    private boolean connectionEstablished(ConcurrentLinkedQueue<ServerWorker> workers) {
-        boolean allEstablished = true;
-
-        for(ServerWorker worker : workers) {
-            //세션이 없거나 sessionClosed 플래그가 true(closed)이면 allEstablished = false
-            if(worker.getSession() == null || worker.isSessionClosed())
-                allEstablished = false;
-        }
-
-        return allEstablished;
     }
 
     public void received(Object message, String remote) throws InterruptedException {

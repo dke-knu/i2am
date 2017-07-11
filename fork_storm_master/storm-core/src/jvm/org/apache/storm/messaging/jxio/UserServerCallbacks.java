@@ -16,8 +16,8 @@
  */
 package org.apache.storm.messaging.jxio;
 
+import org.accelio.jxio.jxioConnection.*;
 import org.apache.storm.messaging.TaskMessage;
-import org.accelio.jxio.jxioConnection.JxioConnectionServer;
 import org.apache.storm.serialization.KryoValuesSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,25 +40,32 @@ public class UserServerCallbacks implements JxioConnectionServer.Callbacks {
     private AtomicInteger failure_count;
     private KryoValuesSerializer _ser;
     private Map<Integer, Double> taskToLoad;
-    private int msgpool_size;
 
-    public void setTaskToLoad(Map<Integer, Double> taskToLoad) {
-        this.taskToLoad = taskToLoad;
-    }
-
-    public UserServerCallbacks(Server server, KryoValuesSerializer ser, int msgpool_size) {
+    public UserServerCallbacks(Server server, KryoValuesSerializer ser) {
         this.server = server;
         this._ser = ser;
-        this.msgpool_size = msgpool_size;
         failure_count = new AtomicInteger(0);
     }
 
     public void newSessionOS(URI uri, OutputStream output) {
         // Only sendMetrics method send to clients
         LOG.info("newSessionOS invoked");
+        byte[] temp = new byte[100];
         try {
             TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-            output.write(tm.serialize().get());
+            ByteBuffer bb = tm.serialize();
+            bb.get(temp);
+
+            long bytes = bb.limit();
+            long sent = 0;
+            int num = 0;
+
+            while (sent < bytes) {
+                num = (int) Math.min(bytes - sent, temp.length);
+                output.write(temp, 0, num);
+                sent += num;
+            }
+            output.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -69,35 +76,8 @@ public class UserServerCallbacks implements JxioConnectionServer.Callbacks {
     //uri of EventNewSession.getUri()
     @Override
     public void newSessionIS(URI uri, InputStream input) {
-        byte[] temp = new byte[msgpool_size];
-        long bytes = getBytes(uri);
-        List<TaskMessage> messages = new ArrayList<>();
-        LOG.info(Thread.currentThread().toString() + " going to read " + bytes + " bytes");
+        byte[] temp = new byte[Constants.MSGPOOL_BUF_SIZE];
 
-        try {
-            int num;
-            int read=0;
-            while ((num = input.read(temp)) != -1) {
-                read+=num;
-                ByteBuffer bb = ByteBuffer.wrap(temp);
-                TaskMessage taskMessage = new TaskMessage(0, null);
-                taskMessage.deserialize(bb);
-                messages.add(taskMessage);
-            LOG.info("newSessionIS invoked, message: " + new String(taskMessage.message()) + "remote IP: " + uri.getHost());
-
-            }
-            if(read != bytes) LOG.error("Number of bytes read " + read + " is different from number of bytes requested " + bytes);
-
-            server.received(messages, uri.getHost());
-
-        } catch (IOException e) {
-            LOG.error(Thread.currentThread().toString() + " Error reading data, " + e.getMessage());
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            LOG.info("failed to enqueue a request message", e);
-            failure_count.incrementAndGet();
-            e.printStackTrace();
-        }
 
     }
 

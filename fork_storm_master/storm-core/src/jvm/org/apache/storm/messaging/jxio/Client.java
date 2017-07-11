@@ -17,12 +17,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.google.common.base.Preconditions.checkState;
 
 public class Client extends ConnectionWithStatus implements IStatefulObject {
     private static final long PENDING_MESSAGES_FLUSH_TIMEOUT_MS = 600000L;
@@ -32,9 +35,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
     private JxioConnection jxClient;
     private OutputStream output;
-    private URI uri;
-    private Object writeLock = new Object();
     private InputStream input;
+    private URI uri;
     private ScheduledThreadPoolExecutor scheduler;
     private Map stormConf;
     private HashMap<String, Integer> jxioConfigs = new HashMap<>();
@@ -44,7 +46,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final Context context;
     private final StormBoundedExponentialBackoffRetry retryPolicy;
 
-    private volatile boolean closing = false;
+    private volatile boolean closing;
+
+    private final MessageBuffer batcher;
 
     /**
      * Periodically checks for connected channel in order to avoid loss
@@ -90,44 +94,36 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         // if SASL authentication is disabled, saslChannelReady is initialized as true; otherwise false
         saslChannelReady.set(!Utils.getBoolean(stormConf.get(Config.STORM_MESSAGING_NETTY_AUTHENTICATION), false));
 
-        jxioConfigs.put("msgpool", Utils.getInt(stormConf.get(Config.STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE)));
-        jxioConfigs.put("is_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT)));
-        jxioConfigs.put("os_msgpool_count", Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT)));
-
-        int maxReconnectionAttempts = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_RETRIES));
+        int maxReconnectionAttempts = 29; //Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_MAX_RETRIES));
         int minWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MIN_SLEEP_MS));
         int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_NETTY_MAX_SLEEP_MS));
         retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
 
         try {
             LOG.info("host: " + host + ", port: " + port);
+            LOG.info("host address: " + InetAddress.getByName(host).getHostAddress());
+            LOG.info("host address: " + InetAddress.getByName(host).getCanonicalHostName());
             LOG.info("getLocalIp: " + getLocalServerIp());
 
-            String[] hostname = host.split(".");
-            if (hostname[1] == null) {
-                hostname[0] = host;
-                LOG.info("hostname convert to " + hostname);
-            } else if (hostname[1].equals("eth")) {
-                LOG.info("host is " + host + ", convert to " + hostname[0].concat(".ib"));
-            } else {
-                LOG.info("host is " + host + ", so remain this");
-            }
-
-            LOG.info("now {}:{}",hostname[0], port);
-            uri = new URI(String.format("rdma://%s:%s", hostname[0], port));
+            uri = new URI(String.format("rdma://%s:%s", host, port));
             dstAddressPrefixedName = prefixedName(uri);
         } catch (URISyntaxException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
 
         try {
-            jxClient = new JxioConnection(uri, jxioConfigs);
+            jxClient = new JxioConnection(uri);
             scheduleConnect(NO_DELAY_MS);
         } catch (ConnectException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        byte[] fromIpBytes;
+        fromIpBytes = getLocalServerIp().getBytes();
+        batcher = new MessageBuffer(Constants.MSGPOOL_BUF_SIZE, fromIpBytes);
     }
 
     private String prefixedName(URI uri) {
@@ -154,15 +150,39 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                         this.cancel();
                         return;
                     }
-
-                    if (!jxClient.isConnected())
-                        scheduleConnect(NO_DELAY_MS);
-
+                    getAliveSession();
                 } catch (Exception exp) {
                     LOG.error("channel connection error {}", exp);
                 }
             }
         }, 1000L, SESSION_ALIVE_INTERVAL_MS);
+    }
+
+    private void getAliveSession() {
+        if (output != null & input != null) {
+            return;
+        } else {
+            // Closing the channel and reconnecting should be done before handling the messages.
+            boolean reconnectScheduled = closeSessionAndReconnect(output, input);
+            if (reconnectScheduled) {
+                // Log the connection error only once
+                LOG.error("connection to {} is unavailable", uri.toString());
+            }
+        }
+    }
+
+    private boolean closeSessionAndReconnect(OutputStream out, InputStream in) {
+        if (out != null && in != null) {
+            try {
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            scheduleConnect(NO_DELAY_MS);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -207,21 +227,59 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             return;
         }
 
-        synchronized (writeLock) {
-            while (msgs.hasNext()) {
-                try {
-                    output.write(msgs.next().serialize().array());
-                    pendingMessages.incrementAndGet();
-                    messagesSent.incrementAndGet();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    pendingMessages.decrementAndGet();
-                    messagesLost.incrementAndGet();
-                }
+        //        synchronized (writeLock) {
+        while (msgs.hasNext()) {
+//                flushMessages(msgs.next());
+
+            //use batch
+            TaskMessage message = msgs.next();
+            MessageBatch full = batcher.add(message);
+            if (full != null) {
+                //Need to make Msg each time.
+                flushMessages(full);
             }
         }
+//        }
 
+        //if channel.isWritable
+//        synchronized (writeLock) {
+        MessageBatch batch = batcher.drain();
+        if (batch != null) {
+            flushMessages(batch);
+        }
+//        }
+    }
+
+    private void flushMessages(final MessageBatch batch) {
+        if (batch == null || batch.isEmpty()) {
+            return;
+        }
+        final int numMessages = batch.size();
+        LOG.debug("writing {} messages to session {}", batch.size(), uri.toString());
+        pendingMessages.addAndGet(numMessages);
+
+        //need 13 bytes to store ip address ex) 192.168.1.100
+        try {
+            //maximum batch size is 262144B (256KB)
+            //so, Msg size must be upper than 256KB
+            ByteBuffer bb = batch.buffer();
+            byte[] temp = new byte[bb.limit()];
+            bb.flip();
+            bb.get(temp);
+
+            long sent = 0;
+            int n = 0;
+            while (sent < temp.length) {
+                n = (int) Math.min(temp.length - sent, Constants.MSGPOOL_BUF_SIZE);
+                output.write(temp, 0, n);
+                sent += n;
+            }
+            output.flush();
+
+        } catch (Exception e) {
+            LOG.error("[Client-flushMessages] put message to bytebuffer error {}");
+            e.printStackTrace();
+        }
     }
 
     private boolean hasMessages(Iterator<TaskMessage> msgs) {
@@ -294,7 +352,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         // TODO Auto-generated method stub
         if (closing) {
             return Status.Closed;
-        } else if (jxClient.isConnected()) {
+        } else if (!(jxClient != null && output != null)) {
+            LOG.debug("[Client-status] Connecting " + uri.toString());
             return Status.Connecting;
         } else {
             if (saslChannelReady.get()) {
@@ -311,7 +370,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private void scheduleConnect(long delayMs) {
-        scheduler.schedule(new Connect(), delayMs, TimeUnit.MILLISECONDS);
+        scheduler.schedule(new Connect(this, uri), delayMs, TimeUnit.MILLISECONDS);
     }
 
 
@@ -350,36 +409,42 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return (uri.getHost() + ":" + uri.getPort());
     }
 
-    private class Connect implements Runnable {
-        public Connect() {
-        }
+    private class Connect extends TimerTask {
 
-        private void reschedule() {
-            jxClient.disconnect();
-            try {
-                jxClient = new JxioConnection(uri, jxioConfigs);
-            } catch (ConnectException e) {
-                e.printStackTrace();
-            }
-            scheduleConnect(5000L);
+        private final URI uri;
+        private Client client;
+
+        public Connect(Client client, URI uri) {
+            this.uri = uri;
+            this.client = client;
         }
 
         @Override
         public void run() {
             if (reconnectingAllowed()) {
+                final int connectionAttempt = connectionAttempts.getAndIncrement();
+                totalConnectionAttempts.getAndIncrement();
+
+                LOG.info("connecting to {}:{} [attempt {}]", uri.getHost(), uri.getPort(), connectionAttempt);
                 try {
-                    input = jxClient.getInputStream();
                     output = jxClient.getOutputStream();
+                    input = jxClient.getInputStream();
                 } catch (ConnectException e) {
                     e.printStackTrace();
+                    long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
+                    LOG.info("nextDelayMS = {}", nextDelayMs);
+                    scheduleConnect(nextDelayMs);
                 }
-                if (jxClient.osCon.connectErrorType == EventName.SESSION_CLOSED || jxClient.osCon.connectErrorType == EventName.SESSION_REJECT ||
-                        jxClient.osCon.connectErrorType == EventName.SESSION_ERROR) {
-                    reschedule();
+
+                LOG.info("Successfully connected to {}:{}", uri.getHost(), uri.getPort());
+
+                if (messagesLost.get() > 0) {
+                    LOG.warn("Re-connection to {} was successful but {} messages has been lost so far ", uri.toString(), messagesLost.get());
                 }
+
             } else {
                 close();
-                throw new RuntimeException("Giving up to scheduleConnect to " + dstAddressPrefixedName + " after " +
+                throw new RuntimeException("Giving up to scheduleConnect to " + uri.toString() + " after " +
                         connectionAttempts + " failed attempts. " + messagesLost.get() + " messages were lost");
             }
         }
