@@ -1,3 +1,4 @@
+
 package org.dynamic.anomaly.detection.storm;
 
 import java.util.HashMap;
@@ -28,7 +29,9 @@ public class ADGroupingBolt implements IRichBolt {
 		String key = input.getStringByField("key");
 		String cluster_host_key = cluster + "," + host + "," + key;
 		long time = input.getLongByField("time");
-		
+		// for performance.
+		long startTime = input.getLongByField("startTime");
+				
 		if (!windows.containsKey(cluster_host_key)) {
 			LogValueList value = new LogValueList();
 			value.addObject(input.getDoubleByField("value"));
@@ -41,7 +44,10 @@ public class ADGroupingBolt implements IRichBolt {
 			windows.put(cluster_host_key, values);
 		}
 		
-		collector.emit(new Values(cluster, host, key, windows.get(cluster_host_key), time));
+		collector.emit(new Values(cluster, host, key, windows.get(cluster_host_key), time,
+				// for performance.
+				startTime
+				));
 	}
 
 	public void cleanup() {
@@ -51,7 +57,7 @@ public class ADGroupingBolt implements IRichBolt {
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields("cluster", "host", "key", "window", "time"));
+		declarer.declare(new Fields("cluster", "host", "key", "window", "time", "startTime"));
 	}
 
 	public Map<String, Object> getComponentConfiguration() {

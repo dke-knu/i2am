@@ -15,6 +15,7 @@ import org.apache.storm.topology.base.BaseRichSpout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** deprecated. */
 public class ADSpout extends BaseRichSpout {
 	private SpoutOutputCollector collector;
 	private Random rand;

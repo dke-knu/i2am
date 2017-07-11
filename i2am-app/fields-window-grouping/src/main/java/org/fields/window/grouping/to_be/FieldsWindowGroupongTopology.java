@@ -20,7 +20,7 @@ public class FieldsWindowGroupongTopology {
 	    conf.setDebug(true);
 
 	    LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology("fields-window-groupong-topology", conf, builder.createTopology());
+		cluster.submitTopology("fields-window-grouping-topology", conf, builder.createTopology());
 		
 		Thread.sleep(30 * 1000);
 		cluster.shutdown();

@@ -26,5 +26,6 @@
   <modules>
     <module>dynamic-anomaly-detection-storm</module>
     <module>dynamic-anomaly-detection-web</module>
+    <module>dynamic-anomaly-detection-kafka</module>
   </modules>
 </project>

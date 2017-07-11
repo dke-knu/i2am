@@ -4,13 +4,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
 import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 
 public class AD3SigmaBolt implements IRichBolt {
 	private OutputCollector collector;
@@ -29,6 +32,8 @@ public class AD3SigmaBolt implements IRichBolt {
 		double ma = input.getDoubleByField("mvAvg");
 		double msd = input.getDoubleByField("mvStd");
 		long time = input.getLongByField("time");
+		// for performance.
+		long startTime = input.getLongByField("startTime");
 		
 		double upper = ma+(3*msd);
 		double lower = ma-(3*msd);
@@ -36,8 +41,14 @@ public class AD3SigmaBolt implements IRichBolt {
 		if(value > upper || value < lower)
 			isAnomaly = true;
 		
+		// for performance.
+		collector.ack(input);
+		long endTime = new Date().getTime();
+
 		if (conn == null)	conn = getConnection();
 		transmit(conn, cluster, host, key, value, upper, lower, isAnomaly, time);
+		
+		if (endTime>startTime)	collector.emit(new Values(startTime, endTime, time));
 	}
 
 	public void cleanup() {
@@ -47,7 +58,8 @@ public class AD3SigmaBolt implements IRichBolt {
 
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-
+		// for performance.
+		declarer.declare(new Fields("startTime", "endTime", "loggingTime"));
 	}
 
 	public Map<String, Object> getComponentConfiguration() {
@@ -57,9 +69,9 @@ public class AD3SigmaBolt implements IRichBolt {
 
 	private Connection getConnection() {
 		final String driver = "org.mariadb.jdbc.Driver";
-		final String url = "jdbc:mysql://"+"/anomalydetection"; // db ip
-		final String uId = ""; // db id
-		final String uPwd = ""; // db passwd
+		final String url = "jdbc:mysql://114.70.235.40/anomalydetection"; // db ip
+		final String uId = "anomalydetection"; // db id
+		final String uPwd = "dke304"; // db passwd
 
 		Connection conn = null;
 		try{
@@ -88,6 +100,7 @@ public class AD3SigmaBolt implements IRichBolt {
 					+ "'" + clusterName + "', '" + hostName + "', '" + logKey + "', "
 					+ logValue + ", " + upperBound + ", " + lowerBound + ", "
 					+ isAnomaly + ", FROM_UNIXTIME(" + loggingTime + "))";
+			System.out.println(sql);
 			int result = stmt.executeUpdate(sql);
 
 			stmt.close();

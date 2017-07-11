@@ -18,6 +18,7 @@ public class RandomSpout extends BaseRichSpout {
 	private final String[] SENDER = {"Alice", "Bob", "Clark"};
 
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+		System.out.println("spout open");
 		this.collector = collector;
 		this.rand = new Random();
 	}

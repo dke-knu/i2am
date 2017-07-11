@@ -26,5 +26,8 @@
   <modules>
     <module>dynamic-tagcloud</module>
     <module>dynamic-anomaly-detection</module>
+    <module>locality-aware-grouping</module>
+    <module>data-collector-exchange-rate</module>
+    <module>topology-manager</module>
   </modules>
 </project>
