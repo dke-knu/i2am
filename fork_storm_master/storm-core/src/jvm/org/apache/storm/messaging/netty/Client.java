@@ -236,11 +236,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
         if (closing) {
             return Status.Closed;
         } else if (!connectionEstablished(channelRef.get())) {
-            LOG.info("[Client-status]Connecting to {}", dstAddressPrefixedName);
             return Status.Connecting;
         } else {
             if (saslChannelReady.get()) {
-                LOG.info("[Client-status]Ready to {}", dstAddressPrefixedName);
                 return Status.Ready;
             } else {
                 return Status.Connecting; // need to wait until sasl channel is also ready
@@ -299,7 +297,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
             dropMessages(msgs);
             return;
         }
-int count = 0;
         synchronized (writeLock) {
             while (msgs.hasNext()) {
                 TaskMessage message = msgs.next();
@@ -379,6 +376,7 @@ int count = 0;
 
         final int numMessages = batch.size();
         LOG.debug("writing {} messages to channel {}", batch.size(), channel.toString());
+        LOG.info("writing {} messages to channel {}", batch.size(), channel.toString());
         pendingMessages.addAndGet(numMessages);
 
         ChannelFuture future = channel.write(batch);

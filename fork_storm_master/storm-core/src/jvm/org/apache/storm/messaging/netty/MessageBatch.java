@@ -21,10 +21,13 @@ import org.apache.storm.messaging.TaskMessage;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
 class MessageBatch {
+    private static final Logger LOG = LoggerFactory.getLogger(MessageBatch.class);
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
@@ -57,6 +60,7 @@ class MessageBatch {
      * @return true if this batch used up allowed buffer size
      */
     boolean isFull() {
+        LOG.info("encoded_length: " + encoded_length);
         return encoded_length >= buffer_size;
     }
 

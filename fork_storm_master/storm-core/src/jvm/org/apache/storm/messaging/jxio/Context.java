@@ -25,6 +25,7 @@ public class Context implements IContext {
     private Map storm_conf;
     private Map<String, IConnection> connections;
     private ScheduledThreadPoolExecutor clientScheduleService;
+    private boolean isEnablePortal = false;
     /*
     *
     *    Enqueue a task message to be sent to server
@@ -45,6 +46,7 @@ public class Context implements IContext {
         clientScheduleService = new ScheduledThreadPoolExecutor(
                 Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)),
                 workerFactory);
+        isEnablePortal = Utils.getBoolean(storm_conf.get(Config.STORM_MESSAGING_JXIO_PORTAL_HANDLER), false);
 
     }
 
@@ -81,7 +83,12 @@ public class Context implements IContext {
     * */
     @Override
     public IConnection bind(String storm_id, int port) {
-        IConnection server = new Server(storm_conf, port);
+        IConnection server = null;
+        if(isEnablePortal) {
+            server = new ServerNoPortal(storm_conf, port);
+        } else {
+            server = new Server(storm_conf, port);
+        }
         connections.put(key(storm_id, port), server);
         return server;
     }

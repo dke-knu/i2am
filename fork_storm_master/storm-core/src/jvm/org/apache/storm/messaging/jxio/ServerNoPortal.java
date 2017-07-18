@@ -83,16 +83,18 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
 
         listen_eqh = new EventQueueHandler(new EqhCallbacks(
                 Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INC_BUFFER_COUNT)),
-                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 200));
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_MINIMUM_BUFFER_SIZE))));
         msgPool = new MsgPool(
-                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)),
-                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)), 200);
+                250/*Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT))*/,
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)),
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_MINIMUM_BUFFER_SIZE)));
         listen_eqh.bindMsgPool(msgPool);
         spc = new ServerPortalCallbacks(this);
         listener = new ServerPortal(listen_eqh, uri, spc);
         allSessions = new HashSet<ServerSession>();
 
-        LOG.info("Create JXIO Server " + jxio_name() + ", worker threads: " + num_of_workers);
+        LOG.info("[NoPortal] Create JXIO Server " + jxio_name() + ", worker threads: " + num_of_workers);
 
         runServer();
     }
@@ -201,7 +203,6 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
     @Override
     public Object getState() {
         LOG.debug("Getting metrics for server on port {}", port);
-        LOG.info("Getting metrics for server on port {}", port);
         HashMap<String, Object> ret = new HashMap<>();
         ret.put("dequeuedMessages", messagesDequeued.getAndSet(0));
         HashMap<String, Integer> enqueued = new HashMap<String, Integer>();
@@ -363,45 +364,41 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
 
         @Override
         public void onRequest(Msg msg) {
-
             if (!msg.getIn().hasRemaining()) {
                 LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
                 return;
             }
 
-            Object obj = decoder(msg.getIn());
-            if (obj instanceof ControlMessage) {
-                LOG.info("[Server] onRequest2");
-                ControlMessage ctrl_msg = (ControlMessage) obj;
-                LOG.info("[Server] onRequest3");
-                if (ctrl_msg == ControlMessage.LOADMETRICS_REQUEST) {
-                    LOG.info("[Server] onRequest4");
+            if (msg.getIn().limit() <= 2) {
+                short code = msg.getIn().getShort();
+                LOG.info("[Server] LoadMetrics message = {}", code);
+                if(code == -111) {
+                    TaskMessage tm = null;
                     try {
-                        LOG.info("[Server] onRequest5");
-                        TaskMessage tm = new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad)));
-                        LOG.info("[Server] onRequest6");
-                        msg.getOut().put(tm.serialize());
-                        LOG.info("[Server] onRequest7");
-                        session.sendResponse(msg);
-                        LOG.info("[Server] onRequest8");
+                        tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
                     } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    ByteBuffer bb = tm.serialize();
+                    msg.getOut().put(bb.array());
+                    try {
+                        session.sendResponse(msg);
+                        LOG.info("[Server] send Load Metrics");
+                    } catch (JxioGeneralException e) {
+                        e.printStackTrace();
+                    } catch (JxioSessionClosedException e) {
                         e.printStackTrace();
                     }
                 }
             } else {
-                msg.getIn().rewind();
+//                msg.getIn().rewind();
                 ByteBuffer bb = msg.getIn();
                 byte[] ipByte = new byte[13];
                 bb.get(ipByte);
                 String ipStr = new String(ipByte);
-                LOG.info("[Server] normal messages from {}", ipStr);
+//                LOG.info("[Server] normal messages from {}", ipStr);
 
-                //single TaskMessage
-            /*int taskId = bb.getShort();
-            byte[] tempByte = new byte[bb.limit()-15];
-            bb.get(tempByte);
-            TaskMessage tm = new TaskMessage(taskId, tempByte);
-            messages.add(tm);*/
+                //first, read ip address and then remain bytes in msg are decoded.
 
                 //batch TaskMessage
                 List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());

@@ -28,8 +28,10 @@ class MessageBatch {
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
+    private final byte[] fromIp;
 
-    MessageBatch(int buffer_size) {
+    MessageBatch(int buffer_size, byte[] fromIp) {
+        this.fromIp = fromIp;
         this.buffer_size = buffer_size;
         msgs = new ArrayList<>();
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
@@ -77,7 +79,8 @@ class MessageBatch {
      * create a buffer containing the encoding of this batch
      */
     ByteBuffer buffer() throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocate(encoded_length);
+        ByteBuffer buffer = ByteBuffer.allocate(encoded_length+13);
+        buffer.put(fromIp);
         for (TaskMessage msg : msgs) {
             writeTaskMessage(buffer, msg);
         }

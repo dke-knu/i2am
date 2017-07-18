@@ -24,11 +24,9 @@ public class ServerSessionHandler {
     private final static Logger LOG = LoggerFactory.getLogger(ServerSessionHandler.class.getCanonicalName());
 
     private ServerSession session;
-    private final ServerPortalHandler sph;
 
-    public ServerSessionHandler(ServerSession.SessionKey sesKey, ServerPortalHandler sph, Server server) {
+    public ServerSessionHandler(ServerSession.SessionKey sesKey, Server server) {
         session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
-        this.sph = sph;
     }
 
     public ServerSession getSession() {
@@ -37,7 +35,7 @@ public class ServerSessionHandler {
 
     public class ServerSessionCallbacks implements ServerSession.Callbacks {
         private Server server;
-        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
+        //        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
         private AtomicInteger failure_count;
 
         public ServerSessionCallbacks(Server server) {
@@ -125,32 +123,21 @@ public class ServerSessionHandler {
                 return;
             }
 
-            if(msg.getIn().limit() <= 2) {
-                LOG.info("[Server] LoadMetrics message = {}", msg.getIn().getShort());
-                return;
-            }
-
-            Object obj = decoder(msg.getIn());
-            if (obj instanceof ControlMessage) {
-                LOG.info("[Server] onRequest2");
-                ControlMessage ctrl_msg = (ControlMessage) obj;
-                LOG.info("[Server] onRequest3");
-                if (ctrl_msg == ControlMessage.LOADMETRICS_REQUEST) {
-                    LOG.info("[Server] onRequest4");
+            if (msg.getIn().limit() <= 2) {
+                short code = msg.getIn().getShort();
+                LOG.info("[Server] LoadMetrics message = {}", code);
+                if(code == -111) {
+                    TaskMessage tm = null;
                     try {
-                        LOG.info("[Server] onRequest5");
-                        TaskMessage tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
-                        LOG.info("[Server] onRequest6");
-                        msg.getOut().put(tm.serialize());
-                        LOG.info("[Server] onRequest7");
+                        tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
+                    ByteBuffer bb = tm.serialize();
+                    msg.getOut().put(bb.array());
                     try {
-                        LOG.info("[Server] onRequest8");
                         session.sendResponse(msg);
-                        LOG.info("[Server] onRequest9");
+                        LOG.info("[Server] sand Load Metrics");
                     } catch (JxioGeneralException e) {
                         e.printStackTrace();
                     } catch (JxioSessionClosedException e) {
@@ -158,19 +145,14 @@ public class ServerSessionHandler {
                     }
                 }
             } else {
-                msg.getIn().rewind();
+//                msg.getIn().rewind();
                 ByteBuffer bb = msg.getIn();
                 byte[] ipByte = new byte[13];
                 bb.get(ipByte);
                 String ipStr = new String(ipByte);
 //                LOG.info("[Server] normal messages from {}", ipStr);
 
-                //single TaskMessage
-            /*int taskId = bb.getShort();
-            byte[] tempByte = new byte[bb.limit()-15];
-            bb.get(tempByte);
-            TaskMessage tm = new TaskMessage(taskId, tempByte);
-            messages.add(tm);*/
+                //first, read ip address and then remain bytes in msg are decoded.
 
                 //batch TaskMessage
                 List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());
@@ -202,16 +184,23 @@ public class ServerSessionHandler {
             } else {
                 LOG.error(str);
             }
+            if(session.getIsClosing()) {
+                session = null;
+                return;
+            }
             session.close();
+//            LOG.info("[ServerSession][EVENT] session size: {}", server.allSessions.size());
         }
 
         @Override
         public boolean onMsgError(Msg msg, EventReason eventReason) {
-            if(ServerSessionHandler.this.session.getIsClosing()) {
+            if (ServerSessionHandler.this.session.getIsClosing()) {
                 LOG.info("On Message Error while closing. Reason is = " + eventReason);
             } else {
                 LOG.error("On Message Error. Reason is = " + eventReason);
             }
+            LOG.error("[ServerSessionHandler] Msg = {}", msg.toString());
+            msg = null;
             return true;
         }
     }

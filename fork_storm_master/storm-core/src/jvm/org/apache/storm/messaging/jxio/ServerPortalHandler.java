@@ -1,12 +1,11 @@
 package org.apache.storm.messaging.jxio;
 
 import org.accelio.jxio.*;
-import org.apache.storm.Config;
-import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,12 +19,14 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
     private final MsgPool msgPool;
     public final int portal_index;
     private AtomicInteger num_of_sessions;
-    private ServerSessionHandler handler;
+    private List<ServerSessionHandler> handlers = new ArrayList<ServerSessionHandler>();
+    private List<MsgPool> msgPools = new ArrayList<MsgPool>();
 
-    public ServerPortalHandler(int index, URI uri, ServerPortal.Callbacks c) {
+    public ServerPortalHandler(int index, URI uri, ServerPortal.Callbacks c, Map<String, Integer> jxioConfig) {
         portal_index = index;
-        eqh = new EventQueueHandler(new EqhCallbacks(200, 262160, 200));
-        msgPool = new MsgPool(500, 262160, 200);
+        eqh = new EventQueueHandler(new EqhCallbacks(jxioConfig.get("poolSize"), jxioConfig.get("in"), jxioConfig.get("out")));
+        msgPool = new MsgPool(jxioConfig.get("poolSize"), jxioConfig.get("in"), jxioConfig.get("out"));
+        msgPools.add(msgPool);
         eqh.bindMsgPool(msgPool);
         sp = new ServerPortal(eqh, uri, c);
         num_of_sessions = new AtomicInteger(0);
@@ -33,6 +34,12 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
 
     public void run() {
         LOG.info("Server worker number " + portal_index + " is up and waiting for requests");
+        /*timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                LOG.info("[ServerPortalHandler] MsgPool = {}", msgPool.toString());
+            }
+        }, 0, 700L);*/
         eqh.run();
     }
 
@@ -55,24 +62,31 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
 
     @Override
     public boolean isFree() {
-        if (handler == null) {
+        /*if (handler == null) {
             return true;
         } else {
             return (handler.getSession() == null);
-        }
+        }*/
+        return true;
     }
 
-    public ServerSessionHandler getHandler() {
-        return handler;
+    public List<ServerSessionHandler> getHandler() {
+        return handlers;
     }
 
     public void setSessionHandler(ServerSessionHandler handler) {
-        this.handler = handler;
+//        this.handler = handler;
+        handlers.add(handler);
     }
 
     public void disconnect() {
-        handler.getSession().close();
+        for(ServerSessionHandler s : handlers)
+        s.getSession().close();
         eqh.breakEventLoop();
+        for(MsgPool mp : msgPools) {
+            mp.deleteMsgPool();
+        }
+        msgPools.clear();
     }
 
     class EqhCallbacks implements EventQueueHandler.Callbacks {
@@ -89,6 +103,7 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
         public MsgPool getAdditionalMsgPool(int in, int out) {
             MsgPool mp = new MsgPool(numMsgs, inMsgSize, outMsgSize);
             LOG.warn("new MsgPool: " + mp);
+            msgPools.add(mp);
             return mp;
         }
     }

@@ -1,3 +1,4 @@
+
 package org.apache.storm.messaging.jxio;
 
 import org.accelio.jxio.*;
@@ -15,12 +16,17 @@ import org.slf4j.LoggerFactory;
 
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Created by seokwoo on 17. 3. 17.
  */
+
 public class Server extends ConnectionWithStatus implements IStatefulObject, WorkerProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(Server.class.getCanonicalName());
@@ -46,9 +52,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     public volatile Map<Integer, Double> taskToLoad;
 
-    /*
+    private final Map<String, Integer> jxioConfig = new HashMap<String, Integer>();
+
+/*
     *서버 객체를 생성하면 bind
     * */
+
     @SuppressWarnings("rawtypes")
     public Server(Map storm_conf, int port) {
         this.storm_conf = storm_conf;
@@ -62,7 +71,6 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
             host = getLocalServerIp();
             LOG.info("No Configuration associate host,get local host -> {}", host);
         }
-
         URI uri = null;
         try {
             uri = new URI(String.format("rdma://%s:%s", host, String.valueOf(port)));
@@ -71,16 +79,18 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
 
         num_of_workers = Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS));
-
         listen_eqh = new EventQueueHandler(null);
         spc = new ServerPortalCallbacks(this);
         listener = new ServerPortal(listen_eqh, uri, spc, this);
 
         ThreadFactory factory = new JxioRenameThreadFactory(jxio_name() + "-worker");
-        executor = Executors.newFixedThreadPool(num_of_workers, factory);
+//        executor = Executors.newFixedThreadPool(num_of_workers, factory);
         SPWorkers = new ConcurrentLinkedQueue<ServerPortalHandler>();
+        jxioConfig.put("poolSize", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_INITIAL_BUFFER_COUNT)));
+        jxioConfig.put("in", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE)));
+        jxioConfig.put("out", Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_MSGPOOL_MINIMUM_BUFFER_SIZE)));
         for (int i = 1; i <= num_of_workers; i++) {
-            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), spc));
+            SPWorkers.add(new ServerPortalHandler(i, listener.getUriForServer(), spc, jxioConfig));
         }
 
         LOG.info("Create JXIO Server " + jxio_name() + ", worker threads: " + num_of_workers);
@@ -92,7 +102,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         LOG.info("Starting server portal workers");
 
         for (ServerPortalHandler sph : SPWorkers) {
-            executor.submit(sph);
+//            executor.submit(sph);
+            sph.start();
         }
 
         new JxioRenameThreadFactory(jxio_name() + "-EQH").newThread(listen_eqh).start();
@@ -117,11 +128,13 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
     }
 
+
     /**
      * enqueue a received message
      *
      * @throws InterruptedException
      */
+
     protected void enqueue(List<TaskMessage> msgs, String from) throws InterruptedException {
         if (null == msgs || msgs.size() == 0 || closing) {
             return;
@@ -194,12 +207,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     }
 
     private boolean connectionEstablished(ServerPortalHandler sph) {
-        ServerSession ss = sph.getHandler().getSession();
-        if (ss != null && listen_eqh.getInRunEventLoop()) {
-            if (sph.getEqh().getInRunEventLoop()) {
-                return true;
+        for (ServerSessionHandler ssh : sph.getHandler())
+            if (ssh.getSession() != null && listen_eqh.getInRunEventLoop()) {
+                if (sph.getEqh().getInRunEventLoop()) {
+                    return true;
+                }
             }
-        }
         return false;
     }
 
@@ -256,7 +269,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public WorkerCache.Worker getWorker() {
-        for (ServerPortalHandler w : SPWorkers) {
+        for (WorkerCache.Worker w : SPWorkers) {
             if (w.isFree()) {
                 return w;
             }
@@ -266,7 +279,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     private ServerPortalHandler createNewWorker() {
         num_of_workers++;
-        ServerPortalHandler sph = new ServerPortalHandler(num_of_workers, listener.getUriForServer(), spc);
+        ServerPortalHandler sph = new ServerPortalHandler(num_of_workers, listener.getUriForServer(), spc, jxioConfig);
         sph.start();
         LOG.info(jxio_name() + " Create new worker");
         return sph;
@@ -297,7 +310,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
             SPWorkers.remove(sph);
             SPWorkers.add(sph);
-            ServerSessionHandler sessionHandler = new ServerSessionHandler(sesKey, sph, server);
+            ServerSessionHandler sessionHandler = new ServerSessionHandler(sesKey, server);
             sph.setSessionHandler(sessionHandler);
             LOG.info("Server worker number {} got new session from {}", sph.portal_index, srcIP);
             listener.forward(sph.getPortal(), sessionHandler.getSession());
@@ -310,3 +323,4 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
         }
     }
 }
+
