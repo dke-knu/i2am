@@ -55,6 +55,9 @@ public class Config extends HashMap<String, Object> {
     private static final long serialVersionUID = -1550278723792864455L;
 
 
+
+    @isBoolean
+    public static final String STORM_MESSAGING_JXIO_PORTAL_HANDLER = "storm.messaging.jxio.portal.handler";
     /**
      * If the Netty messaging layer is busy, the Netty client will try to batch message as more as possible up to the size of STORM_NETTY_MESSAGE_BATCH_SIZE bytes
      */
@@ -65,7 +68,11 @@ public class Config extends HashMap<String, Object> {
      */
     @isInteger
     @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.msgpool.buffer.size";
+    public static final String STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.jxio.msgpool.buffer.size";
+
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_MSGPOOL_MINIMUM_BUFFER_SIZE = "storm.messaging.jxio.msgpool.minimum.buffer.size";
 
     /**
      * JXIO based messaging: The # of MSG for client-side input
