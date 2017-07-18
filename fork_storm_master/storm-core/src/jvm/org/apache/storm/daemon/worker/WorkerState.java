@@ -377,7 +377,6 @@ public class WorkerState {
         // Add new connections atomically
         cachedNodeToPortSocket.getAndUpdate(prev -> {
             Map<NodeInfo, IConnection> next = new HashMap<>(prev);
-            LOG.info("check list connection");
             for (NodeInfo nodeInfo : newConnections) {
                 next.put(nodeInfo,
                     mqContext.connect(
@@ -440,7 +439,6 @@ public class WorkerState {
     }
 
     public void refreshLoad() {
-        LOG.info("is sendLoadMetrics called??1");
         Set<Integer> remoteTasks = Sets.difference(new HashSet<Integer>(outboundTasks), new HashSet<>(taskIds));
         Long now = System.currentTimeMillis();
         Map<Integer, Double> localLoad = shortExecutorReceiveQueueMap.entrySet().stream().collect(Collectors.toMap(
@@ -456,8 +454,11 @@ public class WorkerState {
         loadMapping.setRemote(remoteLoad);
 
         if (now > nextUpdate.get()) {
-            LOG.info("is sendLoadMetrics called??2");
             receiver.sendLoadMetrics(localLoad);
+            /*for(IConnection client : cachedNodeToPortSocket.get().values()) {
+                LOG.info("[WorkerState-client] sendLoadMetrics");
+                client.requestLoadMectrics();
+            }*/
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }
     }
@@ -643,12 +644,12 @@ public class WorkerState {
         }
         return receiveQueueMap;
     }
-    
+
     private Map<String, Object> makeDefaultResources() {
         int threadPoolSize = Utils.getInt(conf.get(Config.TOPOLOGY_WORKER_SHARED_THREAD_POOL_SIZE));
         return ImmutableMap.of(WorkerTopologyContext.SHARED_EXECUTOR, Executors.newFixedThreadPool(threadPoolSize));
     }
-    
+
     private Map<String, Object> makeUserResources() {
         /* TODO: need to invoke a hook provided by the topology, giving it a chance to create user resources.
         * this would be part of the initialization hook
