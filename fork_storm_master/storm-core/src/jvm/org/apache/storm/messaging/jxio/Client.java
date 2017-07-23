@@ -59,7 +59,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final InetSocketAddress dstAddress;
 
     private final MessageBuffer batcher;
-    private final Object writeLock = new Object();
+
+    private int numMessages;
 
     //JXIO's
     private final MsgPool msgPool;
@@ -70,6 +71,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 //    private ExecutorService eqhThread;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
+        int messageBatchSize = Utils.getInt(stormConf.get(Config.STORM_JXIO_MESSAGE_BATCH_SIZE));
         this.eqh = new EventQueueHandler(null);
         this.msgPool = new MsgPool(
                 Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_CLIENT_BUFFER_COUNT)),
@@ -84,7 +86,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         int maxWaitMs = Utils.getInt(stormConf.get(Config.STORM_MESSAGING_JXIO_MAX_SLEEP_MS));
         retryPolicy = new StormBoundedExponentialBackoffRetry(minWaitMs, maxWaitMs, maxReconnectionAttempts);
         saslChannelReady.set(!Utils.getBoolean(stormConf.get(Config.STORM_MESSAGING_NETTY_AUTHENTICATION), false));
-        int messageBatchSize = Utils.getInt(stormConf.get(Config.STORM_JXIO_MESSAGE_BATCH_SIZE), 65536);
 
         LOG.info("creating JXIO client, connecting to {}:{}, bufferSize: {}", host, port, messageBatchSize);
 //        eqhThread = Executors.newCachedThreadPool(new JxioRenameThreadFactory("Client EQH thread"));
@@ -164,7 +165,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     @Override
     public void send(Iterator<TaskMessage> msgs) {
         if (closing) {
-            int numMessages = iteratorSize(msgs);
+            numMessages = iteratorSize(msgs);
             LOG.error("discarding {} messages because the JXIO client to {} is being closed", numMessages, uri.toString());
             return;
         }
@@ -180,11 +181,19 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
             //use batch
             TaskMessage message = msgs.next();
-            MessageBatch full = batcher.add(message);
+
+            if(batcher.isAvailable(message.message().length)) {
+                batcher.add(message);
+            } else {
+                MessageBatch full = batcher.getCurrentBatch();
+                flushMessages(full);
+                batcher.add(message);
+            }
+            /*MessageBatch full = batcher.add(message);
             if (full != null) {
                 //Need to make Msg each time.
                 flushMessages(full);
-            }
+            }*/
         }
 
         MessageBatch batch = batcher.drain();
@@ -197,34 +206,33 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         if (batch == null || batch.isEmpty()) {
             return;
         }
-        final int numMessages = batch.size();
-        LOG.debug("writing {} messages to session {}", numMessages, uri.toString());
+        numMessages = batch.size();
         pendingMessages.addAndGet(numMessages);
         Msg msg = msgPool.getMsg();
 
         //need 13 bytes to store ip address ex) 192.168.1.100
+        ByteBuffer bb = null;
         try {
             //maximum batch size is 262144B (256KB)
             //so, Msg size must be upper than 256KB
-            ByteBuffer bb = batch.buffer();
+            bb = batch.buffer();
             if (bb.hasArray()) {
                 msg.getOut().put(bb.array());
-                LOG.debug("writing {} = {}, msg = {}, msgpool info = {}, messages to session {}", batch.size(), bb.array().length, msg.getOut().toString(), msgPool.toString(), uri.toString());
             } else {
                 byte[] tempByte = new byte[bb.limit()];
                 bb.flip();
                 bb.get(tempByte);
                 msg.getOut().put(tempByte);
-                LOG.debug("writing {} = {}, msg = {}, msgpool info = {}, messages to session {}", batch.size(), tempByte.length, msg.getOut().toString(), msgPool.toString(), uri.toString());
             }
         } catch (Exception e) {
             LOG.error("[Client-flushMessages] put message to bytebuffer error");
-            LOG.error("writing {}, msg size = {}, msgpool info = {}", batch.size(), msg.getOut().toString(), msgPool.toString());
+            LOG.error("writing {}:{}, msg size = {}, msgpool info = {}", batch.size(), bb.array().length, msg.getOut().toString(), msgPool.toString());
             failSendMessages(numMessages);
             e.printStackTrace();
         }
         try {
             cs.sendRequest(msg);
+//            LOG.info("writing {}, msg = {}, messages to session {}", numMessages, msg.getOut().toString(), uri.toString());
         } catch (JxioGeneralException e) {
             failSendMessages(numMessages);
             msgPool.releaseMsg(msg);
@@ -316,6 +324,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             return Status.Connecting;
         } else {
             if (saslChannelReady.get()) {
+                LOG.debug("[Client-status] Ready " + uri.toString());
                 return Status.Ready;
             } else {
                 return Status.Connecting; // need to wait until sasl channel is also ready
@@ -445,7 +454,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private void failSendMessages(int numMessages) {
-        LOG.error("failed to send {} messages to {}", numMessages, uri.toString());
+        LOG.error("Failed to send {} messages to {}", numMessages, uri.toString());
         closeSessionAndReconnect(sessionRef.get());
         messagesLost.getAndAdd(numMessages);
     }
@@ -497,6 +506,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         @Override
         public void onResponse(Msg msg) {
+//            LOG.info("Client-onResponse, msg: " + msg.toString());
             if (msg.getIn().remaining() >= 2) {
                 LOG.info("[Client] load metrics response");
                 ByteBuffer bb = msg.getIn();
@@ -533,6 +543,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 //                    LOG.info("[Client-onResponse] success");
                     msg.returnToParentPool();
                     return;
+                } else if((char) message == 'n') {
+                    LOG.error("send empty message");
+                    msg.returnToParentPool();
                 }
             }
             LOG.warn("No load metrics also no success message");
@@ -543,7 +556,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         public void onSessionEstablished() {
             boolean setSession = sessionRef.compareAndSet(null, cs);
             checkState(setSession);
-//            eqhThread.submit(eqh);
             LOG.info("Successfully connected to {}:{}", uri.getHost(), uri.getPort());
 
             if (messagesLost.get() > 0) {
@@ -559,20 +571,18 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 if (closing) {
                     LOG.info("closing true releaseResources");
                     eqh.stop();
-//                    eqhThread.shutdown();
-                    releaseResources();
+                    close();
                 } else {
 //                    eqhThread.shutdown();
                     LOG.info("closing false do reconnect no delay");
-                    scheduleConnect(NO_DELAY_MS);
+//                    scheduleConnect(NO_DELAY_MS);
+                    closeSessionAndReconnect(sessionRef.get());
                 }
             } else {
                 LOG.error(str);
                 LOG.info("Re connect to {}:{}", uri.getHost(), uri.getPort());
-//                eqh.breakEventLoop();
                 long nextDelayMs = retryPolicy.getSleepTimeMs(connectionAttempts.get(), 0);
                 LOG.info("nextDelayMS = {}", nextDelayMs);
-                cs.close();
                 cs = null;
                 scheduleConnect(nextDelayMs);
             }

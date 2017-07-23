@@ -24,8 +24,10 @@ public class ServerSessionHandler {
     private final static Logger LOG = LoggerFactory.getLogger(ServerSessionHandler.class.getCanonicalName());
 
     private ServerSession session;
+    ServerSession.SessionKey key;
 
     public ServerSessionHandler(ServerSession.SessionKey sesKey, Server server) {
+        key = sesKey;
         session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
     }
 
@@ -118,9 +120,11 @@ public class ServerSessionHandler {
 
         @Override
         public void onRequest(Msg msg) {
+//            LOG.info("Server-onRequest, msg info: " + msg.toString());
             if (!msg.getIn().hasRemaining()) {
                 LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
-                return;
+                char ch = 'n';
+                msg.getOut().put((byte) ch);
             }
 
             if (msg.getIn().limit() <= 2) {
@@ -135,14 +139,6 @@ public class ServerSessionHandler {
                     }
                     ByteBuffer bb = tm.serialize();
                     msg.getOut().put(bb.array());
-                    try {
-                        session.sendResponse(msg);
-                        LOG.info("[Server] sand Load Metrics");
-                    } catch (JxioGeneralException e) {
-                        e.printStackTrace();
-                    } catch (JxioSessionClosedException e) {
-                        e.printStackTrace();
-                    }
                 }
             } else {
 //                msg.getIn().rewind();
@@ -166,13 +162,13 @@ public class ServerSessionHandler {
                 }
                 char ch = 's';
                 msg.getOut().put((byte) ch);
-                try {
-                    session.sendResponse(msg);
-                } catch (JxioGeneralException e) {
-                    e.printStackTrace();
-                } catch (JxioSessionClosedException e) {
-                    e.printStackTrace();
-                }
+            }
+            try {
+                session.sendResponse(msg);
+            } catch (JxioGeneralException e) {
+                e.printStackTrace();
+            } catch (JxioSessionClosedException e) {
+                e.printStackTrace();
             }
         }
 
@@ -188,19 +184,20 @@ public class ServerSessionHandler {
                 session = null;
                 return;
             }
+            LOG.error("[OnSessionEvent] sessionPtr = " + key.getSessionPtr() + " key.Uri = " + key.getUri());
             session.close();
 //            LOG.info("[ServerSession][EVENT] session size: {}", server.allSessions.size());
         }
 
         @Override
         public boolean onMsgError(Msg msg, EventReason eventReason) {
-            if (ServerSessionHandler.this.session.getIsClosing()) {
+            LOG.error("[onMsgError] sessionPtr = " + key.getSessionPtr() + " key.Uri = " + key.getUri());
+            if (session.getIsClosing()) {
                 LOG.info("On Message Error while closing. Reason is = " + eventReason);
             } else {
                 LOG.error("On Message Error. Reason is = " + eventReason);
             }
             LOG.error("[ServerSessionHandler] Msg = {}", msg.toString());
-            msg = null;
             return true;
         }
     }

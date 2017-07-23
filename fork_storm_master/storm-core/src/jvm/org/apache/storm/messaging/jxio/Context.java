@@ -46,7 +46,7 @@ public class Context implements IContext {
         clientScheduleService = new ScheduledThreadPoolExecutor(
                 Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)),
                 workerFactory);
-        isEnablePortal = Utils.getBoolean(storm_conf.get(Config.STORM_MESSAGING_JXIO_PORTAL_HANDLER), false);
+        isEnablePortal = Utils.getBoolean(storm_conf.get(Config.STORM_MESSAGING_JXIO_PORTAL_HANDLER), true);
 
     }
 
@@ -84,7 +84,7 @@ public class Context implements IContext {
     @Override
     public IConnection bind(String storm_id, int port) {
         IConnection server = null;
-        if(isEnablePortal) {
+        if(!isEnablePortal) {
             server = new ServerNoPortal(storm_conf, port);
         } else {
             server = new Server(storm_conf, port);

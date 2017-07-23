@@ -37,12 +37,13 @@ class MessageBatch {
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
     }
 
-    void add(TaskMessage msg) {
+    int add(TaskMessage msg) {
         if (msg == null)
             throw new RuntimeException("null object forbidden in message batch");
 
         msgs.add(msg);
         encoded_length += msgEncodeLength(msg);
+        return buffer_size - encoded_length;
     }
 
     private int msgEncodeLength(TaskMessage taskMsg) {
