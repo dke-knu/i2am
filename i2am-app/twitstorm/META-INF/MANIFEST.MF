@@ -1,0 +1,29 @@
+Manifest-Version: 1.0
+Bundle-Description: Jedis is a blazingly small and sane Redis java cli
+ ent.
+Bundle-License: http://github.com/xetorthio/jedis/raw/master/LICENSE.t
+ xt
+Bundle-SymbolicName: redis.clients.jedis
+Archiver-Version: Plexus Archiver
+Built-By: jonas
+Bnd-LastModified: 1469191785768
+Bundle-ManifestVersion: 2
+Import-Package: javax.net,javax.net.ssl,org.apache.commons.pool2;versi
+ on="[2.4,3)",org.apache.commons.pool2.impl;version="[2.4,3)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+Tool: Bnd-2.3.0.201405100607
+Export-Package: redis.clients.util;uses:="org.apache.commons.pool2,org
+ .apache.commons.pool2.impl,redis.clients.jedis.exceptions";version="2
+ .9.0",redis.clients.jedis;uses:="javax.net.ssl,org.apache.commons.poo
+ l2.impl,redis.clients.jedis.exceptions,redis.clients.jedis.params.geo
+ ,redis.clients.jedis.params.sortedset,redis.clients.util";version="2.
+ 9.0",redis.clients.jedis.params;version="2.9.0",redis.clients.jedis.p
+ arams.sortedset;uses:="redis.clients.jedis.params";version="2.9.0",re
+ dis.clients.jedis.params.geo;uses:="redis.clients.jedis.params";versi
+ on="2.9.0",redis.clients.jedis.exceptions;uses:="redis.clients.jedis"
+ ;version="2.9.0"
+Bundle-Name: Jedis
+Bundle-Version: 2.9.0
+Created-By: Apache Maven Bundle Plugin
+Build-Jdk: 1.8.0_65
+
