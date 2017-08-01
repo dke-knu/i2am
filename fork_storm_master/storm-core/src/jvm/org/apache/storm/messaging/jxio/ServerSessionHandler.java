@@ -24,10 +24,10 @@ public class ServerSessionHandler {
     private final static Logger LOG = LoggerFactory.getLogger(ServerSessionHandler.class.getCanonicalName());
 
     private ServerSession session;
-    ServerSession.SessionKey key;
+    private final String srcIp;
 
-    public ServerSessionHandler(ServerSession.SessionKey sesKey, Server server) {
-        key = sesKey;
+    public ServerSessionHandler(ServerSession.SessionKey sesKey, Server server, String srcIp) {
+        this.srcIp = srcIp;
         session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
     }
 
@@ -39,6 +39,7 @@ public class ServerSessionHandler {
         private Server server;
         //        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
         private AtomicInteger failure_count;
+        private char ch = 's';
 
         public ServerSessionCallbacks(Server server) {
             this.server = server;
@@ -141,26 +142,16 @@ public class ServerSessionHandler {
                     msg.getOut().put(bb.array());
                 }
             } else {
-//                msg.getIn().rewind();
-                ByteBuffer bb = msg.getIn();
-                byte[] ipByte = new byte[13];
-                bb.get(ipByte);
-                String ipStr = new String(ipByte);
-//                LOG.info("[Server] normal messages from {}", ipStr);
-
-                //first, read ip address and then remain bytes in msg are decoded.
-
                 //batch TaskMessage
                 List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());
 
                 try {
-                    server.received(messages, ipStr);
+                    server.received(messages, srcIp);
                 } catch (InterruptedException e) {
                     LOG.info("failed to enqueue a request message", e);
                     failure_count.incrementAndGet();
                     e.printStackTrace();
                 }
-                char ch = 's';
                 msg.getOut().put((byte) ch);
             }
             try {
@@ -184,20 +175,18 @@ public class ServerSessionHandler {
                 session = null;
                 return;
             }
-            LOG.error("[OnSessionEvent] sessionPtr = " + key.getSessionPtr() + " key.Uri = " + key.getUri());
+            LOG.error("[OnSessionEvent] srcIp = {}", srcIp);
             session.close();
 //            LOG.info("[ServerSession][EVENT] session size: {}", server.allSessions.size());
         }
 
         @Override
         public boolean onMsgError(Msg msg, EventReason eventReason) {
-            LOG.error("[onMsgError] sessionPtr = " + key.getSessionPtr() + " key.Uri = " + key.getUri());
             if (session.getIsClosing()) {
-                LOG.info("On Message Error while closing. Reason is = " + eventReason);
+                LOG.info("On Message Error while closing. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
             } else {
-                LOG.error("On Message Error. Reason is = " + eventReason);
+                LOG.error("On Message Error. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
             }
-            LOG.error("[ServerSessionHandler] Msg = {}", msg.toString());
             return true;
         }
     }

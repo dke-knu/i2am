@@ -98,9 +98,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         dstAddress = new InetSocketAddress(host, port);
         launchSessionAliveThread();
         scheduleConnect(NO_DELAY_MS);
-        byte[] fromIpBytes;
-        fromIpBytes = getLocalServerIp().getBytes();
-        batcher = new MessageBuffer(messageBatchSize, fromIpBytes);
+        batcher = new MessageBuffer(messageBatchSize);
 //        eqhThread.submit(eqh);
     }
 
@@ -182,13 +180,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             //use batch
             TaskMessage message = msgs.next();
 
-            if(batcher.isAvailable(message.message().length)) {
-                batcher.add(message);
-            } else {
-                MessageBatch full = batcher.getCurrentBatch();
-                flushMessages(full);
-                batcher.add(message);
+            MessageBatch full2 = batcher.checkAdd(message);
+            if(full2 != null) {
+                flushMessages(full2);
             }
+
             /*MessageBatch full = batcher.add(message);
             if (full != null) {
                 //Need to make Msg each time.
@@ -219,16 +215,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             if (bb.hasArray()) {
                 msg.getOut().put(bb.array());
             } else {
+                LOG.info("[Client] ByteBuffer not has array");
                 byte[] tempByte = new byte[bb.limit()];
                 bb.flip();
                 bb.get(tempByte);
                 msg.getOut().put(tempByte);
             }
         } catch (Exception e) {
-            LOG.error("[Client-flushMessages] put message to bytebuffer error");
-            LOG.error("writing {}:{}, msg size = {}, msgpool info = {}", batch.size(), bb.array().length, msg.getOut().toString(), msgPool.toString());
-            failSendMessages(numMessages);
-            e.printStackTrace();
+            LOG.error("writing {}:{}, msg size = {}", numMessages, bb.array().length, msg.getOut().toString());
+            messagesLost.getAndAdd(numMessages);
         }
         try {
             cs.sendRequest(msg);
@@ -605,6 +600,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                     e.printStackTrace();
                 }
             } else {
+                messagesLost.getAndAdd(numMessages);
                 msg.returnToParentPool();
             }
         }

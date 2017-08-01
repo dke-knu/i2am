@@ -152,7 +152,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        LOG.info("[server] set taskToLoad");
+//        LOG.info("[server] set taskToLoad");
         this.taskToLoad = taskToLoad;
     }
 
@@ -310,7 +310,7 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
 
             SPWorkers.remove(sph);
             SPWorkers.add(sph);
-            ServerSessionHandler sessionHandler = new ServerSessionHandler(sesKey, server);
+            ServerSessionHandler sessionHandler = new ServerSessionHandler(sesKey, server, srcIP);
             sph.setSessionHandler(sessionHandler);
             LOG.info("Server worker number {} got new session from {}", sph.portal_index, srcIP);
             listener.forward(sph.getPortal(), sessionHandler.getSession());

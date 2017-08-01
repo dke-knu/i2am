@@ -28,16 +28,21 @@ class MessageBatch {
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
-    private final byte[] fromIp;
 
-    MessageBatch(int buffer_size, byte[] fromIp) {
-        this.fromIp = fromIp;
+    MessageBatch(int buffer_size) {
         this.buffer_size = buffer_size;
         msgs = new ArrayList<>();
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
     }
 
-    int add(TaskMessage msg) {
+    /*void add(TaskMessage msg) {
+        if (msg == null)
+            throw new RuntimeException("null object forbidden in message batch");
+
+        msgs.add(msg);
+        encoded_length += msgEncodeLength(msg);
+    }*/
+    int add2(TaskMessage msg) {
         if (msg == null)
             throw new RuntimeException("null object forbidden in message batch");
 
@@ -80,8 +85,7 @@ class MessageBatch {
      * create a buffer containing the encoding of this batch
      */
     ByteBuffer buffer() throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocate(encoded_length+13);
-        buffer.put(fromIp);
+        ByteBuffer buffer = ByteBuffer.allocate(encoded_length);
         for (TaskMessage msg : msgs) {
             writeTaskMessage(buffer, msg);
         }

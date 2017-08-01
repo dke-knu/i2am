@@ -18,8 +18,6 @@
 package org.apache.storm.messaging.jxio;
 
 import org.apache.storm.messaging.TaskMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Encapsulates the state used for batching up messages.
@@ -27,41 +25,36 @@ import org.slf4j.LoggerFactory;
 public class MessageBuffer {
     private final int mesageBatchSize;
     private MessageBatch currentBatch;
-    private final byte[] fromIp;
     private int availableSize;
 
-    public MessageBuffer(int mesageBatchSize, byte[] fromIp) {
-        this.fromIp = fromIp;
+    public MessageBuffer(int mesageBatchSize) {
         this.mesageBatchSize = mesageBatchSize;
-        this.currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+        this.currentBatch = new MessageBatch(mesageBatchSize);
         availableSize = mesageBatchSize;
     }
 
-    public void add(TaskMessage msg) {
-        availableSize = currentBatch.add(msg);
+    public MessageBatch checkAdd(TaskMessage msg) {
+        if((msg.message().length+6) < availableSize) {
+            availableSize = currentBatch.add2(msg);
+            return null;
+        } else {
+            MessageBatch ret = currentBatch;
+            currentBatch = new MessageBatch(mesageBatchSize);
+            availableSize = currentBatch.add2(msg);
+            return ret;
+        }
     }
 
     /*public MessageBatch add(TaskMessage msg) {
         currentBatch.add(msg);
-        if(currentBatch.isFull()){
+        if (currentBatch.isFull()) {
             MessageBatch ret = currentBatch;
-            currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+            currentBatch = new MessageBatch(mesageBatchSize);
             return ret;
         } else {
             return null;
         }
     }*/
-
-    public boolean isAvailable(int size) {
-        //size + int + short (payload_len & code)
-        return (size + 6) <= availableSize;
-    }
-
-    public MessageBatch getCurrentBatch() {
-        MessageBatch ret = currentBatch;
-        currentBatch = new MessageBatch(mesageBatchSize, fromIp);
-        return ret;
-    }
 
     public boolean isEmpty() {
         return currentBatch.isEmpty();
@@ -70,7 +63,7 @@ public class MessageBuffer {
     public MessageBatch drain() {
         if (!currentBatch.isEmpty()) {
             MessageBatch ret = currentBatch;
-            currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+            currentBatch = new MessageBatch(mesageBatchSize);
             return ret;
         } else {
             return null;
