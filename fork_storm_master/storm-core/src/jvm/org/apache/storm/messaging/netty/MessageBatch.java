@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 
 class MessageBatch {
-    private static final Logger LOG = LoggerFactory.getLogger(MessageBatch.class);
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
@@ -36,6 +35,10 @@ class MessageBatch {
         this.buffer_size = buffer_size;
         msgs = new ArrayList<>();
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
+    }
+
+    public int getEncoded_length() {
+        return encoded_length;
     }
 
     void add(TaskMessage msg) {
@@ -60,7 +63,6 @@ class MessageBatch {
      * @return true if this batch used up allowed buffer size
      */
     boolean isFull() {
-        LOG.info("encoded_length: " + encoded_length);
         return encoded_length >= buffer_size;
     }
 

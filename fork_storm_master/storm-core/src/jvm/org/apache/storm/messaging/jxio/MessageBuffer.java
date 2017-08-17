@@ -45,7 +45,7 @@ public class MessageBuffer {
         }
     }
 
-    /*public MessageBatch add(TaskMessage msg) {
+    public MessageBatch add(TaskMessage msg) {
         currentBatch.add(msg);
         if (currentBatch.isFull()) {
             MessageBatch ret = currentBatch;
@@ -54,7 +54,7 @@ public class MessageBuffer {
         } else {
             return null;
         }
-    }*/
+    }
 
     public boolean isEmpty() {
         return currentBatch.isEmpty();

@@ -48,8 +48,22 @@ public class ServerSessionHandler {
 
         private Object decoder(ByteBuffer buf) {
             long available = buf.remaining();
-            if (available < 2) {
+            if (available <=2) {
                 //need more data
+                if (available == 2) {
+                    short code = buf.getShort();
+                    LOG.info("[Server] LoadMetrics message = {}", code);
+                    if (code == -111) {
+                        TaskMessage tm = null;
+                        try {
+                            tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        ByteBuffer bb = tm.serialize();
+                        return bb;
+                    }
+                }
                 return null;
             }
             List<Object> ret = new ArrayList<>();
@@ -122,38 +136,26 @@ public class ServerSessionHandler {
         @Override
         public void onRequest(Msg msg) {
 //            LOG.info("Server-onRequest, msg info: " + msg.toString());
-            if (!msg.getIn().hasRemaining()) {
-                LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
-                char ch = 'n';
-                msg.getOut().put((byte) ch);
-            }
 
-            if (msg.getIn().limit() <= 2) {
-                short code = msg.getIn().getShort();
-                LOG.info("[Server] LoadMetrics message = {}", code);
-                if(code == -111) {
-                    TaskMessage tm = null;
-                    try {
-                        tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    ByteBuffer bb = tm.serialize();
-                    msg.getOut().put(bb.array());
-                }
-            } else {
-                //batch TaskMessage
-                List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());
+            //batch TaskMessage
+            Object msgs = decoder(msg.getIn());
 
+            if (msgs != null) {
+//                msg.getOut().put((byte) ch);
                 try {
-                    server.received(messages, srcIp);
+                    server.received(msgs, srcIp);
                 } catch (InterruptedException e) {
                     LOG.info("failed to enqueue a request message", e);
                     failure_count.incrementAndGet();
                     e.printStackTrace();
                 }
-                msg.getOut().put((byte) ch);
+
+                if (msgs instanceof ByteBuffer) {
+                    msg.getOut().put(((ByteBuffer) msgs).array());
+                }
+
             }
+
             try {
                 session.sendResponse(msg);
             } catch (JxioGeneralException e) {
@@ -161,6 +163,7 @@ public class ServerSessionHandler {
             } catch (JxioSessionClosedException e) {
                 e.printStackTrace();
             }
+
         }
 
         @Override
@@ -171,7 +174,7 @@ public class ServerSessionHandler {
             } else {
                 LOG.error(str);
             }
-            if(session.getIsClosing()) {
+            if (session.getIsClosing()) {
                 session = null;
                 return;
             }
@@ -185,7 +188,7 @@ public class ServerSessionHandler {
             if (session.getIsClosing()) {
                 LOG.info("On Message Error while closing. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
             } else {
-                LOG.error("On Message Error. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
+                LOG.error("On Message Error. Reason is = " + eventReason + " drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
             }
             return true;
         }

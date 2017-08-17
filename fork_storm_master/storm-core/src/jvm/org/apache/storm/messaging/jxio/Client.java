@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -173,15 +171,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         ClientSession cs = getAliveSession();
         if (cs == null) {
             dropMessages(msgs);
+            LOG.error("Drop {} messages because of ClientSession null...", iteratorSize(msgs));
             return;
         }
         while (msgs.hasNext()) {
-
             //use batch
             TaskMessage message = msgs.next();
 
             MessageBatch full2 = batcher.checkAdd(message);
-            if(full2 != null) {
+            if (full2 != null) {
                 flushMessages(full2);
             }
 
@@ -205,22 +203,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         numMessages = batch.size();
         pendingMessages.addAndGet(numMessages);
         Msg msg = msgPool.getMsg();
-
-        //need 13 bytes to store ip address ex) 192.168.1.100
         ByteBuffer bb = null;
         try {
             //maximum batch size is 262144B (256KB)
             //so, Msg size must be upper than 256KB
             bb = batch.buffer();
-            if (bb.hasArray()) {
-                msg.getOut().put(bb.array());
-            } else {
-                LOG.info("[Client] ByteBuffer not has array");
-                byte[] tempByte = new byte[bb.limit()];
-                bb.flip();
-                bb.get(tempByte);
-                msg.getOut().put(tempByte);
-            }
+            msg.getOut().put(bb.array());
         } catch (Exception e) {
             LOG.error("writing {}:{}, msg size = {}", numMessages, bb.array().length, msg.getOut().toString());
             messagesLost.getAndAdd(numMessages);
@@ -502,12 +490,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         @Override
         public void onResponse(Msg msg) {
 //            LOG.info("Client-onResponse, msg: " + msg.toString());
-            if (msg.getIn().remaining() >= 2) {
+            ByteBuffer inputBuffer = msg.getIn();
+            if (inputBuffer.remaining() >= 2) {
                 LOG.info("[Client] load metrics response");
-                ByteBuffer bb = msg.getIn();
-                int taskId = bb.getShort();
-                byte[] message = new byte[bb.limit() - 2];
-                bb.get(message);
+                int taskId = inputBuffer.getShort();
+                byte[] message = new byte[inputBuffer.limit() - 2];
+                inputBuffer.get(message);
                 TaskMessage taskMessage = new TaskMessage(taskId, message);
                 LOG.info("[Client] load metrics response2");
                 try {
@@ -530,20 +518,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                     throw new RuntimeException(e);
                 }
                 LOG.info("Metrics message received7");
-                msg.returnToParentPool();
-                return;
-            } else {
-                byte message = msg.getIn().get();
-                if ((char) message == 's') {
-//                    LOG.info("[Client-onResponse] success");
-                    msg.returnToParentPool();
-                    return;
-                } else if((char) message == 'n') {
-                    LOG.error("send empty message");
-                    msg.returnToParentPool();
-                }
             }
-            LOG.warn("No load metrics also no success message");
             msg.returnToParentPool();
         }
 
@@ -586,7 +561,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         @Override
         public void onMsgError(Msg msg, EventReason eventReason) {
             LOG.error("MSG error reason is={} to {}", eventReason, uri.toString());
-            LOG.error("MSG = {}", msg.toString());
+            LOG.error("MSG = {} lost = {}", msg.toString(), numMessages);
             ClientSession cs = sessionRef.get();
             if (!cs.getIsClosing()) {
                 try {
