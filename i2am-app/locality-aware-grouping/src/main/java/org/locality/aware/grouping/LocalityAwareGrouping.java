@@ -36,7 +36,7 @@ public class LocalityAwareGrouping implements CustomStreamGrouping, Serializable
 
 	@Override
 	public void prepare(WorkerTopologyContext context, GlobalStreamId stream, List<Integer> targetTasks) {
-		// Get network information of tasks.
+		// Get network connection information of tasks.
 		ZooKeeper zookeeper = null;
 		try {
 			zookeeper = new ZooKeeper(zookeeper_connect_string, 20000, null);
