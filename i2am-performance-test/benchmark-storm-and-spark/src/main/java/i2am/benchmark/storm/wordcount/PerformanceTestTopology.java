@@ -18,7 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PerformanceTestTopology {
-	private static final Logger LOG = LoggerFactory.getLogger(PerformanceTestTopology.class);
+	
+	//private static final Logger LOG = LoggerFactory.getLogger(PerformanceTestTopology.class);
 
 	public static void main(String[] args) throws Exception {
 		String[] zookeepers = args[0].split(","); // e.g. 192.168.56.100,192.168.56.101,192.168.56.102
