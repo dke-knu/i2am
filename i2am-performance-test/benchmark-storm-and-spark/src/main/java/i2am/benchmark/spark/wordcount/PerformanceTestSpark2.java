@@ -41,7 +41,7 @@ public class PerformanceTestSpark2 {
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
 		JavaSparkContext sc = new JavaSparkContext(conf);
-		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.seconds(duration));
+		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
