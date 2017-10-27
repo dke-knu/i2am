@@ -1,8 +1,16 @@
 package i2am.benchmark.storm.reservoir;
 
+import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
+import org.apache.storm.Config;
+import org.apache.storm.StormSubmitter;
+import org.apache.storm.generated.AlreadyAliveException;
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.kafka.KafkaSpout;
 import org.apache.storm.kafka.SpoutConfig;
 import org.apache.storm.kafka.StringScheme;
@@ -10,14 +18,16 @@ import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.kafka.bolt.KafkaBolt;
 import org.apache.storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper;
 import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
+import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
+import redis.clients.jedis.Protocol;
 
 public class PerformanceTestTopology {
 	
 	// private static fina Logger LOG = LoggerFactory.getLoggerFactory.getLogger(PerformanceTestTopology.class); 
 	
-	public static void main(String[] args){
+	public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException, AuthorizationException{
 		String[] zookeepers = args[0].split(",");
 		short zkPort = Short.parseShort(args[1]);
 		
@@ -52,6 +62,22 @@ public class PerformanceTestTopology {
 		
 		props.put("acks", "1");
 		
+		/* Redis Configurations */
+		String redisKey = args[4];
+		Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
+		redisNodes.add(new InetSocketAddress("192.168.1.100", 17000));
+		redisNodes.add(new InetSocketAddress("192.168.1.101", 17001));
+		redisNodes.add(new InetSocketAddress("192.168.1.102", 17002));
+		redisNodes.add(new InetSocketAddress("192.168.1.103", 17003));
+		redisNodes.add(new InetSocketAddress("192.168.1.104", 17004));
+		redisNodes.add(new InetSocketAddress("192.168.1.105", 17005));
+		redisNodes.add(new InetSocketAddress("192.168.1.106", 17006));
+		redisNodes.add(new InetSocketAddress("192.168.1.107", 17007));
+		redisNodes.add(new InetSocketAddress("192.168.1.108", 17008));
+		
+		/* Jedis */
+		JedisClusterConfig jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5); 
+		
 		/* Topology */
 		KafkaBolt<String, Integer> kafkaBolt = new KafkaBolt<String, Integer>()
 				.withProducerProperties(props)
@@ -59,7 +85,26 @@ public class PerformanceTestTopology {
 				.withTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper());
 		
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 1).setNumTasks(1);
+		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 1)
+			.setNumTasks(1);
+		builder.setBolt("delare-field-bolt", new DeclareFieldBolt(), 1)
+			.shuffleGrouping("kafka-spout")
+			.setNumTasks(1);
+		builder.setBolt("reservoir-samplikng-bolt", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 1)
+			.shuffleGrouping("delare-field-bolt")
+			.setNumTasks(1);
+		builder.setBolt("pass-bolt", new PassBolt(), 1)
+			.shuffleGrouping("reservoir-samplikng-bolt")
+			.setNumTasks(1);
+		builder.setBolt("kafka-bolt", kafkaBolt, 1)
+			.shuffleGrouping("concatenate-message-bolt")
+			.setNumTasks(1);
 		
+		Config conf = new Config();
+		conf.setDebug(true);
+
+		conf.setNumWorkers(6);
+
+		StormSubmitter.submitTopology("performance-reservoirsampling-topology", conf, builder.createTopology());
 	}
 }
