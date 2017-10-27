@@ -28,7 +28,7 @@ public class PerformanceTestTopology {
 	// private static fina Logger LOG = LoggerFactory.getLoggerFactory.getLogger(PerformanceTestTopology.class); 
 	
 	public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException, AuthorizationException{
-		String[] zookeepers = args[0].split(",");
+		String[] zookeepers = args[0].split(","); //KAFAK ZOOKEEPER
 		short zkPort = Short.parseShort(args[1]);
 		
 		/* Kafka -> Storm Config */
@@ -97,7 +97,7 @@ public class PerformanceTestTopology {
 			.shuffleGrouping("reservoir-samplikng-bolt")
 			.setNumTasks(1);
 		builder.setBolt("kafka-bolt", kafkaBolt, 1)
-			.shuffleGrouping("concatenate-message-bolt")
+			.shuffleGrouping("pass-bolt")
 			.setNumTasks(1);
 		
 		Config conf = new Config();
