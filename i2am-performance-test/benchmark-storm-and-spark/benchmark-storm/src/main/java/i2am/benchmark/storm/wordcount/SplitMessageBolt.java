@@ -53,5 +53,7 @@ public class SplitMessageBolt extends BaseRichBolt {
 	
 	@Override
     public void cleanup() {
+		
+		 
     }    
 }

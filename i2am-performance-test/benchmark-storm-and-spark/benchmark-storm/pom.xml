@@ -36,6 +36,11 @@
 			<artifactId>storm-kafka</artifactId>
 			<version>1.1.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-redis</artifactId>
+			<version>1.1.1</version>
+	</dependency>
 	</dependencies>
 
 	<build>
