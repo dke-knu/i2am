@@ -64,6 +64,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		sampleName = parameters.get(sampleKey);
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
 		windowSize = Integer.parseInt(parameters.get(windowSizeKey)); // Get window size
+		jedisCommands.ltrim(sampleName, 0, -1); // Remove sample list
 	}
 
 	@Override
@@ -76,11 +77,11 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		long inputTime = tuple.getLongByField("input_time");
 		int probability = sampleSize + 1;
 		
-		if(production < sampleSize){
+		if(production%windowSize < sampleSize){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
 		}
 		else{
-			probability = (int)(Math.random()*production);
+			probability = (int)(Math.random()*production%windowSize);
 			
 			if(probability < sampleSize){
 				jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
@@ -92,7 +93,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 			
 			outputCollector.emit(new Values(sampleList)); // Emit
 			
-			jedisCommands.ltrim(sampleName, -0, -1); // Remove sample list
+			jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
 		}
 	}
 

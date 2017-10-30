@@ -27,10 +27,9 @@ public class PassBolt extends BaseRichBolt{
 		// TODO Auto-generated method stub
 		
 		List<String> sampleList = (List<String>) tuple.getValue(0);
-		long outputTime = System.currentTimeMillis();
 		
 		for(String data : sampleList){
-			outputCollector.emit(new Values(new String(data + "," + outputTime)));
+			outputCollector.emit(new Values(new String(data + "," + System.currentTimeMillis())));
 		}
 	}
 	@Override
