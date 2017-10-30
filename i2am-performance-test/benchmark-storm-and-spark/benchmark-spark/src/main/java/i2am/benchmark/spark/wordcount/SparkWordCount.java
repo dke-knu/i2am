@@ -1,11 +1,11 @@
-package i2am.benchmark.spark.systematic;
+package i2am.benchmark.spark.wordcount;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -22,15 +22,9 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+public class SparkWordCount {	
 
-
-public class SparkSystematicTest {	
-
-	private final static Logger logger = Logger.getLogger(SparkSystematicTest.class);
-	private static JedisPool pool;
+	private final static Logger logger = Logger.getLogger(PerformanceTestSpark.class);
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -45,13 +39,6 @@ public class SparkSystematicTest {
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 
-		// Sampling Parameters.
-		int sample_size = Integer.parseInt(args[6]);
-		int window_size = Integer.parseInt(args[7]);
-		String redis_key = args[8];
-		
-		int interval = window_size/sample_size;
-		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
 		JavaSparkContext sc = new JavaSparkContext(conf);
@@ -66,17 +53,6 @@ public class SparkSystematicTest {
 		kafkaParams.put("auto.offset.reset", "earliest");
 		kafkaParams.put("enable.auto.commit", false);
 
-		// Make Kafka Producer.		
-		Properties props = new Properties();
-		props.put("bootstrap.servers", zk);
-		props.put("acks", "all");
-		props.put("retries", 0);
-		props.put("batch.size", 16384);
-		props.put("linger.ms", 1);
-		props.put("buffer.memory", 33554432);
-		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
-
 		// Topics.
 		Collection<String> topics = Arrays.asList(input_topic);
 
@@ -90,49 +66,74 @@ public class SparkSystematicTest {
 
 		// Processing.		
 
-		// Step 1. Current Time.ㅉ
+		// Step 1. Current Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
-		// Step 2. Sampling.
-		timeLines.foreachRDD( samples -> {
+		// Step 2. Word Count.
+		JavaDStream<String> wordCounts = timeLines.map( line -> {
 
-			samples.foreach( sample -> {
-				
-				pool = new JedisPool(new JedisPoolConfig(), "192.168.56.100");
-				Jedis jedis = pool.getResource();
-				jedis.select(0);
-				
-				String[] commands = sample.split(",");
-				String value = commands[0];
-				int index = Integer.parseInt(commands[1]);				
-				int randomNumber = (int)(Math.random()*interval);
-				
-				//System.out.println(sample);
+			System.out.println("##### " + line);
+			logger.error("@@@@@ " + line);
 
-				String out = value + "," + index + "," + commands[2] + "," + commands[3];
-				
-				if( (index%window_size)%interval == randomNumber ) {					
-					jedis.rpush(redis_key, out);
-				}				
-				
-				if( index % window_size == 0 ) {
-					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-					List<String> sampleList = jedis.lrange(redis_key, 0, -1);
-					jedis.ltrim(redis_key, 0, -99999);
+			String[] commands = line.split(","); // Split Command 
+			String[] words = commands[0].split(" "); // Split Sentence
 
-					for( String result: sampleList ) {					
-						producer.send(new ProducerRecord<String, String>(output_topic, result+","+System.currentTimeMillis()));
-					}				
-				}					
-				jedis.close();				
-			});				
+			// Word Count
+			Map<String, Integer> counts = new TreeMap<String, Integer>();
+
+			for(String word: words) {							
+				Integer count = counts.get(word);
+				if ( count == null ) count = 0;
+				count++;
+				counts.put(word, count);							
+			}						
+
+			// Formatting
+			String output = "{";
+			Boolean first = true;		
+
+			for(String key: counts.keySet()) {			
+				if (first) {		
+					output = output + key + "=" + counts.get(key);
+					first = false;				
+				}
+				else {
+					output = output + ":" + key + "=" + counts.get(key) ;
+				}									
+			}
+
+			// output = output + "}" + "," + commands[1] + "," + commands[2] + "," + commands[3] + "," + System.currentTimeMillis();
+			output = output + "}" + "," + commands[1] + "," + commands[2] + "," + commands[3];
+			return output;			
 		});	
+
+		// Make Kafka Producer.
+		Properties props = new Properties();
+		props.put("bootstrap.servers", zk);
+		props.put("acks", "all");
+		props.put("retries", 0);
+		props.put("batch.size", 16384);
+		props.put("linger.ms", 1);
+		props.put("buffer.memory", 33554432);
+		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+
+		wordCounts.print();	 
+
+		// Send to Kafka.
+		wordCounts.foreachRDD(								
+				output -> {										
+					for( String tuple: output.collect() ) {							
+						producer.send(new ProducerRecord<String, String>(output_topic, tuple+","+System.currentTimeMillis()));
+					}								
+				});		
 
 		// Start.
 		jssc.start();
-		jssc.awaitTermination();		
-		//producer.close();
-		//pool.close();		
+		jssc.awaitTermination();
+		producer.close();
 	}		
 }
