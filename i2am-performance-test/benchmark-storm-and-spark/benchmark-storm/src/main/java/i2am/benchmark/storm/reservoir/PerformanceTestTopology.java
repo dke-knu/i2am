@@ -87,7 +87,7 @@ public class PerformanceTestTopology {
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 1)
 			.setNumTasks(1);
-		builder.setBolt("delare-field-bolt", new DeclareFieldBolt(), 1)
+		builder.setBolt("declare-field-bolt", new DeclareFieldBolt(), 1)
 			.shuffleGrouping("kafka-spout")
 			.setNumTasks(1);
 		builder.setBolt("reservoir-samplikng-bolt", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 1)
