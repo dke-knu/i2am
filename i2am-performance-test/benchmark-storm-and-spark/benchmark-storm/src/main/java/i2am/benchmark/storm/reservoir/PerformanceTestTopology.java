@@ -94,7 +94,7 @@ public class PerformanceTestTopology {
 			.shuffleGrouping("delare-field-bolt")
 			.setNumTasks(1);
 		builder.setBolt("pass-bolt", new PassBolt(), 1)
-			.shuffleGrouping("reservoir-samplikng-bolt")
+			.shuffleGrouping("reservoir-sampling-bolt")
 			.setNumTasks(1);
 		builder.setBolt("kafka-bolt", kafkaBolt, 1)
 			.shuffleGrouping("pass-bolt")
