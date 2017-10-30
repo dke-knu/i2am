@@ -105,6 +105,6 @@ public class PerformanceTestTopology {
 
 		conf.setNumWorkers(5);
 
-		StormSubmitter.submitTopology("performance-reservoirsampling-topology", conf, builder.createTopology());
+		StormSubmitter.submitTopology("performance-systematicsampling-topology", conf, builder.createTopology());
 	}
 }
