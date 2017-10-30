@@ -103,7 +103,7 @@ public class PerformanceTestTopology {
 		Config conf = new Config();
 		conf.setDebug(true);
 
-		conf.setNumWorkers(6);
+		conf.setNumWorkers(5);
 
 		StormSubmitter.submitTopology("performance-reservoirsampling-topology", conf, builder.createTopology());
 	}
