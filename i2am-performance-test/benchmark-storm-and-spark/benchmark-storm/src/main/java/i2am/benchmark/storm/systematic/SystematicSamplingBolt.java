@@ -1,4 +1,5 @@
-package i2am.benchmark.storm.reservoir;
+package i2am.benchmark.storm.systematic;
+
 
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,14 @@ import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.JedisCommands;
 
-public class ReservoirSamplingBolt extends BaseRichBolt { 
+public class SystematicSamplingBolt extends BaseRichBolt { 
 	
 	/* Sampling Parameter */ 
 	private int sampleSize;
 	private int windowSize;
 	private String sampleName = null; 
 	private Map<String, String> parameters;
+	private int interval;
 	
 	/* RedisKey */
 	private String redisKey = null;
@@ -37,11 +39,11 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 	private JedisClusterConfig jedisClusterConfig;
 	private JedisCommands jedisCommands = null;
 	
-	private final static Logger logger = LoggerFactory.getLogger(ReservoirSamplingBolt.class);
+	private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
 	private OutputCollector outputCollector = null;
 	
 	/* Constructor */
-	public ReservoirSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+	public SystematicSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
 		this.redisKey = redisKey;
 		this.jedisClusterConfig = jedisClusterConfig;
 	}
@@ -64,6 +66,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		sampleName = parameters.get(sampleKey);
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
 		windowSize = Integer.parseInt(parameters.get(windowSizeKey)); // Get window size
+		interval = windowSize/sampleSize;
 		jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
 	}
 
@@ -75,17 +78,10 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		String sentence = tuple.getStringByField("sentence");
 		String createdTime = tuple.getStringByField("created_time");
 		long inputTime = tuple.getLongByField("input_time");
-		int probability = sampleSize + 1;
+		int randomNumber = (int)(Math.random()*interval);
 		
-		if(production%windowSize < sampleSize){
+		if((production%windowSize)%interval  == randomNumber){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-		}
-		else{
-			probability = (int)(Math.random()*production%windowSize);
-			
-			if(probability < sampleSize){
-				jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-			}
 		}
 		
 		if(production%windowSize == 0){
