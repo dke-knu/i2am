@@ -67,7 +67,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
 		windowSize = Integer.parseInt(parameters.get(windowSizeKey)); // Get window size
 		interval = windowSize/sampleSize;
-		jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
+		jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 			
 			outputCollector.emit(new Values(sampleList)); // Emit
 			
-			jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
+			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 		}
 	}
 

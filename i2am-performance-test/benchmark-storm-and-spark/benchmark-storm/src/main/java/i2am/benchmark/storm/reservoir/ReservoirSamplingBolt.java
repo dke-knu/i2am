@@ -64,7 +64,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		sampleName = parameters.get(sampleKey);
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
 		windowSize = Integer.parseInt(parameters.get(windowSizeKey)); // Get window size
-		jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
+		jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 			
 			outputCollector.emit(new Values(sampleList)); // Emit
 			
-			jedisCommands.ltrim(sampleName, 0, 0); // Remove sample list
+			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 		}
 	}
 
