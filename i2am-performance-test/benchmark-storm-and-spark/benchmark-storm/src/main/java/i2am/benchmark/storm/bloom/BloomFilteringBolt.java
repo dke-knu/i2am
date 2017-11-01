@@ -28,8 +28,10 @@ public class BloomFilteringBolt extends BaseRichBolt {
 	int bucketSize = 0;
 	String redisKey = null;
 	String bucketSizeKey = "BucketSize";
-	List<String> words;
+	List<String> dataArray;
 	private Map<String, String> parameters;
+	
+	BloomFilter bloomFilter;
 	
 	private final static Logger logger = LoggerFactory.getLogger(BloomFilteringBolt.class);
 	private OutputCollector outputCollector = null;
@@ -40,12 +42,17 @@ public class BloomFilteringBolt extends BaseRichBolt {
 	private JedisCommands jedisCommands = null;
 	
 	/* Constructor */
-	public BloomFilteringBolt(List<String> words, String redisKey, JedisClusterConfig jedisClusterConfig){
-		this.words = words;
+	public BloomFilteringBolt(List<String> dataArray, String redisKey, JedisClusterConfig jedisClusterConfig){
+		this.dataArray = dataArray;
 		this.redisKey = redisKey;
 		this.jedisClusterConfig = jedisClusterConfig;
+	}
+	
+	@Override
+	public void prepare(Map stormConf, TopologyContext context, OutputCollector outputCollector) {
+		// TODO Auto-generated method stub
+		this.outputCollector = outputCollector;
 		
-
 		/* Connect Redis*/
 		if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
@@ -57,24 +64,47 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		/* Get parameters */
 		parameters = jedisCommands.hgetAll(redisKey);
 		bucketSize = Integer.parseInt(parameters.get(bucketSizeKey));
-	}
-	
-	@Override
-	public void prepare(Map stormConf, TopologyContext context, OutputCollector outputCollector) {
-		// TODO Auto-generated method stub
-		this.outputCollector = outputCollector;
+		
+		bloomFilter = new BloomFilter(bucketSize);
+		for(String data: dataArray){
+			try {
+				bloomFilter.registData(data);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
+		int production = tuple.getIntegerByField("production");
+		String sentence = tuple.getStringByField("sentence");
+		String createdTime = tuple.getStringByField("created_time");
+		long inputTime = tuple.getLongByField("input_time");
 		
+		boolean flag = false;
+		
+		String[] words = sentence.split(" ");
+		for(String data : words){
+			try {
+				flag = bloomFilter.filtering(data);
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if(flag){
+				outputCollector.emit(new Values(new String(sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+			}
+		}
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields(""));
+		declarer.declare(new Fields("message"));
 	}
 }
 
@@ -105,9 +135,21 @@ class BloomFilter{
 		buckets.set(hashCode%bucketSize, true);
 	}
 	
-	void filtering(String data){
+	boolean filtering(String data) throws UnsupportedEncodingException{
+		boolean flag = false;
+		int hashCode1 = 0;
+		int hashCode2 = 0;
+		int hashCode3 = 0;
 		
+		hashCode1 = hashFunction.javaHashFunction(data);
+		hashCode2 = hashFunction.xxHash32(data);
+		hashCode3 = hashFunction.JSHash(data);
 		
+		if(buckets.get(hashCode1) && buckets.get(hashCode2) && buckets.get(hashCode3)){
+			flag = true;
+		}
+		
+		return flag;
 	}
 }
 
