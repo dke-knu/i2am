@@ -61,9 +61,9 @@ public class PerformanceTestTopology {
 		JedisClusterConfig jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5); 
 		
 		/* filter */
-		List<String> words = new ArrayList<String>();
+		List<String> dataArray = new ArrayList<String>(); //필터링 할 데이터
 		for(int i = 5; i < args.length; i++){
-			words.add(args[i]);
+			dataArray.add(args[i]);
 		}
 		
 		ZkHosts hosts = new ZkHosts(zkUrl);
@@ -95,7 +95,7 @@ public class PerformanceTestTopology {
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 1)
 			.setNumTasks(1);
-		builder.setBolt("bloom-filtering-bolt", new BloomFilteringBolt(words, redisKey, jedisClusterConfig), 1)
+		builder.setBolt("bloom-filtering-bolt", new BloomFilteringBolt(dataArray, redisKey, jedisClusterConfig), 1)
 			.shuffleGrouping("kafka-spout")
 			.setNumTasks(1);
 		builder.setBolt("kafka-bolt", kafkaBolt, 1)
