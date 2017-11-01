@@ -72,6 +72,14 @@
 			<version>2.9.0</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.lwjgl/lwjgl-xxhash -->
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-xxhash</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
