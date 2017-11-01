@@ -46,8 +46,13 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		this.dataArray = dataArray;
 		this.redisKey = redisKey;
 		this.jedisClusterConfig = jedisClusterConfig;
+	}
+	
+	@Override
+	public void prepare(Map stormConf, TopologyContext context, OutputCollector outputCollector) {
+		// TODO Auto-generated method stub
+		this.outputCollector = outputCollector;
 		
-
 		/* Connect Redis*/
 		if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
@@ -59,12 +64,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		/* Get parameters */
 		parameters = jedisCommands.hgetAll(redisKey);
 		bucketSize = Integer.parseInt(parameters.get(bucketSizeKey));
-	}
-	
-	@Override
-	public void prepare(Map stormConf, TopologyContext context, OutputCollector outputCollector) {
-		// TODO Auto-generated method stub
-		this.outputCollector = outputCollector;
+		
 		bloomFilter = new BloomFilter(bucketSize);
 		for(String data: dataArray){
 			try {
