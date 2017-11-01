@@ -86,6 +86,8 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		
 		boolean flag = false;
 		
+		System.out.println("tuple");
+		
 		String[] words = sentence.split(" ");
 		for(String data : words){
 			try {
@@ -145,7 +147,7 @@ class BloomFilter{
 		hashCode2 = hashFunction.xxHash32(data);
 		hashCode3 = hashFunction.JSHash(data);
 		
-		if(buckets.get(hashCode1) && buckets.get(hashCode2) && buckets.get(hashCode3)){
+		if(buckets.get(hashCode1%bucketSize) && buckets.get(hashCode2%bucketSize) && buckets.get(hashCode3%bucketSize)){
 			flag = true;
 		}
 		
@@ -161,7 +163,7 @@ class HashFunction{
 		int hashCode = data.hashCode();
 		hashCode = Math.abs(hashCode);
 		
-		return data.hashCode();
+		return hashCode;
 	}
 	
 	int xxHash32(String data) throws UnsupportedEncodingException{
