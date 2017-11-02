@@ -76,19 +76,20 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		String createdTime = tuple.getStringByField("created_time");
 		long inputTime = tuple.getLongByField("input_time");
 		int probability = sampleSize + 1;
+		int count = production%windowSize;
 		
-		if(production%windowSize < sampleSize){
+		if(count != 0 && count <= sampleSize){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
 		}
 		else{
-			probability = (int)(Math.random()*production%windowSize);
+			probability = (int)(Math.random()*count);
 			
 			if(probability < sampleSize){
 				jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
 			}
 		}
 		
-		if(production%windowSize == 0){
+		if(count == 0){
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
 			
 			outputCollector.emit(new Values(sampleList)); // Emit
