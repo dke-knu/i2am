@@ -95,12 +95,11 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		
 		if(count == 0){
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
+			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 			
 			for(String data : sampleList){
 				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
 			}
-			
-			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 		}
 	}
 
