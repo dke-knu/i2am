@@ -29,9 +29,9 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 
-public class SparkBloomFilterTest {	
+public class SparkBloomFilterTest2 {	
 
-	private final static Logger logger = Logger.getLogger(SparkBloomFilterTest.class);
+	private final static Logger logger = Logger.getLogger(SparkBloomFilterTest2.class);
 	private static JedisPool pool;
 		
 	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
@@ -105,43 +105,37 @@ public class SparkBloomFilterTest {
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
 		// Step 2. Filtering for String
-		JavaDStream<String> filtered = timeLines.filter( sample -> {
+		JavaDStream<String> filtered = timeLines.map( sample -> {
 			
-			String[] commands = sample.split(",");				
-			String[] words = commands[0].split(" ");			
+			String[] commands = sample.split(",");			
+			String[] words = commands[0].split(" ");
 			BloomFilter temp = bloom_filter.value();
 			
-			
 			for ( String word: words ) {
-				if (temp.filtering(word)) {
-					return true;
+				if ( temp.filtering(word) ) {
+					return "1:" + sample;
 				}
-			}						
-			return false;
+			}			
+			return "0:" + sample;
 		});
-
+		
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
 
 			samples.foreach( sample -> {
-
-				pool = new JedisPool(new JedisPoolConfig(), "192.168.56.100");
+				
+				pool = new JedisPool(new JedisPoolConfig(), "MN");				
 				Jedis jedis = pool.getResource();
 				jedis.select(0);
 
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 				
-				//System.out.println(sample);
-				
-				String[] commands = sample.split(",");
-				String value = commands[0];
-				int index = Integer.parseInt(commands[1]);
-
-				String out = value + "," + index + "," + commands[2] + "," + commands[3] + "," + System.currentTimeMillis();
+				String out = sample + "," + System.currentTimeMillis();
 				jedis.rpush(redis_key, out);				
 				producer.send(new ProducerRecord<String, String>(output_topic, out));				
 					
 				jedis.close();
+				producer.close();
 			});				
 		});	
 
