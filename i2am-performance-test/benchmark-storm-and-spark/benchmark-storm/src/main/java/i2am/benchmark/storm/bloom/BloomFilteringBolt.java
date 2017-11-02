@@ -86,8 +86,6 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		
 		boolean flag = false;
 		
-		System.out.println("tuple");
-		
 		String[] words = sentence.split(" ");
 		for(String data : words){
 			try {
