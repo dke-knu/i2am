@@ -83,20 +83,23 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		if((production%windowSize)%interval  == randomNumber){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
 		}
+		else{
+			outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
+		}
 		
 		if(production%windowSize == 0){
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
-			
-			outputCollector.emit(new Values(sampleList)); // Emit
-			
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+			
+			for(String data : sampleList){
+				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
+			}			
 		}
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields("sampleList"));
+		declarer.declare(new Fields("message"));
 	}
-
 }
