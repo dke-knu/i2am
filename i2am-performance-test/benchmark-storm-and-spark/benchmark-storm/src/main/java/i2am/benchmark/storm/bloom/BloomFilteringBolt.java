@@ -90,6 +90,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		for(String data : words){
 			try {
 				flag = bloomFilter.filtering(data);
+				break;
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
