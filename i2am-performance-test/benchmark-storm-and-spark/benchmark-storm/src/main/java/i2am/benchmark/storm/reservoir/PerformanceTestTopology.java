@@ -93,11 +93,8 @@ public class PerformanceTestTopology {
 		builder.setBolt("reservoir-sampling-bolt", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 1)
 			.shuffleGrouping("declare-field-bolt")
 			.setNumTasks(1);
-		builder.setBolt("pass-bolt", new PassBolt(), 1)
-			.shuffleGrouping("reservoir-sampling-bolt")
-			.setNumTasks(1);
 		builder.setBolt("kafka-bolt", kafkaBolt, 1)
-			.shuffleGrouping("pass-bolt")
+			.shuffleGrouping("reservoir-sampling-bolt")
 			.setNumTasks(1);
 		
 		Config conf = new Config();

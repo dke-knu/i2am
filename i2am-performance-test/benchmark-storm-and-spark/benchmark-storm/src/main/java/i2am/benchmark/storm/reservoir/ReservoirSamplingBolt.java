@@ -85,14 +85,20 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 			probability = (int)(Math.random()*count);
 			
 			if(probability < sampleSize){
+				String nonSample = jedisCommands.lindex(sampleName, probability);	
+				outputCollector.emit(new Values("0:"+ nonSample + "," + System.currentTimeMillis())); // Emit	
 				jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
+			}else{
+				outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
 			}
 		}
 		
 		if(count == 0){
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
 			
-			outputCollector.emit(new Values(sampleList)); // Emit
+			for(String data : sampleList){
+				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
+			}
 			
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 		}
@@ -101,7 +107,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields("sampleList"));
+		declarer.declare(new Fields("message"));
 	}
 
 }
