@@ -112,6 +112,6 @@ public class PerformanceTestTopology {
 
 		conf.setNumWorkers(5);
 
-		StormSubmitter.submitTopology("performance-filtering-topology", conf, builder.createTopology());
+		StormSubmitter.submitTopology("performance-bloomfiltering-topology", conf, builder.createTopology());
 	}
 }
