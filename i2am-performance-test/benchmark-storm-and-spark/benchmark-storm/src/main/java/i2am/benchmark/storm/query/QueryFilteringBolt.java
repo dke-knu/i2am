@@ -61,9 +61,10 @@ public class QueryFilteringBolt extends BaseRichBolt {
 		}
 		
 		if(flag){
-			outputCollector.emit(new Values(new String(sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+			outputCollector.emit(new Values(new String("1:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+		}else{
+			outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
 		}
-		
 	}
 
 	@Override
