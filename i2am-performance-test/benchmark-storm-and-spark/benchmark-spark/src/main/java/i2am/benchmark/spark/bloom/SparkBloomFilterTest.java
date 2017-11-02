@@ -1,9 +1,9 @@
 package i2am.benchmark.spark.bloom;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,15 +26,14 @@ import org.apache.spark.streaming.kafka010.LocationStrategies;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Protocol.Keyword;
 
 
 public class SparkBloomFilterTest {	
 
 	private final static Logger logger = Logger.getLogger(SparkBloomFilterTest.class);
 	private static JedisPool pool;
-
-	public static void main(String[] args) throws InterruptedException {
+		
+	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
 
 		// Args.
 		String input_topic = args[0];
@@ -49,16 +48,23 @@ public class SparkBloomFilterTest {
 
 		// Filtering Keywords.		
 		String redis_key = args[6];		
+		int bloom_size = Integer.parseInt(args[7]);		
 		String[] input_keywords = args.clone();
-		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
+		String[] keywords = Arrays.copyOfRange(input_keywords, 8, input_keywords.length);		
 
+		// Make Bloom Filter.
+		BloomFilter bloom = new BloomFilter(bloom_size);		
+		for( String keyword: keywords ) {			
+			bloom.registData(keyword);			
+		}
+		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
 		// BroadCast Variables
-		Broadcast<List<String>> filter = sc.broadcast(Arrays.asList(keywords));		
+		Broadcast<BloomFilter> bloom_filter = sc.broadcast(bloom);
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
@@ -98,13 +104,18 @@ public class SparkBloomFilterTest {
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
 		// Step 2. Filtering for String
-		JavaDStream<String> filtered = timeLines.filter( sample -> {						
-			for( String keyword: filter.value() ) {				
-
-				if(sample.contains(keyword)) {
+		JavaDStream<String> filtered = timeLines.filter( sample -> {
+			
+			String[] commands = sample.split(",");				
+			String[] words = commands[0].split(" ");			
+			BloomFilter temp = bloom_filter.value();
+			
+			
+			for ( String word: words ) {
+				if (temp.filtering(word)) {
 					return true;
 				}
-			}			
+			}						
 			return false;
 		});
 
@@ -132,7 +143,6 @@ public class SparkBloomFilterTest {
 				jedis.close();
 			});				
 		});	
-
 
 		// Start.
 		jssc.start();
