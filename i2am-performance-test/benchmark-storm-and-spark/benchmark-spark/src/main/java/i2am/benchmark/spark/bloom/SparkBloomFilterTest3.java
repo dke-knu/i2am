@@ -36,7 +36,7 @@ import redis.clients.jedis.JedisPoolConfig;
 public class SparkBloomFilterTest3 {	
 
 	private final static Logger logger = Logger.getLogger(SparkBloomFilterTest3.class);
-	private static JedisPool pool;
+	//private static JedisPool pool;
 		
 	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
 
@@ -52,10 +52,10 @@ public class SparkBloomFilterTest3 {
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 
 		// Filtering Keywords.		
-		String redis_key = args[6];		
-		int bloom_size = Integer.parseInt(args[7]);		
+		// String redis_key = args[6];		
+		int bloom_size = Integer.parseInt(args[6]);		
 		String[] input_keywords = args.clone();
-		String[] keywords = Arrays.copyOfRange(input_keywords, 8, input_keywords.length);		
+		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
 
 		// Redis Conf.
 		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
@@ -140,15 +140,15 @@ public class SparkBloomFilterTest3 {
 
 			samples.foreach( sample -> {
 				
-				JedisCluster jc = new JedisCluster(redisNodes);
+				// JedisCluster jc = new JedisCluster(redisNodes);
 				
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 				
 				String out = sample + "," + System.currentTimeMillis();
-				jc.rpush(redis_key, out);				
+				// jc.rpush(redis_key, out);				
 				producer.send(new ProducerRecord<String, String>(output_topic, out));				
 					
-				jc.close();
+				// jc.close();
 				producer.close();
 			});				
 		});	

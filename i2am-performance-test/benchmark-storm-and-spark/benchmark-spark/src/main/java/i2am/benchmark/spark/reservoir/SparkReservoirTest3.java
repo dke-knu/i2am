@@ -129,19 +129,17 @@ public class SparkReservoirTest3 {
 				}
 				else {					
 					prob = (int)(Math.random()*count);
-
-					if ( prob < sample_size ) {	
-						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
+					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+					
+					if ( prob < sample_size ) {													
 						String notSample = "0:" + jc.lindex(redis_key, prob) + "," + System.currentTimeMillis();
 						jc.lset(redis_key, prob, sample);						
-						producer.send(new ProducerRecord<String, String>(output_topic, notSample));						
-						producer.close();
+						producer.send(new ProducerRecord<String, String>(output_topic, notSample));
 					}
-					else {
-						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
-						producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));						
-						producer.close();
+					else {												
+						producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));
 					}
+					producer.close();
 				}
 
 				if( count == 0 ) {
