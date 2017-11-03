@@ -71,7 +71,7 @@ public class ConsumerRunner implements Runnable {
 						Performance p = new Performance();
 						
 						for (MessageAndMetadata<byte[], byte[]> messageAndMetadata : stream) {
-							System.out.println(new String(messageAndMetadata.message())+","+System.currentTimeMillis());
+							//System.out.println(new String(messageAndMetadata.message())+","+System.currentTimeMillis());
 							
 							String[] messages = new String(messageAndMetadata.message()).split(",");
 							String wordcount = messages[0];
