@@ -119,21 +119,21 @@ public class SparkWordCount {
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-
 		wordCounts.print();	 
 
 		// Send to Kafka.
-		wordCounts.foreachRDD(								
-				output -> {										
+		wordCounts.foreachRDD(				
+				output -> {							
+					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);					
 					for( String tuple: output.collect() ) {							
 						producer.send(new ProducerRecord<String, String>(output_topic, tuple+","+System.currentTimeMillis()));
 					}								
+					producer.close();
 				});		
 
 		// Start.
 		jssc.start();
 		jssc.awaitTermination();
-		producer.close();
+		
 	}		
 }

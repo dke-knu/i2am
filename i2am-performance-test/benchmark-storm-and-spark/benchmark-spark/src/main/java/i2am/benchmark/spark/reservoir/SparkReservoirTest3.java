@@ -1,5 +1,6 @@
 package i2am.benchmark.spark.reservoir;
 
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,15 +26,17 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 
-public class SparkReservoirTest2 {	
+public class SparkReservoirTest3 {	
 
-	private final static Logger logger = Logger.getLogger(SparkReservoirTest2.class);
-	private static JedisPool pool;
+	private final static Logger logger = Logger.getLogger(SparkReservoirTest3.class);
+	//private static JedisPool pool;	
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -52,8 +55,19 @@ public class SparkReservoirTest2 {
 		int sample_size = Integer.parseInt(args[6]);
 		int window_size = Integer.parseInt(args[7]);
 		
-		// Redis Conf.
-		String redis_key = args[8];		
+		// Redis conf.
+		String redis_key = args[8];
+
+		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
+		redisNodes.add(new HostAndPort("192.168.0.100", 17000));
+		redisNodes.add(new HostAndPort("192.168.0.101", 17001));
+		redisNodes.add(new HostAndPort("192.168.0.102", 17002));
+		redisNodes.add(new HostAndPort("192.168.0.103", 17003));
+		redisNodes.add(new HostAndPort("192.168.0.104", 17004));
+		redisNodes.add(new HostAndPort("192.168.0.105", 17005));
+		redisNodes.add(new HostAndPort("192.168.0.106", 17006));
+		redisNodes.add(new HostAndPort("192.168.0.107", 17007));
+		redisNodes.add(new HostAndPort("192.168.0.108", 17008));		
 		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
@@ -102,10 +116,8 @@ public class SparkReservoirTest2 {
 
 			samples.foreach( sample -> {
 
-				pool = new JedisPool(new JedisPoolConfig(), "MN");
-				Jedis jedis = pool.getResource();
-				jedis.select(0);
-
+				JedisCluster jc = new JedisCluster(redisNodes);				
+				
 				String[] commands = sample.split(",");
 				
 				int index = Integer.parseInt(commands[1]);
@@ -113,15 +125,15 @@ public class SparkReservoirTest2 {
 				int count = index % window_size;				
 				
 				if( count != 0 && count <= sample_size ) {
-					jedis.rpush(redis_key, sample);
+					jc.rpush(redis_key, sample);
 				}
 				else {					
 					prob = (int)(Math.random()*count);
 
 					if ( prob < sample_size ) {	
 						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
-						String notSample = "0:" + jedis.lindex(redis_key, prob) + "," + System.currentTimeMillis();
-						jedis.lset(redis_key, prob, sample);						
+						String notSample = "0:" + jc.lindex(redis_key, prob) + "," + System.currentTimeMillis();
+						jc.lset(redis_key, prob, sample);						
 						producer.send(new ProducerRecord<String, String>(output_topic, notSample));						
 						producer.close();
 					}
@@ -134,15 +146,15 @@ public class SparkReservoirTest2 {
 
 				if( count == 0 ) {
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-					List<String> sampleList = jedis.lrange(redis_key, 0, -1);
-					jedis.ltrim(redis_key, 0, -99999);
+					List<String> sampleList = jc.lrange(redis_key, 0, -1);
+					jc.ltrim(redis_key, 0, -99999);
 
 					for( String result: sampleList ) {					
 						producer.send(new ProducerRecord<String, String>(output_topic, "1:" + result + "," + System.currentTimeMillis()));
 					}
 					producer.close();
 				}					
-				jedis.close();
+				jc.close();
 			});				
 		});	
 

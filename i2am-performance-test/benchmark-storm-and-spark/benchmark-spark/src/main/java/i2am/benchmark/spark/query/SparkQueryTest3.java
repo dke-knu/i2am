@@ -1,6 +1,5 @@
-package i2am.benchmark.spark.reservoir;
+package i2am.benchmark.spark.query;
 
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +16,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
@@ -25,15 +25,17 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Protocol.Keyword;
 
 
-public class SparkReservoirTest2 {	
+public class SparkQueryTest3 {	
 
-	private final static Logger logger = Logger.getLogger(SparkReservoirTest2.class);
-	private static JedisPool pool;
+	private final static Logger logger = Logger.getLogger(SparkQueryTest3.class);	
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -43,22 +45,36 @@ public class SparkReservoirTest2 {
 		String group = args[2];
 		long duration = Long.valueOf(args[3]);
 
-		// MN.eth 9092
+		// MN.eth 9092.
 		String zookeeper_ip = args[4];
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 
-		// Sampling Parameters.
-		int sample_size = Integer.parseInt(args[6]);
-		int window_size = Integer.parseInt(args[7]);
-		
+		// Filtering Keywords.		
+		String redis_key = args[6];		
+		String[] input_keywords = args.clone();
+		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
+
 		// Redis Conf.
-		String redis_key = args[8];		
+		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
+		redisNodes.add(new HostAndPort("192.168.0.100", 17000));
+		redisNodes.add(new HostAndPort("192.168.0.101", 17001));
+		redisNodes.add(new HostAndPort("192.168.0.102", 17002));
+		redisNodes.add(new HostAndPort("192.168.0.103", 17003));
+		redisNodes.add(new HostAndPort("192.168.0.104", 17004));
+		redisNodes.add(new HostAndPort("192.168.0.105", 17005));
+		redisNodes.add(new HostAndPort("192.168.0.106", 17006));
+		redisNodes.add(new HostAndPort("192.168.0.107", 17007));
+		redisNodes.add(new HostAndPort("192.168.0.108", 17008));	
+		
 		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
+
+		// BroadCast Variables
+		Broadcast<List<String>> filter = sc.broadcast(Arrays.asList(keywords));		
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
@@ -97,52 +113,33 @@ public class SparkReservoirTest2 {
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
-		// Step 2. Sampling.
-		timeLines.foreachRDD( samples -> {
+		// Step 2. Filtering for String.
+		JavaDStream<String> filtered = timeLines.map( sample -> {			
+			String[] commands = sample.split(",");			
+			for ( String keyword: filter.value() ) {				
+				if( commands[0].contains(keyword) ) {					
+					return "1:" + sample;
+				}							
+			}			
+			return "0:" + sample;
+		});
+		
+		// Step 3. Out > Kafka, Redis
+		filtered.foreachRDD( samples -> {
 
 			samples.foreach( sample -> {
 
-				pool = new JedisPool(new JedisPoolConfig(), "MN");
-				Jedis jedis = pool.getResource();
-				jedis.select(0);
-
-				String[] commands = sample.split(",");
+				JedisCluster jc = new JedisCluster(redisNodes);
 				
-				int index = Integer.parseInt(commands[1]);
-				int prob = sample_size + 1;
-				int count = index % window_size;				
+				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 				
-				if( count != 0 && count <= sample_size ) {
-					jedis.rpush(redis_key, sample);
-				}
-				else {					
-					prob = (int)(Math.random()*count);
-
-					if ( prob < sample_size ) {	
-						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
-						String notSample = "0:" + jedis.lindex(redis_key, prob) + "," + System.currentTimeMillis();
-						jedis.lset(redis_key, prob, sample);						
-						producer.send(new ProducerRecord<String, String>(output_topic, notSample));						
-						producer.close();
-					}
-					else {
-						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
-						producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));						
-						producer.close();
-					}
-				}
-
-				if( count == 0 ) {
-					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-					List<String> sampleList = jedis.lrange(redis_key, 0, -1);
-					jedis.ltrim(redis_key, 0, -99999);
-
-					for( String result: sampleList ) {					
-						producer.send(new ProducerRecord<String, String>(output_topic, "1:" + result + "," + System.currentTimeMillis()));
-					}
-					producer.close();
-				}					
-				jedis.close();
+				String out = sample + "," + System.currentTimeMillis();
+				
+				jc.rpush(redis_key, out);				
+				producer.send(new ProducerRecord<String, String>(output_topic, out));				
+					
+				jc.close();
+				producer.close();
 			});				
 		});	
 
