@@ -65,15 +65,15 @@ public class PerformanceTestTopology {
 		/* Redis Configurations */
 		String redisKey = args[4];
 		Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
-		redisNodes.add(new InetSocketAddress("192.168.1.100", 17000));
-		redisNodes.add(new InetSocketAddress("192.168.1.101", 17001));
-		redisNodes.add(new InetSocketAddress("192.168.1.102", 17002));
-		redisNodes.add(new InetSocketAddress("192.168.1.103", 17003));
-		redisNodes.add(new InetSocketAddress("192.168.1.104", 17004));
-		redisNodes.add(new InetSocketAddress("192.168.1.105", 17005));
-		redisNodes.add(new InetSocketAddress("192.168.1.106", 17006));
-		redisNodes.add(new InetSocketAddress("192.168.1.107", 17007));
-		redisNodes.add(new InetSocketAddress("192.168.1.108", 17008));
+		redisNodes.add(new InetSocketAddress("MN", 17000));
+		redisNodes.add(new InetSocketAddress("SN01", 17001));
+		redisNodes.add(new InetSocketAddress("SN02", 17002));
+		redisNodes.add(new InetSocketAddress("SN03", 17003));
+		redisNodes.add(new InetSocketAddress("SN04", 17004));
+		redisNodes.add(new InetSocketAddress("SN05", 17005));
+		redisNodes.add(new InetSocketAddress("SN06", 17006));
+		redisNodes.add(new InetSocketAddress("SN07", 17007));
+		redisNodes.add(new InetSocketAddress("SN08", 17008));
 		
 		/* Jedis */
 		JedisClusterConfig jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5); 
@@ -85,22 +85,22 @@ public class PerformanceTestTopology {
 				.withTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper());
 		
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 1)
-			.setNumTasks(1);
-		builder.setBolt("declare-field-bolt", new DeclareFieldBolt(), 1)
+		builder.setSpout("kafka-spout", new KafkaSpout(kafkaSpoutConfig), 8)
+			.setNumTasks(8);
+		builder.setBolt("declare-field-bolt", new DeclareFieldBolt(), 8)
 			.shuffleGrouping("kafka-spout")
-			.setNumTasks(1);
-		builder.setBolt("systematic-sampling-bolt", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 1)
+			.setNumTasks(8);
+		builder.setBolt("systematic-sampling-bolt", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 8)
 			.shuffleGrouping("declare-field-bolt")
-			.setNumTasks(1);
-		builder.setBolt("kafka-bolt", kafkaBolt, 1)
+			.setNumTasks(8);
+		builder.setBolt("kafka-bolt", kafkaBolt, 8)
 			.shuffleGrouping("systematic-sampling-bolt")
-			.setNumTasks(1);
+			.setNumTasks(8);
 		
 		Config conf = new Config();
 		conf.setDebug(true);
 
-		conf.setNumWorkers(5);
+		conf.setNumWorkers(32);
 
 		StormSubmitter.submitTopology("performance-systematicsampling-topology", conf, builder.createTopology());
 	}

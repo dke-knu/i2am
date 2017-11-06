@@ -90,17 +90,17 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		for(String data : words){
 			try {
 				flag = bloomFilter.filtering(data);
-				break;
+				if(flag) break;
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			if(flag){
-				outputCollector.emit(new Values(new String("1:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
-			}else{
-				outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
-			}
+		}
+		
+		if(flag){
+			outputCollector.emit(new Values(new String("1:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+		}else{
+			outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
 		}
 	}
 

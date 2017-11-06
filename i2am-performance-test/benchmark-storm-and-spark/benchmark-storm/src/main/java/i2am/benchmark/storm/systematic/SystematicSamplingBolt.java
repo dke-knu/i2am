@@ -27,6 +27,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 	private String sampleName = null; 
 	private Map<String, String> parameters;
 	private int interval;
+	private int randomNumber;
 	
 	/* RedisKey */
 	private String redisKey = null;
@@ -68,6 +69,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		windowSize = Integer.parseInt(parameters.get(windowSizeKey)); // Get window size
 		interval = windowSize/sampleSize;
 		jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+		randomNumber = (int)(Math.random()*interval);
 	}
 
 	@Override
@@ -78,7 +80,6 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		String sentence = tuple.getStringByField("sentence");
 		String createdTime = tuple.getStringByField("created_time");
 		long inputTime = tuple.getLongByField("input_time");
-		int randomNumber = (int)(Math.random()*interval);
 		
 		if((production%windowSize)%interval  == randomNumber){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
