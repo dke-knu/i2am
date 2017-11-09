@@ -35,13 +35,16 @@ public class RemoteStormController {
 		String inputJar = "D:\\topologies\\hello-world-topology.jar";
 		NimbusClient nimbus = new NimbusClient(storm_conf, "192.168.56.100", 6627);
 		
+		
 		// upload topology jar to Cluster using StormSubmitter
 		String uploadedJarLocation = StormSubmitter.submitJar(storm_conf, inputJar);
 		
 		
 		try {
 			String jsonConf = JSONValue.toJSONString(storm_conf);
-			nimbus.getClient().submitTopology("kafka_topology3", uploadedJarLocation, jsonConf, builder.createTopology());		
+			nimbus.getClient().submitTopology("kafka_topology3", uploadedJarLocation, jsonConf, builder.createTopology());						
+			SubmitOptions options = null;			
+			nimbus.getClient().submitTopologyWithOpts("name", uploadedJarLocation, jsonConf, builder.createTopology(), options);
 			
 		} catch (AlreadyAliveException ae) {
 			ae.printStackTrace();
