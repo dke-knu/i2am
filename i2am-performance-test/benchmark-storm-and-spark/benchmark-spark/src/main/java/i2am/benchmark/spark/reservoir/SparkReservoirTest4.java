@@ -128,7 +128,26 @@ public class SparkReservoirTest4 {
 
 					jc.rpush(redis_key, sample);
 				}
+<<<<<<< HEAD:i2am-performance-test/benchmark-storm-and-spark/benchmark-spark/src/main/java/i2am/benchmark/spark/reservoir/SparkReservoirTest4.java
 				else if( count == 0 ) { // Window Size.
+=======
+				else {					
+					prob = (int)(Math.random()*count);
+
+					if ( prob < sample_size ) {	
+						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
+						String notSample = "0:" + jc.lindex(redis_key, prob) + "," + System.currentTimeMillis();
+						jc.lset(redis_key, prob, sample);						
+						producer.send(new ProducerRecord<String, String>(output_topic, notSample));						
+						producer.close();
+					}
+					else {
+						KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);						
+						producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));						
+						producer.close();
+					}
+				}
+>>>>>>> parent of 95714de... [Spark] 필터링 알고리즘 레디스 쓰기 삭제:i2am-performance-test/benchmark-storm-and-spark/benchmark-spark/src/main/java/i2am/benchmark/spark/reservoir/SparkReservoirTest3.java
 
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 					List<String> sampleList = jc.lrange(redis_key, 0, -1);
