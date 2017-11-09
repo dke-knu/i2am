@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.exceptions.JedisDataException;
 
 public class ReservoirSamplingBolt extends BaseRichBolt { 
 	
@@ -78,27 +79,29 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		int probability = sampleSize + 1;
 		int count = production%windowSize;
 		
-		if(count != 0 && count <= sampleSize){
+		if(count != 0 && count < sampleSize){
 			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-		}
-		else{
-			probability = (int)(Math.random()*count);
-			
-			if(probability < sampleSize){
-				String nonSample = jedisCommands.lindex(sampleName, probability);	
-				outputCollector.emit(new Values("0:"+ nonSample + "," + System.currentTimeMillis())); // Emit	
-				jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-			}else{
-				outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
-			}
-		}
-		
-		if(count == 0){
+		}else if(count == 0){ //window size
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 			
 			for(String data : sampleList){
 				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
+			}
+		}
+		else{
+			probability = (int)(Math.random()*count);
+			
+			if(probability < sampleSize){
+				if(probability < jedisCommands.llen(sampleName)){
+					String nonSample = jedisCommands.lindex(sampleName, probability);
+					jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
+					outputCollector.emit(new Values("0:"+ nonSample + "," + System.currentTimeMillis())); // Emit
+				}else{
+					jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
+				}
+			}else{
+				outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
 			}
 		}
 	}
