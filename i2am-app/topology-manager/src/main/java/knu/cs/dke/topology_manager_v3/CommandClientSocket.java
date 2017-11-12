@@ -18,13 +18,14 @@ public class CommandClientSocket implements Runnable {
         this.plans = plans;
     }
     
+    // Client로 부터 Json을 받아서 Command Handler 호출!!
     public void run() {
-        try {
+        try {       	
+
             InputStream input  = clientSocket.getInputStream();
             OutputStream output = clientSocket.getOutputStream();
-            DataInputStream read = new DataInputStream(input);
+            DataInputStream read = new DataInputStream(input);            
             
-            // TODO
             String commandJSON = read.readUTF();
             System.out.println("[Client-Socket] Received Command: " +commandJSON);
             

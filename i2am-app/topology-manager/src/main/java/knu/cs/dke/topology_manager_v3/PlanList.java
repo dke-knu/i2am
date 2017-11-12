@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class PlanList {
 	
-	// singleton
+	// singleton - 플랜리스트 > 플랜 > 토폴로지
 	private volatile static PlanList instance;
 	
 	public static PlanList getInstance() {
@@ -36,7 +36,7 @@ public class PlanList {
 	}
 	
 	public synchronized boolean remove(Plan plan) {
-		if (mPlans.containsKey(plan.getPlanID())) return false;
+		if (!mPlans.containsKey(plan.getPlanID())) return false;
 		mPlans.remove(plan.getPlanID());
 		return true;
 	}

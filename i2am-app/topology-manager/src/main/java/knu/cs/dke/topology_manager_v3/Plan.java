@@ -2,12 +2,17 @@ package knu.cs.dke.topology_manager_v3;
 
 import java.util.List;
 
+import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
+
 public class Plan {
 	
 	private String planID;
 	private String owner;
 	private String timestamp;
-	private List<ASamplingFilteringTopology> lTopologies;
+	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성
+	
+	// Plan Must Have Source Index.
+	// Plan Must Have Destination Index.
 	
 	public String getPlanID() {
 		return planID;

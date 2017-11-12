@@ -67,4 +67,8 @@ public class RemoteStormController {
 		Thread.sleep(3000);
 		nimbus.close();
 	}
+	
+	public void killTopology() { }
+	
+	public void activeTopology() { }
 }

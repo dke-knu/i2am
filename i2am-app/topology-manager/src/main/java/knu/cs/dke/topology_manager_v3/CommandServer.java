@@ -6,32 +6,35 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class CommandServerSocket implements Runnable {
+public class CommandServer implements Runnable {
 	
+	// Server Info.
 	protected int          serverPort   = 11111;
-	protected ServerSocket serverSocket = null; // server host...
+	protected ServerSocket serverSocket = null; 
 	protected boolean      isStopped    = false;
-	//    protected Thread       runningThread= null;
+	
+	// Client Socket Thread Pool.
 	protected ExecutorService threadPool = Executors.newCachedThreadPool();
 
-	private PlanList plans = null; //
+	// Plan Info.
+	private PlanList plans = null;
+	// private SourceList sources = null;
+	// private DestinationList destiny = null;
 	
+	// Server Start.
 	public static void main(String[] args) {
-		new Thread(new CommandServerSocket()).start();		
+		new Thread(new CommandServer()).start();		
 	}
 
-	public CommandServerSocket(){
+	public CommandServer(){
 		plans = PlanList.getInstance();		
 	}
 
-	public void run(){
-		//        synchronized(this){
-		//            this.runningThread = Thread.currentThread();
-		//        }
+	public void run(){		
 		openServerSocket();
 		System.out.println("[Server] Server started ~");
 		
-		while(! isStopped()){
+		while(!isStopped()){
 			Socket clientSocket = null;
 			try {
 				clientSocket = this.serverSocket.accept();				

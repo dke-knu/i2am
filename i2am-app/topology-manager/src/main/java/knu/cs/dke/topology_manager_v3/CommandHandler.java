@@ -9,6 +9,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
+
 public class CommandHandler {
 
 	private PlanList plans = null;
@@ -18,7 +21,8 @@ public class CommandHandler {
 	}
 
 	public String executeCommand(String input_command) throws ParseException {
-		
+
+		// Json에서 Command Type만 확인하여 해당 명령어를 호출하면서 Json 넘겨버리기!!
 		JSONParser jsonParser = new JSONParser();
 		JSONObject jsonCommand = (JSONObject) jsonParser.parse(input_command);		
 		System.out.println("[Command Handler] Received Command: " + input_command);
@@ -94,9 +98,7 @@ public class CommandHandler {
 		}
 		
 		plan.submitTopologies();
-		System.out.println("[Command Handler] Plan Start!");
-		
-		
+		System.out.println("[Command Handler] Plan Start!");		
 	}
 	
 	private void destroyPlan(Plan plan) {

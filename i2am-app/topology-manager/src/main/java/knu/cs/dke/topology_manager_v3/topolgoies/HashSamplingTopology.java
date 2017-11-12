@@ -1,8 +1,10 @@
-package knu.cs.dke.topology_manager_v3;
+package knu.cs.dke.topology_manager_v3.topolgoies;
 
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.thrift.TException;
+
+import knu.cs.dke.topology_manager_v3.RemoteStormController;
 
 public class HashSamplingTopology extends ASamplingFilteringTopology{
 

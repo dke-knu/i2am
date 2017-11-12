@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3;
+package knu.cs.dke.topology_manager_v3.topolgoies;
 
 public class BloomFilteringTopology extends ASamplingFilteringTopology{
 
