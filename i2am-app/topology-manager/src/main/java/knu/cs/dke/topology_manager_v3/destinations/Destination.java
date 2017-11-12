@@ -1,9 +1,9 @@
-package knu.cs.dke.topology_manager_v3.sources;
+package knu.cs.dke.topology_manager_v3.destinations;
 
-public abstract class Source {
+public abstract class Destination {
 	
-	// Source Info.
-	private String sourceID;	
+	// Destination Info.
+	private String destinationID;	
 	private String owner;
 	private String timeStamp;
 	
@@ -13,11 +13,11 @@ public abstract class Source {
 	// System Kafka Info.
 	private String systemTopic;
 	
-	public void setSourceID(String sourceID) {
-		this.sourceID = sourceID;
+	public void setSourceID(String destinationID) {
+		this.destinationID = destinationID;
 	}
 	public String getSourceID() {
-		return this.sourceID;
+		return this.destinationID;
 	}
 	
 	public void setOwner(String owner) {
@@ -48,5 +48,5 @@ public abstract class Source {
 		return this.systemTopic;
 	}
 	
-	public abstract void read(); // 읽어서 우리 시스템의 Kafka로 !!
+	public abstract void write(); //우리 카프카프카에서 유저의 데스티네이션으루
 }

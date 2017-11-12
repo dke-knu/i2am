@@ -2,6 +2,8 @@ package knu.cs.dke.topology_manager_v3;
 
 import java.util.List;
 
+import knu.cs.dke.topology_manager_v3.destinations.Destination;
+import knu.cs.dke.topology_manager_v3.sources.Source;
 import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
 
 public class Plan {
@@ -11,9 +13,10 @@ public class Plan {
 	private String timestamp;
 	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성
 	
-	// Plan Must Have Source Index.
-	// Plan Must Have Destination Index.
-	
+	// ?
+	private Source source;
+	private Destination destination;
+			
 	public String getPlanID() {
 		return planID;
 	}
@@ -38,6 +41,7 @@ public class Plan {
 	public void setlTopologies(List<ASamplingFilteringTopology> lTopologies) {
 		this.lTopologies = lTopologies;
 	}
+	
 	public void submitTopologies() {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
@@ -45,6 +49,7 @@ public class Plan {
 			topology.submitTopology();
 		}
 	}
+	
 	public void killTopologies() {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
@@ -52,4 +57,7 @@ public class Plan {
 			topology.killTopology();
 		}		
 	}
+	
+	public void readSource() { }
+	
 }
