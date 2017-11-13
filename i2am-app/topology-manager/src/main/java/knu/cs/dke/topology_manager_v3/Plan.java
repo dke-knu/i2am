@@ -13,10 +13,15 @@ public class Plan {
 	private String timestamp;
 	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성
 	
-	// ?
+	// ? 
 	private Source source;
 	private Destination destination;
-			
+	
+	// ??
+	private String sourceKey;
+	private String destinationKey;
+	
+	
 	public String getPlanID() {
 		return planID;
 	}

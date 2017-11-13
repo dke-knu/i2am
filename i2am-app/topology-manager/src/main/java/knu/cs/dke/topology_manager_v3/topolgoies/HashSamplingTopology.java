@@ -4,7 +4,7 @@ import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.thrift.TException;
 
-import knu.cs.dke.topology_manager_v3.RemoteStormController;
+import knu.cs.dke.topology_manager_v3.handlers.RemoteStormController;
 
 public class HashSamplingTopology extends ASamplingFilteringTopology{
 
