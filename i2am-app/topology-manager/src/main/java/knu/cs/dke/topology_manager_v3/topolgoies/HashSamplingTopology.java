@@ -43,4 +43,16 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 	public void killTopology() {
 		// TODO Auto-generated method stub		
 	}
+
+	@Override
+	public void activeTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactiveTopology() {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -16,8 +16,10 @@ public class TestClient {
 	public static void main(String[] args) throws UnknownHostException, IOException {
 
 		// JSON 생성하기
-		JSONSample plan = new JSONSample();
-		plan.setCommand();		
+		CREATE_SOURCE source = new CREATE_SOURCE();
+		source.setCommand();		
+		
+		source.printJSON();
 		
 		// Server에 접속하기
 		Socket socket = new Socket(serverIp, serverPort);		
@@ -25,10 +27,9 @@ public class TestClient {
 		write = new DataOutputStream(socket.getOutputStream());
 		
 		// Server에 String 타입으로 보내기
-		write.writeUTF(plan.getStringPlan());
+		write.writeUTF(source.getStringPlan());
 				
 		write.close();
 		socket.close();
-	}
-	
+	}	
 }

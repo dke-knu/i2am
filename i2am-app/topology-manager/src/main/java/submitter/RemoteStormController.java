@@ -51,7 +51,7 @@ public class RemoteStormController {
 			String jsonConf = JSONValue.toJSONString(storm_conf);
 			
 			SubmitOptions options = new SubmitOptions();
-			options.set_initial_status(TopologyInitialStatus.INACTIVE);
+			options.set_initial_status(TopologyInitialStatus.INACTIVE);			
 			nimbus.getClient().send_submitTopologyWithOpts("word-count-topology", uploadedJarLocation, jsonConf, builder.createTopology(), options);
 			//nimbus.getClient().killTopology("word-count-topology");
 			//nimbus.getClient().activate("word-count-topology");

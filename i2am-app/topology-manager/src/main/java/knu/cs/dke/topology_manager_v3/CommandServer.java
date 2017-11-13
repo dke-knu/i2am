@@ -18,8 +18,8 @@ public class CommandServer implements Runnable {
 
 	// Plan Info.
 	private PlanList plans = null;
-	// private SourceList sources = null;
-	// private DestinationList destiny = null;
+	private SourceList sources = null;
+	private DestinationList destination = null;
 	
 	// Server Start.
 	public static void main(String[] args) {
@@ -28,6 +28,8 @@ public class CommandServer implements Runnable {
 
 	public CommandServer(){
 		plans = PlanList.getInstance();		
+		sources = SourceList.getInstance();
+		destination = DestinationList.getInstance();
 	}
 
 	public void run(){		
@@ -45,7 +47,7 @@ public class CommandServer implements Runnable {
 				}
 				throw new RuntimeException("[Server] Error accepting client connection", e);
 			}
-			this.threadPool.execute(new CommandClientSocket(clientSocket, plans));			
+			this.threadPool.execute(new CommandClientSocket(clientSocket, plans, sources, destination));			
 		}
 		this.threadPool.shutdown();
 		System.out.println("[Server] Server Stopped.") ;

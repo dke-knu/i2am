@@ -3,7 +3,7 @@ package knu.cs.dke.topology_manager_v3.destinations;
 public abstract class Destination {
 	
 	// Destination Info.
-	private String destinationID;	
+	private String destinationID; // NAME
 	private String owner;
 	private String timeStamp;
 	

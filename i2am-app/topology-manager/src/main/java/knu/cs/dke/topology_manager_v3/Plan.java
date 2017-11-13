@@ -12,15 +12,10 @@ public class Plan {
 	private String owner;
 	private String timestamp;
 	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성
-	
-	// ? 
-	private Source source;
-	private Destination destination;
-	
+		
 	// ??
 	private String sourceKey;
-	private String destinationKey;
-	
+	private String destinationKey;	
 	
 	public String getPlanID() {
 		return planID;
@@ -44,7 +39,22 @@ public class Plan {
 		return lTopologies;
 	}
 	public void setlTopologies(List<ASamplingFilteringTopology> lTopologies) {
-		this.lTopologies = lTopologies;
+		this.lTopologies = lTopologies;		
+	}
+	
+	public void setSourceKey(String source) {
+		this.sourceKey = source;
+	}	
+	public String getSourceKey() {
+		return this.sourceKey;
+	}
+	
+	public void setDestinationKey(String destination) {
+		this.destinationKey = destination;
+	}
+	
+	public String getDestinationKey() {
+		return this.destinationKey;
 	}
 	
 	public void submitTopologies() {

@@ -6,11 +6,11 @@ import org.apache.storm.utils.Time;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class JSONSample {
+public class CREATE_PLAN {
 
 	private JSONObject plan;	
 	
-	public JSONSample() {
+	public CREATE_PLAN() {
 		plan = new JSONObject();
 	}
 	

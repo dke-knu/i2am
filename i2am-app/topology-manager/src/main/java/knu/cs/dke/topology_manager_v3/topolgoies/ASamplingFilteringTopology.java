@@ -3,7 +3,8 @@ package knu.cs.dke.topology_manager_v3.topolgoies;
 public abstract class ASamplingFilteringTopology {
 		
 	private String topologyID;
-	private int index;
+	// private int index; // List로 관리되기 때문에 ID로 충분할 것 같음
+	private String plan; // 어느 플랜에 소속되었는지?? 
 	private String kafkaInputTopic;
 	private String kafkaoutputTopic;	
 	
@@ -26,7 +27,8 @@ public abstract class ASamplingFilteringTopology {
 	
 	public abstract void submitTopology(); // [ACTIVATE_PLAN] Start Topology
 	public abstract void killTopology(); // [DESTROY_PLAN] Stop Topology
-	
-	//
+	public abstract void activeTopology();
+	public abstract void deactiveTopology();
+
 	
 }
