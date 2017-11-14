@@ -79,27 +79,23 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
 		
-		int production = tuple.getIntegerByField("production");
-		String tweet = tuple.getStringByField("tweet");
-		long createdTime = tuple.getLongByField("created_time");
-		long inputTime = tuple.getLongByField("input_time");
-		
 		JSONParser parser = new JSONParser();
 		JSONObject message = new JSONObject();
-				
+		
+		try {
+			message = (JSONObject) parser.parse(new String(tuple.getString(0)));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		int production = ((Number) message.get("production")).intValue();
+		
 		if((production%windowSize)%interval  == randomNumber){
-			message.put("tweet", tweet);
-			message.put("production", production);
-			message.put("createdTime", createdTime);
-			message.put("inputTime", inputTime);
 			jedisCommands.rpush(sampleName, message.toString());
 		}
 		else{
 			message.put("sampleFlag", "0");
-			message.put("tweet", tweet);
-			message.put("production", production);
-			message.put("createdTime", createdTime);
-			message.put("inputTime", inputTime);
 			message.put("outputTime", System.currentTimeMillis());
 			outputCollector.emit(new Values(message.toString())); // Emit
 		}

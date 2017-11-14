@@ -39,18 +39,16 @@ public class DeclareFieldBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 		
-		String tweet = ((JSONObject) message.get("tweet")).toJSONString(); 
-		int production = ((Number) message.get("production")).intValue();
-		long createdTime = ((Number) message.get("createdTime")).longValue();
+		message.put("inputTime", System.currentTimeMillis());
 		
-		outputCollector.emit(new Values(production, tweet, createdTime, inputTime));
+		outputCollector.emit(new Values(message.toString()));
 		outputCollector.ack(tuple);
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields("production", "tweet", "created_time", "input_time"));
+		declarer.declare(new Fields("message"));
 	}
 	
 	@Override
