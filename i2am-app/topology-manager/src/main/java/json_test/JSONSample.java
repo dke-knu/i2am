@@ -23,6 +23,8 @@ public class JSONSample {
 		plan.put("commander", "user01");
 		plan.put("commandType", "CREATE_PLAN");
 		
+		plan.put("production", 1);
+		
 		long time = System.currentTimeMillis();
 		SimpleDateFormat dayTime = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 		String time_str = dayTime.format(new Date(time));

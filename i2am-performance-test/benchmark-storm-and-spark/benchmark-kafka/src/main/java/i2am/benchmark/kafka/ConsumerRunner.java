@@ -22,6 +22,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 
 public class ConsumerRunner implements Runnable {
+	
 	private String zookeepers;
 	private String topic;
 	private String groupId;
@@ -88,11 +89,13 @@ public class ConsumerRunner implements Runnable {
 							JSONParser parser = new JSONParser();
 							JSONObject messages = (JSONObject) parser.parse(
 									new String(messageAndMetadata.message()));
-							String wordcount = (String) messages.get("tweet");
-							int production = (int) messages.get("production");
-							long createdTime = (long) messages.get("createdTime");
-							long inputTime = (long) messages.get("inputTime");
-							long outputTime = (long) messages.get("outputTime");
+							System.out.println(messages.toJSONString());
+							
+							String wordcount = ((JSONObject) messages.get("tweet")).toJSONString();							
+							int production = ((Number) messages.get("production")).intValue();
+							long createdTime = ((Number) messages.get("createdTime")).longValue();
+							long inputTime = ((Number) messages.get("inputTime")).longValue();
+							long outputTime = ((Number) messages.get("outputTime")).longValue();
 							long destroyedTime = System.currentTimeMillis();
 
 							if (production > p.maxProduction)

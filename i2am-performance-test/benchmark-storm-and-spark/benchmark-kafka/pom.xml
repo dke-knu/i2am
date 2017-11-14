@@ -33,16 +33,16 @@
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka_2.11</artifactId>
-			<version>0.11.0.1</version>			
+			<version>0.11.0.1</version>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
 		</dependency>
-				
+
 	</dependencies>
 
 	<build>
@@ -80,5 +80,15 @@
 				</executions>
 			</plugin>
 		</plugins>
+
+		<resources>
+			<resource>
+				<directory>tweetdata1000</directory>
+				<includes>
+					<include>**/*.json</include>
+				</includes>
+			</resource>			
+		</resources>
+		
 	</build>
 </project>

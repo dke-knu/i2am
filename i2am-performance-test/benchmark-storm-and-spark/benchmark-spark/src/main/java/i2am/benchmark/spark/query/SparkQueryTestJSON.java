@@ -1,13 +1,11 @@
-package i2am.benchmark.spark.bloom;
+package i2am.benchmark.spark.query;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -24,20 +22,17 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
-
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 
-public class SparkBloomFilterTest3 {	
 
-	private final static Logger logger = Logger.getLogger(SparkBloomFilterTest3.class);
-		
-	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
+
+public class SparkQueryTestJSON {	
+
+	private final static Logger logger = Logger.getLogger(SparkQueryTestJSON.class);	
+
+	public static void main(String[] args) throws InterruptedException {
 
 		// Args.
 		String input_topic = args[0];
@@ -50,16 +45,9 @@ public class SparkBloomFilterTest3 {
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 
-		// Filtering Keywords.
-		int bloom_size = Integer.parseInt(args[6]);
+		// Filtering Keywords.				
 		String[] input_keywords = args.clone();
-		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
-		
-		// Make Bloom Filter.
-		BloomFilter bloom = new BloomFilter(bloom_size);		
-		for( String keyword: keywords ) {			
-			bloom.registData(keyword);			
-		}
+		String[] keywords = Arrays.copyOfRange(input_keywords, 6, input_keywords.length);		
 		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
@@ -67,7 +55,7 @@ public class SparkBloomFilterTest3 {
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
 		// BroadCast Variables
-		Broadcast<BloomFilter> bloom_filter = sc.broadcast(bloom);
+		Broadcast<List<String>> filter = sc.broadcast(Arrays.asList(keywords));		
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
@@ -81,7 +69,7 @@ public class SparkBloomFilterTest3 {
 		// Make Kafka Producer.		
 		Properties props = new Properties();
 		props.put("bootstrap.servers", zk);
-		props.put("acks", "3");
+		props.put("acks", "all");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
@@ -103,31 +91,45 @@ public class SparkBloomFilterTest3 {
 		// Processing.		
 
 		// Step 1. Current Time.
+		// JSON + Input Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
-		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
+		JavaDStream<String> timeLines = lines.map(line -> {		
+			JSONParser parser = new JSONParser();
+			JSONObject messages = (JSONObject) parser.parse(line); 			
+			messages.put("inputTime", System.currentTimeMillis());						
+			return messages.toJSONString();
+		});		
 
-		// Step 2. Filtering for String
-		JavaDStream<String> filtered = timeLines.map( sample -> {
+
+		// Step 2. Filtering for String.
+		JavaDStream<String> filtered = timeLines.map( sample -> {	
 			
-			String[] commands = sample.split(",");			
-			String[] words = commands[0].split(" ");
-			BloomFilter temp = bloom_filter.value();
-			
-			for ( String word: words ) {
-				if ( temp.filtering(word) ) {
-					return "1:" + sample;
-				}
-			}			
-			return "0:" + sample;
+			JSONParser parser = new JSONParser();
+			JSONObject messages = (JSONObject) parser.parse(sample);
+			JSONObject tweet = (JSONObject) messages.get("tweet");
+			String text = (String) tweet.get("text");			
+						
+			for ( String keyword: filter.value() ) {				
+				if( text.contains(keyword) ) {
+					messages.put("sampleFlag", 1);
+					return messages.toString();
+				}			
+			}				
+			messages.put("sampleFlag", 0);
+			return messages.toString();
 		});
 		
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
-			samples.foreach( sample -> {
-								
+
+			samples.foreach( sample -> {				
+				
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);				
-				String out = sample + "," + System.currentTimeMillis();								
-				producer.send(new ProducerRecord<String, String>(output_topic, out));								
+				
+				JSONParser parser = new JSONParser();
+				JSONObject messages = (JSONObject) parser.parse(sample);
+				messages.put("outputTime", System.currentTimeMillis());
+				producer.send(new ProducerRecord<String, String>(output_topic, messages.toString()));
 				producer.close();
 			});				
 		});	
