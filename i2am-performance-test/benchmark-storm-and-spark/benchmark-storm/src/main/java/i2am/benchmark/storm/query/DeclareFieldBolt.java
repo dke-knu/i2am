@@ -31,7 +31,6 @@ public class DeclareFieldBolt extends BaseRichBolt {
 		// Input Time
 		long inputTime = System.currentTimeMillis();
 		
-		
 		// Get JSON From Tuple 
 		JSONParser parser = new JSONParser();
 		JSONObject message = null;
@@ -46,7 +45,7 @@ public class DeclareFieldBolt extends BaseRichBolt {
 		// Put Input Time
 		message.put("inputTime", inputTime);
 		
-		//Emit
+		// Emit
 		outputCollector.emit(new Values(message.toString()));
 		outputCollector.ack(tuple);
 	}
