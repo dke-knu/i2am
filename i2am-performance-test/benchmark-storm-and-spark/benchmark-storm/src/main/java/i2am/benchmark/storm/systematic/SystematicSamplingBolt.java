@@ -81,7 +81,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		
 		int production = tuple.getIntegerByField("production");
 		String tweet = tuple.getStringByField("tweet");
-		String createdTime = tuple.getStringByField("created_time");
+		long createdTime = tuple.getLongByField("created_time");
 		long inputTime = tuple.getLongByField("input_time");
 		
 		JSONParser parser = new JSONParser();
