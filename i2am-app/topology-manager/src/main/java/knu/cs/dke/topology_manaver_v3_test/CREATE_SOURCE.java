@@ -26,8 +26,8 @@ public class CREATE_SOURCE {
 		source.put("type", "kafka");
 		
 		// Kafka 라면 주키퍼 IP Port Topic 추가적으로 필요
-		// Database 라면 IP Port User Password DB Table Query 추가적으로 필요
-		// source.put("", value)
+		// Database 라면 IP Port User Password DB Table Query 추가적으로 필요		
+		// ??
 	}	
 
 	public JSONObject getCommand() {
