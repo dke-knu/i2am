@@ -91,7 +91,7 @@ public class ConsumerRunner implements Runnable {
 									new String(messageAndMetadata.message()));
 							System.out.println(messages.toJSONString());
 							
-							// Get. 커밋할려고 단 주석22
+							// Get. 커밋할려고 단 주석222
 							String wordcount = ((JSONObject) messages.get("tweet")).toJSONString();							
 							int production = ((Number) messages.get("production")).intValue();
 							long createdTime = ((Number) messages.get("createdTime")).longValue();
