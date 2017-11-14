@@ -2,6 +2,7 @@ package i2am.benchmark.storm.systematic;
 
 import java.util.Map;
 
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -38,9 +39,9 @@ public class DeclareFieldBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 		
-		String tweet = (String) message.get("tweet"); 
-		int production = (int) message.get("production");
-		long createdTime = (long) message.get("createdTime");
+		String tweet = ((JSONObject) message.get("tweet")).toJSONString(); 
+		int production = ((Number) message.get("production")).intValue();
+		long createdTime = ((Number) message.get("createdTime")).longValue();
 		
 		outputCollector.emit(new Values(production, tweet, createdTime, inputTime));
 		outputCollector.ack(tuple);
