@@ -14,6 +14,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,15 +80,28 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		// TODO Auto-generated method stub
 		
 		int production = tuple.getIntegerByField("production");
-		String sentence = tuple.getStringByField("sentence");
+		String tweet = tuple.getStringByField("tweet");
 		String createdTime = tuple.getStringByField("created_time");
 		long inputTime = tuple.getLongByField("input_time");
 		
+		JSONParser parser = new JSONParser();
+		JSONObject message = new JSONObject();
+				
 		if((production%windowSize)%interval  == randomNumber){
-			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
+			message.put("tweet", tweet);
+			message.put("production", production);
+			message.put("createdTime", createdTime);
+			message.put("inputTime", inputTime);
+			jedisCommands.rpush(sampleName, message.toString());
 		}
 		else{
-			outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
+			message.put("sampleFlag", "0");
+			message.put("tweet", tweet);
+			message.put("production", production);
+			message.put("createdTime", createdTime);
+			message.put("inputTime", inputTime);
+			message.put("outputTime", System.currentTimeMillis());
+			outputCollector.emit(new Values(message)); // Emit
 		}
 		
 		if(production%windowSize == 0){
@@ -93,7 +109,16 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 			
 			for(String data : sampleList){
-				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
+				
+				try {
+					message = (JSONObject) parser.parse(new String(data));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				message.put("sampleFlag", "1");
+				message.put("outputTime", System.currentTimeMillis());
+				outputCollector.emit(new Values(message)); // Emit
 			}			
 		}
 	}
