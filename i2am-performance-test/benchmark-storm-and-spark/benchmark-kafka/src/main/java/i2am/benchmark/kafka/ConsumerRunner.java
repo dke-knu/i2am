@@ -12,6 +12,9 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -72,14 +75,26 @@ public class ConsumerRunner implements Runnable {
 						
 						for (MessageAndMetadata<byte[], byte[]> messageAndMetadata : stream) {
 
-							String[] messages = new String(messageAndMetadata.message()).split(",");
-							String wordcount = messages[0];
-							int production = Integer.parseInt(messages[1]);
-							long createdTime = Long.parseLong(messages[2]);
-							long inputTime = Long.parseLong(messages[3]);
-							long outputTime = Long.parseLong(messages[4]);
+							// Old version: csv
+//							String[] messages = new String(messageAndMetadata.message()).split(",");
+//							String wordcount = messages[0];
+//							int production = Integer.parseInt(messages[1]);
+//							long createdTime = Long.parseLong(messages[2]);
+//							long inputTime = Long.parseLong(messages[3]);
+//							long outputTime = Long.parseLong(messages[4]);
+//							long destroyedTime = System.currentTimeMillis();
+
+							// New version: JSON
+							JSONParser parser = new JSONParser();
+							JSONObject messages = (JSONObject) parser.parse(
+									new String(messageAndMetadata.message()));
+							String wordcount = (String) messages.get("tweet");
+							int production = (int) messages.get("production");
+							long createdTime = (long) messages.get("createdTime");
+							long inputTime = (long) messages.get("inputTime");
+							long outputTime = (long) messages.get("outputTime");
 							long destroyedTime = System.currentTimeMillis();
-							
+
 							if (production > p.maxProduction)
 								p.maxProduction = production;
 							p.maxConsumption++;
