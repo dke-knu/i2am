@@ -12,7 +12,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import kafka.consumer.Consumer;
@@ -88,11 +88,11 @@ public class ConsumerRunner implements Runnable {
 							JSONParser parser = new JSONParser();
 							JSONObject messages = (JSONObject) parser.parse(
 									new String(messageAndMetadata.message()));
-							String wordcount = (String) messages.get("tweet");
-							int production = (int) messages.get("production");
-							long createdTime = (long) messages.get("createdTime");
-							long inputTime = (long) messages.get("inputTime");
-							long outputTime = (long) messages.get("outputTime");
+							String wordcount = messages.getString("tweet");
+							int production = messages.getInt("production");
+							long createdTime = messages.getLong("createdTime");
+							long inputTime = messages.getLong("inputTime");
+							long outputTime = messages.getLong("outputTime");
 							long destroyedTime = System.currentTimeMillis();
 
 							if (production > p.maxProduction)
