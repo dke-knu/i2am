@@ -24,7 +24,7 @@ import redis.clients.jedis.JedisCommands;
 
 public class SystematicSamplingBolt extends BaseRichBolt { 
 	
-	/* Sampling Parameter */ 
+	/* Sampling Parameters */ 
 	private int sampleSize;
 	private int windowSize;
 	private String sampleName = null; 
@@ -57,7 +57,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 		// TODO Auto-generated method stub
 		this.outputCollector = outputCollector;
 		
-		/* Connect Redis*/
+		// Connect To Redis
 		if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
@@ -65,7 +65,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 		
-		/* Get parameters */
+		// Get Sampling Parameters
 		parameters = jedisCommands.hgetAll(redisKey);
 		sampleName = parameters.get(sampleKey);
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
@@ -79,6 +79,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
 		
+		// Get JSON From Tuple
 		JSONParser parser = new JSONParser();
 		JSONObject message = new JSONObject();
 		
@@ -89,29 +90,34 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 		
+		// Production
 		int production = ((Number) message.get("production")).intValue();
 		
-		if((production%windowSize)%interval  == randomNumber){
+		// Systematic Sampling
+		if((production%windowSize)%interval  == randomNumber){ 
 			jedisCommands.rpush(sampleName, message.toString());
 		}
-		else{
+		else{ 
 			message.put("sampleFlag", "0");
 			message.put("outputTime", System.currentTimeMillis());
 			outputCollector.emit(new Values(message.toString())); // Emit
 		}
 		
+		// Extract Sample When Window Done
 		if(production%windowSize == 0){
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 			
 			for(String data : sampleList){
 				
+				// Get JSON From SampleList
 				try {
 					message = (JSONObject) parser.parse(new String(data));
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
 				message.put("sampleFlag", "1");
 				message.put("outputTime", System.currentTimeMillis());
 				outputCollector.emit(new Values(message.toString())); // Emit
