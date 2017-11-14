@@ -22,6 +22,7 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.message.MessageAndMetadata;
 
 public class ConsumerRunner implements Runnable {
+	
 	private String zookeepers;
 	private String topic;
 	private String groupId;
