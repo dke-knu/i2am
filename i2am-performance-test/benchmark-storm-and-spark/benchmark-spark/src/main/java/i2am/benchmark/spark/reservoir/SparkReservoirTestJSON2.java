@@ -27,13 +27,16 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 
-public class SparkReservoirTestJSON {	
+public class SparkReservoirTestJSON2 {	
 
-	private final static Logger logger = Logger.getLogger(SparkReservoirTestJSON.class);
-	//private static JedisPool pool;	
+	private final static Logger logger = Logger.getLogger(SparkReservoirTestJSON2.class);
+	private static JedisPool pool;	
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -118,10 +121,13 @@ public class SparkReservoirTestJSON {
 
 			samples.foreach( sample -> {
 
-				JedisCluster jc = new JedisCluster(redisNodes);				
+				//JedisCluster jc = new JedisCluster(redisNodes);				
 				
 				//String[] commands = sample.split(",");				
-
+				pool = new JedisPool(new JedisPoolConfig(), "MN");
+				Jedis jc = pool.getResource();
+				jc.select(0);				
+				
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
 								

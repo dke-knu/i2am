@@ -107,7 +107,7 @@ public class SparkQueryTestJSON {
 			JSONParser parser = new JSONParser();
 			JSONObject messages = (JSONObject) parser.parse(sample);
 			JSONObject tweet = (JSONObject) messages.get("tweet");
-			String text = (String) tweet.get("text");			
+			String text = (String) tweet.get("text"); // Get Sentence.
 						
 			for ( String keyword: filter.value() ) {				
 				if( text.contains(keyword) ) {
@@ -129,6 +129,7 @@ public class SparkQueryTestJSON {
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
 				messages.put("outputTime", System.currentTimeMillis());
+				
 				producer.send(new ProducerRecord<String, String>(output_topic, messages.toString()));
 				producer.close();
 			});				

@@ -1,4 +1,4 @@
-package i2am.benchmark.spark.reservoir;
+package i2am.benchmark.spark.systematic;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,10 +30,9 @@ import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 
 
-public class SparkReservoirTestJSON {	
+public class SparkSystematicTestJSON {	
 
-	private final static Logger logger = Logger.getLogger(SparkReservoirTestJSON.class);
-	//private static JedisPool pool;	
+	private final static Logger logger = Logger.getLogger(SparkSystematicTestJSON.class);
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -51,6 +50,9 @@ public class SparkReservoirTestJSON {
 		// Sampling Parameters.
 		int sample_size = Integer.parseInt(args[6]);
 		int window_size = Integer.parseInt(args[7]);
+
+		int interval = window_size/sample_size;
+		int randomNumber = (int)Math.random()%interval;
 
 		// Redis conf.
 		String redis_key = args[8];
@@ -118,30 +120,34 @@ public class SparkReservoirTestJSON {
 
 			samples.foreach( sample -> {
 
-				JedisCluster jc = new JedisCluster(redisNodes);				
+				JedisCluster jc = new JedisCluster(redisNodes);	
 				
-				//String[] commands = sample.split(",");				
-
+				//String[] commands = sample.split(",");
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
-								
-				// int index = Integer.parseInt(commands[1]);
+
+				//int index = Integer.parseInt(commands[1]);
 				int index = ((Number) messages.get("production")).intValue();
-				int prob = sample_size + 1;
-				int count = index % window_size;				
 
-				if( count != 0 && count < sample_size ) {
-
-					jc.rpush(redis_key, sample); // String
+				if( (index%window_size)%interval == randomNumber ) {					
+					jc.rpush(redis_key, sample);
+				}				
+				else {
+					JSONObject json = (JSONObject) parser.parse(sample);
+					json.put("sampleFlag", 0);
+					json.put("outputTime", System.currentTimeMillis());
+					
+					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+					producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));					
+					producer.close();
 				}
-				else if( count == 0 ) { // Window Size.
 
+				if( index % window_size == 0 ) {
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 					List<String> sampleList = jc.lrange(redis_key, 0, -1);
 					jc.ltrim(redis_key, 0, -99999);
 
-					for( String result: sampleList ) {
-						
+					for( String result: sampleList ) {	
 						JSONObject json = (JSONObject) parser.parse(result);
 						json.put("sampleFlag", 1);
 						json.put("outputTime", System.currentTimeMillis());
@@ -149,35 +155,8 @@ public class SparkReservoirTestJSON {
 						producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
 					}
 					producer.close();
-				}	
-				else {
-
-					prob = (int)(Math.random()*count);
-					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-
-					if ( prob < sample_size ) {
-						if ( prob < jc.llen(redis_key) ) {
-
-							JSONObject json = (JSONObject) parser.parse(jc.lindex(redis_key, prob));
-							json.put("sampleFlag", 0);
-							json.put("outputTime", System.currentTimeMillis());
-							
-							jc.lset(redis_key, prob, sample);						
-							producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
-						}
-						else {
-							jc.rpush(redis_key, sample);
-						}
-					}
-					else {						
-						JSONObject json = (JSONObject) parser.parse(sample);
-						json.put("sampleFlag", 0);
-						json.put("outputTime", System.currentTimeMillis());						
-						producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
-					}
-					producer.close();
-				}				
-				jc.close();
+				}					
+				jc.close();				
 			});				
 		});	
 
