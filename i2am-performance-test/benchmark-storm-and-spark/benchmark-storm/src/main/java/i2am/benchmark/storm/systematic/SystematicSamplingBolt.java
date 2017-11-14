@@ -101,7 +101,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 			message.put("createdTime", createdTime);
 			message.put("inputTime", inputTime);
 			message.put("outputTime", System.currentTimeMillis());
-			outputCollector.emit(new Values(message)); // Emit
+			outputCollector.emit(new Values(message.toString())); // Emit
 		}
 		
 		if(production%windowSize == 0){
@@ -118,7 +118,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 				}
 				message.put("sampleFlag", "1");
 				message.put("outputTime", System.currentTimeMillis());
-				outputCollector.emit(new Values(message)); // Emit
+				outputCollector.emit(new Values(message.toString())); // Emit
 			}			
 		}
 	}
