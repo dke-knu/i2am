@@ -2,104 +2,129 @@ package knu.cs.dke.topology_manager_v3.sources;
 
 public abstract class Source {
 	
-	// Source Info.
-	private String sourceID; // NAME	
-	private String owner;	
-	private String createdTime;
+	// Basic Info.
+	private String owner;
+	private String sourceName;
+	private String createdTime;	
 	private String modifiedTime;
-	private boolean status = false;	// 데이터 베이스에서 상태를 읽어 DeActive면 멈추어야 한돠...
-	private String sourceType; // CUSTOM, KAFKA, DATABASE
 	
-	private String hostIp; // Kafka는 주키퍼
-	private String hostPort;	
+	// Source Info.
+	private String status;
+	private String useIntelliEngine;
+	private String useLoadShedding;	
 	
-	// Recommend engine.
-	// private boolean recommend = false;	
-	// private boolean switchMessaging = false;
-	// private String testData;
+	private String testData;
+	private String srcType;	
+	private String switchMessaging;
 	
 	// System topic;	
-	private String systemTopic;
-		
-	public Source(String ID, String owner, String createTime, String sourceType, String ip, String port, String topic) {
+	private String outTopic;
+	
+	public abstract void read();
 
-		this.sourceID = ID;
-		this.owner = owner;
-		this.createdTime = createTime;
-		this.modifiedTime = createTime;
-		this.sourceType = sourceType;
-		
-		this.status = false;
-		
-		this.hostIp = ip;
-		this.hostPort = port;	
-		
-		this.systemTopic = topic;
-	}	
+	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
+			String srcType, String switchMessaging) {
 	
-	public void setSourceID(String sourceID) {
-		this.sourceID = sourceID;
-	}
-	public String getSourceID() {
-		return this.sourceID;
+		this.sourceName = sourceName;
+		this.createdTime = createdTime;
+		this.modifiedTime = createdTime;
+		this.owner = owner;
+		
+		this.status = "DEACTIVE"; // 초기값은 DEACTIVE
+		this.useIntelliEngine = useIntelliEngine;
+		this.useLoadShedding = "N"; // 미구현
+		this.testData = testData; // UseLoadShedding이 Yes일 경우
+		
+		this.srcType = srcType;
+		this.switchMessaging = switchMessaging;		
 	}
 	
-	public void setOwner(String owner) {
-		this.owner = owner;
-	}
 	public String getOwner() {
 		return owner;
 	}
-	
-	public void setTimeStamp(String timeStamp) {
-		this.createdTime = timeStamp;
+
+	public void setOwner(String owner) {
+		this.owner = owner;
 	}
-	public String getTimeStamp() {
-		return this.createdTime;
+
+	public String getSourceName() {
+		return this.sourceName;
 	}
-	
-	public void setModifiedTime(String timeStamp) {
-		this.modifiedTime = timeStamp;
+
+	public void setSourceName(String sourceName) {
+		this.sourceName = sourceName;
 	}
+
 	public String getModifiedTime() {
-		return this.modifiedTime;
+		return modifiedTime;
 	}
-	
-	public void setStatus(boolean status) {
+
+	public void setModifiedTime(String modifiedTime) {
+		this.modifiedTime = modifiedTime;
+	}
+
+	public String getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(String createdTime) {
+		this.createdTime = createdTime;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
 		this.status = status;
 	}
-	public boolean getStatus() {
-		return this.status;
+
+	public String getUseIntelliEngine() {
+		return useIntelliEngine;
 	}
-	
-	public void setSourceType(String type) {
-		this.sourceType = type;
+
+	public void setUseIntelliEngine(String useIntelliEngine) {
+		this.useIntelliEngine = useIntelliEngine;
 	}
-	public String getSourceType() {
-		return this.sourceType;
+
+	public String getUseLoadShedding() {
+		return useLoadShedding;
 	}
-	
-	public void setHostIp(String hostIp) {
-		this.hostIp = hostIp;
+
+	public void setUseLoadShedding(String useLoadShedding) {
+		this.useLoadShedding = useLoadShedding;
 	}
-	public String getHostIp() {
-		return this.hostIp;
+
+	public String getTestData() {
+		return testData;
 	}
-	
-	public void setHostPort(String port) {
-		this.hostPort = port;
+
+	public void setTestData(String testData) {
+		this.testData = testData;
 	}
-	public String getHostPort() {
-		return this.hostPort;
+
+	public String getSrcType() {
+		return srcType;
 	}
-	
-	public void setWriteTopic(String topic) {
-		this.systemTopic = topic;
+
+	public void setSrcType(String srcType) {
+		this.srcType = srcType;
 	}
-	public String getWriteTopic() {
-		return this.systemTopic;
+
+	public String getSwitchMessaging() {
+		return switchMessaging;
 	}
-	
-	public abstract void read(); // 읽어서 우리 시스템의 Kafka로 !!	
-	
+
+	public void setSwitchMessaging(String switchMessaging) {
+		this.switchMessaging = switchMessaging;
+	}
+
+	public String getOutTopic() {
+		return outTopic;
+	}
+
+	public void setOutTopic(String outTopic) {
+		this.outTopic = outTopic;
+	}
+		
 }
