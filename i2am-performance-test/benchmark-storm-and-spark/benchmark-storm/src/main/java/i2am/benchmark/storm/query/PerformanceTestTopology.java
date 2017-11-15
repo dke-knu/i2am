@@ -23,8 +23,6 @@ import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
-
-import i2am.benchmark.storm.reservoir.DeclareFieldBolt;
 import redis.clients.jedis.Protocol;
 
 public class PerformanceTestTopology {
