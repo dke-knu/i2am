@@ -1,5 +1,4 @@
 import random
-import math
 
 def run(sampleSize, populationList):
     bucketSize = int(len(populationList) / sampleSize)
@@ -7,16 +6,8 @@ def run(sampleSize, populationList):
     sampleList = []
 
     for data in populationList:
-        hashCode = divmod(jSHash(data), bucketSize)
+        hashCode = hash(data) % bucketSize
         if hashCode == selectionBucket:
             sampleList.append(data)
 
     return sampleList
-
-def jSHash(data):
-    hashCode = 1315423911
-    for i in range(0, len(data)):
-        hashCode = hashCode ^ ((hashCode << 5) + list(data)[i] + (hashCode >> 2))
-
-    hashCode = abs(hashCode)
-    return hashCode

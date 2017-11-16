@@ -4,7 +4,7 @@ import math
 def run(sampleSize, populationList):
     count = 1
     minimumIndex = 0
-    minimumPriority = 1.0;
+    minimumPriority = 1.0
     sampleList = []
     priorityList = []
     dataDic = {}
@@ -16,11 +16,11 @@ def run(sampleSize, populationList):
         else:
             dataDic[data] = 1
 
-        priority = math.pow(random.random, 1.0 / dataDic[data])
+        priority = math.pow(random.random(), 1.0 / float(dataDic[data]))
 
         if count <= sampleSize:
             sampleList.append(data)
-            priorityList.append(data)
+            priorityList.append(priority)
             if priority < minimumPriority:
                 minimumIndex = count -1
                 minimumPriority = priority
@@ -30,7 +30,7 @@ def run(sampleSize, populationList):
                  priorityList[minimumIndex] = priority
                  minimumPriority = 1.0
                  for i in range(0, len(sampleList)):
-                     if priority[i] < minimumPriority:
+                     if priorityList[i] < minimumPriority:
                          minimumIndex = i
                          minimumPriority = priority
         count = count + 1
@@ -40,7 +40,7 @@ def run(sampleSize, populationList):
 def runSortedPS(sampleSize, populationList):
     count = 1
     minimumIndex = 0
-    minimumPriority = 1.0;
+    minimumPriority = 1.0
     sampleList = []
     priorityList = []
     dataDic = {}
@@ -52,11 +52,11 @@ def runSortedPS(sampleSize, populationList):
         else:
             dataDic[data] = 1
 
-        priority = math.pow(random.random, 1.0 / dataDic[data])
+        priority = math.pow(random.random(), 1.0 / float(dataDic[data]))
 
         if count <= sampleSize:
             sampleList.append(data)
-            priorityList.append(data)
+            priorityList.append(priority)
             if priority < minimumPriority:
                 minimumIndex = count - 1
                 minimumPriority = priority
@@ -68,7 +68,7 @@ def runSortedPS(sampleSize, populationList):
                 priorityList.append(priority)
                 minimumPriority = 1.0
                 for i in range(0, len(sampleList)):
-                    if priority[i] < minimumPriority:
+                    if priorityList[i] < minimumPriority:
                         minimumIndex = i
                         minimumPriority = priority
         count = count + 1

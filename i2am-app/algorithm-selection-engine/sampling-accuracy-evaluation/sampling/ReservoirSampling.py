@@ -9,7 +9,7 @@ def run(sampleSize, populationList):
         else:
             probability = random.randrange(0, count)
             if probability < sampleSize:
-                sampleList[count] = data
+                sampleList[probability] = data
         count = count + 1
 
     return sampleList
@@ -23,7 +23,7 @@ def runSortedRS(sampleSize, populationList):
         else:
             probability = random.randrange(0, count)
             if probability < sampleSize:
-                sampleList.pop(count)
+                sampleList.pop(probability)
                 sampleList.append(data)
         count = count + 1
 
