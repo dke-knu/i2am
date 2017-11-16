@@ -43,7 +43,7 @@ public class JSONAggregateBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 		
-		long startTime = ((Number) message.get("startTime")).intValue();
+		long startTime = ((Number) message.get("startTime")).longValue();
 		
 		nOfMessages ++;
 		turnAroundTime += (System.currentTimeMillis() - startTime);
@@ -61,11 +61,6 @@ public class JSONAggregateBolt extends BaseRichBolt {
     	logger.error("Number of messages = " + nOfMessages);
     	logger.error("Total Turnaround Time = " + turnAroundTime);
     	logger.error("Average Turnaround Time = " + (turnAroundTime/nOfMessages));
-
-    	System.out.println("### Performance Result ###");
-    	System.out.println("Number of messages = " + nOfMessages);
-    	System.out.println("Total Turnaround Time = " + turnAroundTime);
-    	System.out.println("Average Turnaround Time = " + (turnAroundTime/nOfMessages));
     }
 
 }
