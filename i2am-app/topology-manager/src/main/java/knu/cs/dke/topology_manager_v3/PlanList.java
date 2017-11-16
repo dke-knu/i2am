@@ -30,14 +30,14 @@ public class PlanList {
 	}
 	
 	public synchronized boolean add(Plan plan) {
-		if (mPlans.containsKey(plan.getPlanID())) return false;
-		mPlans.put(plan.getPlanID(), plan);
+		if (mPlans.containsKey(plan.getPlanName())) return false;
+		mPlans.put(plan.getPlanName(), plan);
 		return true;
 	}
 	
 	public synchronized boolean remove(Plan plan) {
-		if (!mPlans.containsKey(plan.getPlanID())) return false;
-		mPlans.remove(plan.getPlanID());
+		if (!mPlans.containsKey(plan.getPlanName())) return false;
+		mPlans.remove(plan.getPlanName());
 		return true;
 	}
 	

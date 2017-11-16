@@ -11,52 +11,67 @@ import knu.cs.dke.topology_manager_v3.sources.Source;
 public class SourceHandler {
 
 	private SourceList sources;	
+	private JSONObject command;
 	
-	public SourceHandler(SourceList sources) {
+	public SourceHandler(SourceList sources, String command) throws ParseException {
+		
 		this.sources = sources;
+		JSONParser jsonParser = new JSONParser();
+		this.command = (JSONObject) jsonParser.parse(command);			
 	}
 	
-	public void excute(String command) throws ParseException {
+	public void excute() throws ParseException {		
 		
-		JSONParser jsonParser = new JSONParser();
-		JSONObject jsonCommand = (JSONObject) jsonParser.parse(command);		
-		System.out.println("[Command Handler] Received Command: " + command);
-		
-		String commandType = (String) jsonCommand.get("commandType");
-		System.out.println("[Command Handler] Command Type: " + commandType);
-		
-		
+		String commandType = (String) command.get("commandType");
+		System.out.println("[Source Handler] Command Type: " + commandType);
+				
 		switch (commandType) {
 		
-		case "CREATE_SOURCE":
-			createSource(jsonCommand);
-		case "DESTROY_SOURCE":
+		case "CREATE_SRC":
+			createSource();
 			break;
-		case "ALTER_SOURCE":
+		case "DESTROY_SRC":
 			break;
-		case "ACTIVE_SOURCE":
+		case "ALTER_SRC":
+			break;
+		case "ACTIVE_SRC":
 			break;
 		default:
 			System.out.println("[Source Handler] Command is not exist.");
-			break;
-		
-			
+			break;			
 		}		
 	}
 	
-	public void createSource(JSONObject sourceInfo) {
+	public void createSource() {
+				
+		// Content.
+		JSONObject content = (JSONObject) command.get("commandContent");
 		
-		String sourceName = (String) sourceInfo.get("sourceName") ;
-		String createTime = (String) sourceInfo.get("createTime");
-		String status = (String) sourceInfo.get("status");
-		String owner = (String) sourceInfo.get("owner");
-		String type = (String) sourceInfo.get("type");
+		// Content Basic Info. 
+		String owner = (String) content.get("owner");
+		String srcName = (String) content.get("srcName");
+		String createdTime = (String) content.get("createdTime");
+		String intelliEngine = (String) content.get("usesIntelligentEngine");
 		
-		switch(type) {
+		String testData = (String) content.get("testData");		
 		
-		case "Kafka":
-			Source source = new KafkaSource(sourceName, owner, createTime, type, "ip", "port", "topic-in", "topic-out");
+		// Source Type.
+		String sourceType = (String) content.get("srcType");
+				
+		switch(sourceType) {
+		
+		case "kafka":			
+			JSONObject kafka = (JSONObject) content.get("kafkaParams");
+			String ip = (String) kafka.get("zookeeperIp");
+			String port = (String) kafka.get("zookeeperPort");
+			String topic = (String) kafka.get("topic");			
+			KafkaSource source = new KafkaSource(srcName, createdTime, owner, intelliEngine, testData, sourceType, "N", ip, port, topic);
+			
+			// List에 저장☆
 			sources.add(source);
+			// DB Adapter로 DB에 저장★
+			DbAdapter db = new DbAdapter();
+			db.addSource(source);			
 			break;
 			
 		case "Database":

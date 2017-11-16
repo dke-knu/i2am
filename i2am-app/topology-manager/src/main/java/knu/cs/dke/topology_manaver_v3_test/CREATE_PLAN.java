@@ -19,18 +19,17 @@ public class CREATE_PLAN {
 	public void setCommand() {		
 		
 		// Command Info.		
-		plan.put("commandId", "user01-djWjrnwjWJrn");
-		plan.put("commander", "user01");
+		plan.put("commandId", "3df510c4-f465-4ecf-bef2-c99b8c1bb173");
+		plan.put("commander", "0KUK@naver.com");
 		plan.put("commandType", "CREATE_PLAN");
-		plan.put("commandTime", Time.currentTimeMillis());
+		plan.put("commandTime", "2017-11-15 21:56:59");
 		
 		// Content Info.
 		JSONObject commandContent = new JSONObject();		
-		commandContent.put("planId", "user01-001"+new Date());
-		commandContent.put("owner", "user01");
-		commandContent.put("createTime", Time.currentTimeMillis());		
-		
-		// Algorithm Info. [Array]
+		commandContent.put("owner", "0KUK@naver.com");
+		commandContent.put("planName", "myPlan");		
+		commandContent.put("createTime", "2017-11-15 21:56:59");		
+
 		JSONArray algorithms = new JSONArray();
 		
 		// Algorithms 1
@@ -40,8 +39,8 @@ public class CREATE_PLAN {
 		
 		// Algorithm 1 > Parameters
 		JSONObject algorithm1_params = new JSONObject();
-		algorithm1_params.put("numberOfBucket", 15);
-		algorithm1_params.put("selectedBucket", 5);		
+		algorithm1_params.put("windowSize", 100);
+		algorithm1_params.put("sampleSize", 20);		
 		
 		algorithm1.put("algorithmParams", algorithm1_params);
 		

@@ -1,19 +1,23 @@
 package knu.cs.dke.topology_manager_v3.sources;
 
 public class KafkaSource extends Source {
-
+	
+	private String zookeeperIp;
+	private String zookeeperPort;
 	private String topic;
-
+	
 	// Create Kafka Source
-	public KafkaSource(String ID, String owner, String createTime, String sourceType, String ip, String port,
-			String sourceTopic, String systemTopic) {
-		
-		super(ID, owner, createTime, sourceType, ip, port, systemTopic);
-		this.topic = sourceTopic;
+	public KafkaSource (String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
+			String srcType, String switchMessaging, String zookeeperIp, String zookeeperPort, String topic) {		
+		super(sourceName, createdTime, owner, useIntelliEngine, testData, srcType, switchMessaging);		
+		this.setZookeeperIp(zookeeperIp);
+		this.setZookeeperPort(zookeeperPort);
+		this.topic = topic;		
 	}
 	
-	public void read() {
-		// TODO Auto-generated method stub
+	public void read() {		
+		
+		
 		
 	}
 	
@@ -23,6 +27,22 @@ public class KafkaSource extends Source {
 	
 	public String getTopic() { 
 		return this.topic;
+	}
+
+	public String getZookeeperIp() {
+		return zookeeperIp;
+	}
+
+	public void setZookeeperIp(String zookeeperIp) {
+		this.zookeeperIp = zookeeperIp;
+	}
+
+	public String getZookeeperPort() {
+		return zookeeperPort;
+	}
+
+	public void setZookeeperPort(String zookeeperPort) {
+		this.zookeeperPort = zookeeperPort;
 	}
 	
 }
