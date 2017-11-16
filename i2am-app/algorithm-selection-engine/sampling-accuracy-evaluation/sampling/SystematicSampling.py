@@ -6,7 +6,7 @@ def run(interval, populationList):
     count = 0
 
     for data in populationList:
-        if((count % interval) == selectionNumber):
+        if (count % interval) == selectionNumber:
             sampleList.append(data)
         count = count + 1
 
