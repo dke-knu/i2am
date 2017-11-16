@@ -82,9 +82,10 @@ public class ServerPortalHandler extends Thread implements Comparable<ServerPort
     public void disconnect() {
         eqh.stop();
         eqh.close();
-        for(ServerSessionHandler s : handlers)
-        s.getSession().close();
-        for(MsgPool mp : msgPools) {
+        for (ServerSessionHandler s : handlers)
+            s.getSession().close();
+
+        for (MsgPool mp : msgPools) {
             mp.deleteMsgPool();
         }
         msgPools.clear();

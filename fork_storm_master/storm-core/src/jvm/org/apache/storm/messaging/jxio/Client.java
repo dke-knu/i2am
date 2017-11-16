@@ -337,6 +337,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     public void releaseResources() {
         msgPool.deleteMsgPool();
+        LOG.info("Client releaseResources");
 //        eqhThread.shutdown();
     }
 
@@ -409,7 +410,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     private void waitForPendingMessagesToBeSent() {
-        LOG.debug("waiting up to {} ms to send {} pending messages to {}",
+        LOG.info("waiting up to {} ms to send {} pending messages to {}",
                 PENDING_MESSAGES_FLUSH_TIMEOUT_MS, pendingMessages.get(), uri.toString());
         long totalPendingMsgs = pendingMessages.get();
         long startMs = System.currentTimeMillis();
@@ -432,7 +433,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         ClientSession cs = sessionRef.get();
         if (cs != null) {
             cs.close();
-            LOG.debug("channel to {} closed", uri.toString());
+            LOG.info("channel to {} closed", uri.toString());
         }
     }
 

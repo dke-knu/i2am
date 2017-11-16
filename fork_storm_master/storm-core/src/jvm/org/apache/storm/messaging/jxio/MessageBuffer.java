@@ -34,7 +34,7 @@ public class MessageBuffer {
     }
 
     public MessageBatch checkAdd(TaskMessage msg) {
-        if((msg.message().length+6) < availableSize) {
+        if ((msg.message().length + 6) < availableSize) {
             availableSize = currentBatch.add2(msg);
             return null;
         } else {

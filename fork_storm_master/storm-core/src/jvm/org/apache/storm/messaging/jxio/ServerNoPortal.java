@@ -8,6 +8,7 @@ import org.accelio.jxio.exceptions.JxioSessionClosedException;
 import org.apache.storm.Config;
 import org.apache.storm.grouping.Load;
 import org.apache.storm.messaging.ConnectionWithStatus;
+import org.apache.storm.messaging.IConnection;
 import org.apache.storm.messaging.IConnectionCallback;
 import org.apache.storm.messaging.TaskMessage;
 import org.apache.storm.metric.api.IStatefulObject;
@@ -144,7 +145,6 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        LOG.info("[server] set taskToLoad");
         this.taskToLoad = taskToLoad;
     }
 
@@ -267,7 +267,7 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
             }
 
             LOG.info("[Server][SUCCESS] Got event onSessionNew from " + srcIP + ", URI='" + sesKey.getUri() + "'");
-            session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
+            session = new ServerSession(sesKey, new ServerSessionCallbacks(server, srcIP));
             listener.accept(session);
             allSessions.add(session);
 
@@ -282,17 +282,35 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
 
     public class ServerSessionCallbacks implements ServerSession.Callbacks {
         private ServerNoPortal server;
+        private String srcIP;
+        //        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
         private AtomicInteger failure_count;
+        private char ch = 's';
 
-        public ServerSessionCallbacks(ServerNoPortal server) {
+        public ServerSessionCallbacks(ServerNoPortal server, String srcIP) {
             this.server = server;
+            this.srcIP = srcIP;
             failure_count = new AtomicInteger(0);
         }
 
         private Object decoder(ByteBuffer buf) {
             long available = buf.remaining();
-            if (available < 2) {
+            if (available <=2) {
                 //need more data
+                if (available == 2) {
+                    short code = buf.getShort();
+                    LOG.info("[Server] LoadMetrics message = {}", code);
+                    if (code == -111) {
+                        TaskMessage tm = null;
+                        try {
+                            tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        ByteBuffer bb = tm.serialize();
+                        return bb;
+                    }
+                }
                 return null;
             }
             List<Object> ret = new ArrayList<>();
@@ -364,62 +382,34 @@ public class ServerNoPortal extends ConnectionWithStatus implements IStatefulObj
 
         @Override
         public void onRequest(Msg msg) {
-            if (!msg.getIn().hasRemaining()) {
-                LOG.error("[Server-onRequest] msg.getIn is null, no messages in msg");
-                return;
-            }
+//            LOG.info("Server-onRequest, msg info: " + msg.toString());
 
-            if (msg.getIn().limit() <= 2) {
-                short code = msg.getIn().getShort();
-                LOG.info("[Server] LoadMetrics message = {}", code);
-                if(code == -111) {
-                    TaskMessage tm = null;
-                    try {
-                        tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    ByteBuffer bb = tm.serialize();
-                    msg.getOut().put(bb.array());
-                    try {
-                        session.sendResponse(msg);
-                        LOG.info("[Server] send Load Metrics");
-                    } catch (JxioGeneralException e) {
-                        e.printStackTrace();
-                    } catch (JxioSessionClosedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-//                msg.getIn().rewind();
-                ByteBuffer bb = msg.getIn();
-                byte[] ipByte = new byte[13];
-                bb.get(ipByte);
-                String ipStr = new String(ipByte);
-//                LOG.info("[Server] normal messages from {}", ipStr);
-
-                //first, read ip address and then remain bytes in msg are decoded.
-
-                //batch TaskMessage
-                List<TaskMessage> messages = (ArrayList<TaskMessage>) decoder(msg.getIn());
-
+            //batch TaskMessage
+            Object msgs = decoder(msg.getIn());
+            if (msgs != null) {
+//                msg.getOut().put((byte) ch);
                 try {
-                    server.received(messages, ipStr);
+                    server.received(msgs, srcIP);
                 } catch (InterruptedException e) {
                     LOG.info("failed to enqueue a request message", e);
                     failure_count.incrementAndGet();
                     e.printStackTrace();
                 }
-                char ch = 's';
-                msg.getOut().put((byte) ch);
-                try {
-                    session.sendResponse(msg);
-                } catch (JxioGeneralException e) {
-                    e.printStackTrace();
-                } catch (JxioSessionClosedException e) {
-                    e.printStackTrace();
+
+                if (msgs instanceof ByteBuffer) {
+                    msg.getOut().put(((ByteBuffer) msgs).array());
                 }
+
             }
+
+            try {
+                session.sendResponse(msg);
+            } catch (JxioGeneralException e) {
+                e.printStackTrace();
+            } catch (JxioSessionClosedException e) {
+                e.printStackTrace();
+            }
+
         }
 
         @Override

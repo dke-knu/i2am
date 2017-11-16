@@ -139,7 +139,6 @@ public class ServerSessionHandler {
 
             //batch TaskMessage
             Object msgs = decoder(msg.getIn());
-
             if (msgs != null) {
 //                msg.getOut().put((byte) ch);
                 try {
