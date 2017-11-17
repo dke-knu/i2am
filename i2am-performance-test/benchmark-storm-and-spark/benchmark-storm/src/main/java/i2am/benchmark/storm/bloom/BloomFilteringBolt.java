@@ -99,7 +99,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
 		
 		// Get Tweet Text
 		JSONObject tweet = (JSONObject) message.get("tweet");
-		String text = tweet.get("text").toString();
+		String text = (String) tweet.get("text");
 	
 		// Bloom Filtering
 		boolean flag = false;

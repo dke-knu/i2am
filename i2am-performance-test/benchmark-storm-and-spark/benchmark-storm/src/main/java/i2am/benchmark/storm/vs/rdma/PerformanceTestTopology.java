@@ -56,25 +56,25 @@ public class PerformanceTestTopology {
 		JedisClusterConfig jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5); 
 		
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout("JSON-spout", new JSONSpout(interval), 1)
-			.setNumTasks(1);
+			builder.setSpout("JSON-spout", new JSONSpout(interval), 1)
+				.setNumTasks(1);
 		
 		if(algorithm.equals("reservoir")){
-			builder.setBolt("reservoir-bolt", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 8)
+			builder.setBolt("reservoir-bolt", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
 				.shuffleGrouping("JSON-spout")
-				.setNumTasks(8);
+				.setNumTasks(4);
 		}else if(algorithm.equals("systematic")){
-			builder.setBolt("systematic-bolt", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 8)
+			builder.setBolt("systematic-bolt", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 4)
 				.shuffleGrouping("JSON-spout")
-				.setNumTasks(8);
+				.setNumTasks(4);
 		}else if(algorithm.equals("query")){
-			builder.setBolt("query-bolt", new QueryFilteringBolt(dataArray), 8)
+			builder.setBolt("query-bolt", new QueryFilteringBolt(dataArray), 4)
 				.shuffleGrouping("JSON-spout")
-				.setNumTasks(8);
+				.setNumTasks(4);
 		}else if(algorithm.equals("bloom")){
-			builder.setBolt("bloom-bolt", new BloomFilteringBolt(dataArray, redisKey, jedisClusterConfig), 8)
+			builder.setBolt("bloom-bolt", new BloomFilteringBolt(dataArray, redisKey, jedisClusterConfig), 4)
 				.shuffleGrouping("JSON-spout")
-				.setNumTasks(8);
+				.setNumTasks(4);
 		}else{
 			System.out.println("Usage: Enter the right algorithm name [reservoir, systematic, bloom, hash]");
 			System.exit(0);
@@ -86,7 +86,7 @@ public class PerformanceTestTopology {
 		
 		Config conf = new Config();
 		conf.setDebug(true);  
-		conf.setNumWorkers(10);
+		conf.setNumWorkers(6);
 		
 		StormSubmitter.submitTopology("performance-"+algorithm+"-topology", conf, builder.createTopology());
 		

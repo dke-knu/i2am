@@ -43,11 +43,12 @@ public class JSONSpout extends BaseRichSpout {
 		long startTime = System.currentTimeMillis();
 		production++;
 		
-		JSONObject message = randomTweet();
-		message.put("production", production);
-		message.put("startTime", startTime);
+		JSONObject jSentence = new JSONObject();
+		jSentence.put("tweet", randomTweet());
+		jSentence.put("production", production);
+		jSentence.put("startTime", startTime);
 		
-		collector.emit(new Values(message.toString()));
+		collector.emit(new Values(jSentence.toString()));
 		
 		try {
 			Thread.sleep(interval);

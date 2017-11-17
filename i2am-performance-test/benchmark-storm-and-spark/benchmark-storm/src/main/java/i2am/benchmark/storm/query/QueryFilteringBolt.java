@@ -47,7 +47,7 @@ public class QueryFilteringBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
-		
+
 		// Get JSON From Tuple
 		JSONParser parser = new JSONParser();
 		JSONObject message = new JSONObject();
@@ -61,7 +61,7 @@ public class QueryFilteringBolt extends BaseRichBolt {
 		
 		// Get Tweet Text
 		JSONObject tweet = (JSONObject) message.get("tweet");
-		String text = tweet.get("text").toString();
+		String text = (String) tweet.get("text").toString();
 		
 		// Query Filtering
 		boolean flag = false;
