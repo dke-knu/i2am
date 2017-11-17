@@ -26,5 +26,6 @@
   <modules>
     <module>i2am-plan-manager-web</module>
     <module>i2am-plan-manager-kafka</module>
+    <module>i2am-plan-manager-storm</module>
   </modules>
 </project>
