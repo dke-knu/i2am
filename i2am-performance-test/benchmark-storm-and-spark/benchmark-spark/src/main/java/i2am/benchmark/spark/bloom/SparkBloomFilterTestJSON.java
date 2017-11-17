@@ -74,7 +74,7 @@ public class SparkBloomFilterTestJSON {
 		// Make Kafka Producer.		
 		Properties props = new Properties();
 		props.put("bootstrap.servers", zk);
-		props.put("acks", "all");
+		props.put("acks", "3");
 		props.put("retries", 0);
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
@@ -126,7 +126,7 @@ public class SparkBloomFilterTestJSON {
 		});
 		
 		// Step 3. Out > Kafka, Redis
-		filtered.foreachRDD( samples -> {			
+		filtered.foreachRDD( samples -> {
 			samples.foreach( sample -> {
 								
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);

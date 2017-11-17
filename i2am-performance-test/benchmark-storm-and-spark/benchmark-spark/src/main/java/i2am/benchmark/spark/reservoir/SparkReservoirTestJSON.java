@@ -23,8 +23,6 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
@@ -106,12 +104,9 @@ public class SparkReservoirTestJSON {
 
 		// Step 1. Current Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
-		JavaDStream<String> timeLines = lines.map(line -> {		
-			JSONParser parser = new JSONParser();
-			JSONObject messages = (JSONObject) parser.parse(line); 			
-			messages.put("inputTime", System.currentTimeMillis());						
-			return messages.toJSONString();
-		});
+		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
+		
+		
 
 		// Step 2. Sampling.
 		timeLines.foreachRDD( samples -> {
@@ -119,20 +114,16 @@ public class SparkReservoirTestJSON {
 			samples.foreach( sample -> {
 
 				JedisCluster jc = new JedisCluster(redisNodes);				
-				
-				//String[] commands = sample.split(",");				
 
-				JSONParser parser = new JSONParser();
-				JSONObject messages = (JSONObject) parser.parse(sample);
-								
-				// int index = Integer.parseInt(commands[1]);
-				int index = ((Number) messages.get("production")).intValue();
+				String[] commands = sample.split(",");
+
+				int index = Integer.parseInt(commands[1]);
 				int prob = sample_size + 1;
 				int count = index % window_size;				
 
 				if( count != 0 && count < sample_size ) {
 
-					jc.rpush(redis_key, sample); // String
+					jc.rpush(redis_key, sample);
 				}
 				else if( count == 0 ) { // Window Size.
 
@@ -140,40 +131,29 @@ public class SparkReservoirTestJSON {
 					List<String> sampleList = jc.lrange(redis_key, 0, -1);
 					jc.ltrim(redis_key, 0, -99999);
 
-					for( String result: sampleList ) {
-						
-						JSONObject json = (JSONObject) parser.parse(result);
-						json.put("sampleFlag", 1);
-						json.put("outputTime", System.currentTimeMillis());
-						
-						producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
+					for( String result: sampleList ) {					
+						producer.send(new ProducerRecord<String, String>(output_topic, "1:" + result + "," + System.currentTimeMillis()));
 					}
 					producer.close();
 				}	
 				else {
-
+					
 					prob = (int)(Math.random()*count);
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 
 					if ( prob < sample_size ) {
 						if ( prob < jc.llen(redis_key) ) {
-
-							JSONObject json = (JSONObject) parser.parse(jc.lindex(redis_key, prob));
-							json.put("sampleFlag", 0);
-							json.put("outputTime", System.currentTimeMillis());
 							
+							String notSample = "0:" + jc.lindex(redis_key, prob) + "," + System.currentTimeMillis();
 							jc.lset(redis_key, prob, sample);						
-							producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
+							producer.send(new ProducerRecord<String, String>(output_topic, notSample));
 						}
 						else {
 							jc.rpush(redis_key, sample);
 						}
 					}
-					else {						
-						JSONObject json = (JSONObject) parser.parse(sample);
-						json.put("sampleFlag", 0);
-						json.put("outputTime", System.currentTimeMillis());						
-						producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
+					else {												
+						producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));
 					}
 					producer.close();
 				}				

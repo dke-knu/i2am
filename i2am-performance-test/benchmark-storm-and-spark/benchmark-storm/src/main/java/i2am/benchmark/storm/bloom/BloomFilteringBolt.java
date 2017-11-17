@@ -15,6 +15,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +27,16 @@ import redis.clients.jedis.JedisCommands;
 
 public class BloomFilteringBolt extends BaseRichBolt { 
 	
-	/* Parameters */
+	/* Filtering Parameters */
 	int bucketSize = 0;
 	String redisKey = null;
 	String bucketSizeKey = "BucketSize";
-	List<String> dataArray;
 	private Map<String, String> parameters;
 	
+	/* WordList to Filter */
+	List<String> dataArray;
+	
+	/* Bloom Filter */
 	BloomFilter bloomFilter;
 	
 	private final static Logger logger = LoggerFactory.getLogger(BloomFilteringBolt.class);
@@ -79,14 +85,25 @@ public class BloomFilteringBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
-		int production = tuple.getIntegerByField("production");
-		String sentence = tuple.getStringByField("sentence");
-		String createdTime = tuple.getStringByField("created_time");
-		long inputTime = tuple.getLongByField("input_time");
+	
+		// Get JSON From Tuple
+		JSONParser parser = new JSONParser();
+		JSONObject message = new JSONObject();
 		
+		try {
+			message = (JSONObject) parser.parse(new String(tuple.getString(0)));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Get Tweet Text
+		JSONObject tweet = (JSONObject) message.get("tweet");
+		String text = (String) tweet.get("text");
+	
+		// Bloom Filtering
 		boolean flag = false;
-		
-		String[] words = sentence.split(" ");
+		String[] words = text.split(" ");
 		for(String data : words){
 			try {
 				flag = bloomFilter.filtering(data);
@@ -97,11 +114,15 @@ public class BloomFilteringBolt extends BaseRichBolt {
 			}
 		}
 		
+		// Put Flag
 		if(flag){
-			outputCollector.emit(new Values(new String("1:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+			message.put("sampleFlag", "1");
 		}else{
-			outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis())));
+			message.put("sampleFlag", "0");
 		}
+		
+		message.put("outputTime", System.currentTimeMillis());
+		outputCollector.emit(new Values(message.toString())); // Emit
 	}
 
 	@Override
@@ -111,6 +132,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
 	}
 }
 
+/* Bloom Filter Class */
 class BloomFilter{
 	int bucketSize;
 	List<Boolean> buckets;
@@ -125,6 +147,7 @@ class BloomFilter{
 		}
 	}
 	
+	// Regeist Data to Filter
 	void registData(String data) throws UnsupportedEncodingException{
 		int hashCode = 0;
 		
@@ -138,6 +161,7 @@ class BloomFilter{
 		buckets.set(hashCode%bucketSize, true);
 	}
 	
+	// Filtering
 	boolean filtering(String data) throws UnsupportedEncodingException{
 		boolean flag = false;
 		int hashCode1 = 0;
@@ -156,6 +180,7 @@ class BloomFilter{
 	}
 }
 
+/* Hash Filter Class */
 class HashFunction{
 	
 	HashFunction(){}

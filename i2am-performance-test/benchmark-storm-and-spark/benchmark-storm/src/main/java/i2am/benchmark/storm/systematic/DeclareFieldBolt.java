@@ -28,10 +28,14 @@ public class DeclareFieldBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
+		
+		// Input Time
 		long inputTime = System.currentTimeMillis();
 		
+		// Get JSON From Tuple 
 		JSONParser parser = new JSONParser();
 		JSONObject message = null;
+		
 		try {
 			message = (JSONObject) parser.parse(new String(tuple.getString(0)));
 		} catch (ParseException e) {
@@ -39,18 +43,18 @@ public class DeclareFieldBolt extends BaseRichBolt {
 			e.printStackTrace();
 		}
 		
-		String tweet = ((JSONObject) message.get("tweet")).toJSONString(); 
-		int production = ((Number) message.get("production")).intValue();
-		long createdTime = ((Number) message.get("createdTime")).longValue();
+		// Put Input Time
+		message.put("inputTime", inputTime);
 		
-		outputCollector.emit(new Values(production, tweet, createdTime, inputTime));
+		//Emit
+		outputCollector.emit(new Values(message.toString()));
 		outputCollector.ack(tuple);
 	}
 	
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		// TODO Auto-generated method stub
-		declarer.declare(new Fields("production", "tweet", "created_time", "input_time"));
+		declarer.declare(new Fields("message"));
 	}
 	
 	@Override

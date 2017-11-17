@@ -38,7 +38,7 @@ public class JSONTester {
 				
 		JSONArray algorithms = (JSONArray) contents.get("algorithms");
 		
-		//int a = 
+		int a = 
 		
 		
 		//algorithms.

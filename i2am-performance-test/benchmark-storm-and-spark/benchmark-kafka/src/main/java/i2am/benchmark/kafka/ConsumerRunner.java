@@ -89,6 +89,7 @@ public class ConsumerRunner implements Runnable {
 								JSONParser parser = new JSONParser();
 								JSONObject messages = (JSONObject) parser.parse(
 										new String(messageAndMetadata.message()));
+
 								// System.out.println(messages.toJSONString());
 
 								// Get. 커밋할려고 단 주석222

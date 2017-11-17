@@ -32,14 +32,14 @@ public class SourceList {
 	}
 	
 	public synchronized boolean add(Source source) {
-		if (mSources.containsKey(source.getSourceName())) return false;
-		mSources.put(source.getSourceName(), source);
+		if (mSources.containsKey(source.getSourceID())) return false;
+		mSources.put(source.getSourceID(), source);
 		return true;
 	}
 	
 	public synchronized boolean remove(Source source) {
-		if (!mSources.containsKey(source.getSourceName())) return false;
-		mSources.remove(source.getSourceName());
+		if (!mSources.containsKey(source.getSourceID())) return false;
+		mSources.remove(source.getSourceID());
 		return true;
 	}
 	

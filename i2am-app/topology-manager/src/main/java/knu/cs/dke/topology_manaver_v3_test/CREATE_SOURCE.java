@@ -17,27 +17,17 @@ public class CREATE_SOURCE {
 	public void setCommand() {		
 
 		// Command Info.		
-		source.put("commandType", "CREATE_SRC");
-		source.put("commander", "0KUK@naver.com");
-		source.put("commandId", "9d4e1696-40d0-4e3e-b185-7edd8ff967db");
-		source.put("commandTime", "2017-11-15 17:32:18");
+		source.put("commandType", "CREATE_SOURCE");
+		source.put("sourceName", "user01-source");
+		source.put("createTime", Time.currentTimeMillis());
+		source.put("modifiedTime", Time.currentTimeMillis());
+		source.put("status", "INACTIVE");
+		source.put("owner", "user01");
+		source.put("type", "kafka");
 		
-		JSONObject content = new JSONObject();		
-		content.put("owner", "0KUK@naver.com");
-		content.put("srcName", "Source01");
-		content.put("usesIntelligentEngine", "N");
-		content.put("createdTime", "2017-11-15 17:32:18");
-		content.put("srcType", "kafka");	
-		content.put("testData", "data");
-		
-		JSONObject params = new JSONObject();
-		params.put("zookeeperIp", "192.168.56.100");
-		params.put("zookeeperPort", "2182");
-		params.put("topic", "topic01");
-		
-		content.put("kafkaParams", params);		
-		
-		source.put("commandContent", content);		
+		// Kafka 라면 주키퍼 IP Port Topic 추가적으로 필요
+		// Database 라면 IP Port User Password DB Table Query 추가적으로 필요		
+		// ??
 	}	
 
 	public JSONObject getCommand() {

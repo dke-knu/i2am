@@ -23,14 +23,9 @@ import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
-
-import i2am.benchmark.storm.reservoir.DeclareFieldBolt;
 import redis.clients.jedis.Protocol;
 
 public class PerformanceTestTopology {
-	
-	// private static fina Logger LOG = LoggerFactory.getLoggerFactory.getLogger(PerformanceTestTopology.class); 
-	
 	public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException, AuthorizationException{
 		String[] zookeepers = args[0].split(","); //KAFAK ZOOKEEPER
 		short zkPort = Short.parseShort(args[1]);
@@ -62,8 +57,8 @@ public class PerformanceTestTopology {
 		/* Jedis */
 		JedisClusterConfig jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5); 
 		
-		/* filter */
-		List<String> dataArray = new ArrayList<String>(); //필터링 할 데이터
+		/* WordList to Filter */
+		List<String> dataArray = new ArrayList<String>(); 
 		for(int i = 5; i < args.length; i++){
 			dataArray.add(args[i]);
 		}

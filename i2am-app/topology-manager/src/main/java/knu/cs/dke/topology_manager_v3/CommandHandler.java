@@ -10,7 +10,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import knu.cs.dke.topology_manager_v3.handlers.SourceHandler;
-import knu.cs.dke.topology_manager_v3.handlers.TopologyHandler;
 import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
 
@@ -38,19 +37,17 @@ public class CommandHandler {
 				
 		switch (commandType) 
 		{
-		case "CREATE_PLAN":	
-			TopologyHandler th = new TopologyHandler(input_command, plans, sources, destination);
-			
+		case "CREATE_PLAN":			
 		case "DESTROY_PLAN":
 			// Call Topology Handler
 			// Returned Plan.
 			break;
 			
-		case "CREATE_SRC":
-			SourceHandler sh = new SourceHandler(sources, input_command);
-			sh.excute();			
-			break;
-		case "DESTROY_SRC":			
+		case "CREATE_SOURCE":
+		case "DESTROY_SOURCE":
+			SourceHandler sh = new SourceHandler(sources);
+			// SourceHandler sh = new SourceHandler();			
+			// Call Source Handler
 			break;
 			
 		case "CREATE_DESTINATION":

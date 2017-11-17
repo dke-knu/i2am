@@ -13,6 +13,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +24,7 @@ import redis.clients.jedis.exceptions.JedisDataException;
 
 public class ReservoirSamplingBolt extends BaseRichBolt { 
 	
-	/* Sampling Parameter */ 
+	/* Sampling Parameters */ 
 	private int sampleSize;
 	private int windowSize;
 	private String sampleName = null; 
@@ -52,7 +55,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		// TODO Auto-generated method stub
 		this.outputCollector = outputCollector;
 		
-		/* Connect Redis*/
+		// Connect To Redis 
 		if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
@@ -60,7 +63,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 		
-		/* Get parameters */
+		// Get Sampling Parameters
 		parameters = jedisCommands.hgetAll(redisKey);
 		sampleName = parameters.get(sampleKey);
 		sampleSize = Integer.parseInt(parameters.get(sampleSizeKey)); // Get sample size
@@ -71,22 +74,46 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 	@Override
 	public void execute(Tuple tuple) {
 		// TODO Auto-generated method stub
+
+		// Get JSON From Tuple
+		JSONParser parser = new JSONParser();
+		JSONObject message = new JSONObject();
 		
-		int production = tuple.getIntegerByField("production");
-		String sentence = tuple.getStringByField("sentence");
-		String createdTime = tuple.getStringByField("created_time");
-		long inputTime = tuple.getLongByField("input_time");
+		try {
+			message = (JSONObject) parser.parse(new String(tuple.getString(0)));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Production
+		int production = ((Number) message.get("production")).intValue();
+		
 		int probability = sampleSize + 1;
 		int count = production%windowSize;
 		
-		if(count != 0 && count < sampleSize){
-			jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-		}else if(count == 0){ //window size
+		// Reservoir Sampling
+		if(count != 0 && count < sampleSize){ 
+			jedisCommands.rpush(sampleName, message.toString());
+		}
+		// Extract Sample When Window Done
+		else if(count == 0){ 
 			List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
 			jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
 			
 			for(String data : sampleList){
-				outputCollector.emit(new Values("1:" + data + "," + System.currentTimeMillis())); // Emit
+				
+				// Get JSON From SampleList
+				try {
+					message = (JSONObject) parser.parse(new String(data));
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				message.put("sampleFlag", "1");
+				message.put("outputTime", System.currentTimeMillis());
+				outputCollector.emit(new Values(message.toString())); // Emit
 			}
 		}
 		else{
@@ -95,14 +122,23 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 			if(probability < sampleSize){
 				if(probability < jedisCommands.llen(sampleName)){
 					String nonSample = jedisCommands.lindex(sampleName, probability);
-					jedisCommands.lset(sampleName, probability, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
-					outputCollector.emit(new Values("0:"+ nonSample + "," + System.currentTimeMillis())); // Emit
+					jedisCommands.lset(sampleName, probability, message.toString());
+					
+					// Get JSON From Non Sample
+					try {
+						message = (JSONObject) parser.parse(new String(nonSample));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}else{
-					jedisCommands.rpush(sampleName, new String(sentence + "," + production + "," + createdTime + "," + inputTime));
+					jedisCommands.rpush(sampleName, message.toString());
 				}
-			}else{
-				outputCollector.emit(new Values(new String("0:" + sentence + "," + production + "," + createdTime + "," + inputTime + "," + System.currentTimeMillis()))); // Emit
 			}
+			
+			message.put("sampleFlag", "0");
+			message.put("outputTime", System.currentTimeMillis());
+			outputCollector.emit(new Values(message.toString())); // Emit
 		}
 	}
 
@@ -111,5 +147,4 @@ public class ReservoirSamplingBolt extends BaseRichBolt {
 		// TODO Auto-generated method stub
 		declarer.declare(new Fields("message"));
 	}
-
 }

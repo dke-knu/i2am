@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import knu.cs.dke.topology_manager_v3.DestinationList;
 import knu.cs.dke.topology_manager_v3.Plan;
@@ -17,85 +15,70 @@ import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
 
 public class TopologyHandler {
 
-	private JSONObject command;
+	private String command;
 	private PlanList plans;
 	private SourceList sources;
 	private DestinationList destination;	
-
-	public TopologyHandler(String command, PlanList plans, SourceList sources, DestinationList destinations) throws ParseException {		
-		
-		JSONParser jsonParser = new JSONParser();
-		this.command = (JSONObject) jsonParser.parse(command);		
+	
+	public TopologyHandler(String command, PlanList plans, SourceList sources, DestinationList destinations) {		
+		this.command = command;		
 		this.plans = plans;
 		this.sources = sources; 
 		this.destination = destinations;		
 	}
-
-	public void excute() throws ParseException {		
-
-		String commandType = (String) command.get("commandType");
-		System.out.println("[Topology Handler] Command Type: " + commandType);
-
-		switch (commandType) {
-
-		case "CREATE_PLAN":
-			createPlan();
-			break;
-		case "DESTROY_PLAN":
-			break;
-		case "ALTER_PLAN":
-			break;
-		case "ACTIVE_PLAN":
-			break;
-		default:
-			System.out.println("[Topology Handler] Command is not exist.");
-			break;			
-		}		
-	}
-
-	private void createPlan() {		
+	
+	private void createPlan(JSONObject jsonCommand) {		
 		
-		// Content
-		JSONObject content = (JSONObject) command.get("commandContent");		
+		Plan plan = new Plan();
 		
-		String owner = (String) content.get("owner");
-		String planName = (String) content.get("planName");
-		String source = (String) content.get("srcName");
-		String destination = (String) content.get("dstName");
-		String createdTime = (String) content.get("createdTime");
+		// Command Info. > 명령엔 필요 없는 정보. 로깅 정도만 해야하남?
+		// plan.setPlanID((String) jsonCommand.get("commandId"));
+		// plan.setOwner((String) jsonCommand.get("commander"));		
+		// plan.setTimestamp((String) jsonCommand.get("commandTime"));
 				
+		// Topologies[Algorithms] Info.
+		JSONObject content = (JSONObject) jsonCommand.get("commandContent");
+	
+		plan.setPlanID((String) content.get("planId"));
+		plan.setOwner((String) content.get("owner"));
+		plan.setTimestamp((String) content.get("createTime").toString());
+				
+		// Algorithms
 		JSONArray algorithms = (JSONArray) content.get("algorithms");
-		List<ASamplingFilteringTopology> topologies = null;		
 		
-		for( int i=0; i < algorithms.size(); i++ ) {
+		List<ASamplingFilteringTopology> topologies = new ArrayList<>();
+		
+		int algorithmsSize = algorithms.size();
+		
+		for ( int i=0; i<algorithmsSize; i++ ) {
 			
-			JSONObject algorithm = (JSONObject) algorithms.get(i);
+			JSONObject temp = (JSONObject) algorithms.get(i);
+			String algorithmType = (String) temp.get("algorithmType");
 			
-			String type = (String) algorithm.get("algorithmType");
+			switch(algorithmType) {
 			
-			switch(type) {
-			
-			case "BINARY_BERNOULLI_SAMPLING":
-				break;
-			case "HASH_SAMPLING":
-				break;
-			case "PRIORITY_SAMPLING":
-				break;
-			case "RESERVOIR_SAMPLING":
-				break;
-			case "STRATIFIED_SAMPLING":
-				break;
-			case "SYSTEMATIC_SAMPLING":
-				break;				
-			default:
-				System.out.println("[Topology Hander] Algoritm Type Error");
-				break;
-			
-			}			 
+			case "HASH_SAMPLING":				
+				JSONObject params = (JSONObject) temp.get("algorithmParams");
+				Long numberOfBucket = (Long) params.get("numberOfBucket");
+				Long selectedBucket = (Long) params.get("selectedBucket");				
+				ASamplingFilteringTopology hash = new HashSamplingTopology(numberOfBucket.intValue(), selectedBucket.intValue());
+				hash.setTopologyID("planId" + String.valueOf(i));
+				topologies.add(hash);
+				break;			
+			}
 		}		
+		plan.setlTopologies(topologies);		
 		
+		if (plans.add(plan)) {
+			System.out.println("[Command Handler] Plan is Created!");
+		} else {
+			System.out.println("[Command Handler] Plan ID is already exist!");
+		}
+		
+		plan.submitTopologies();
+		System.out.println("[Command Handler] Plan Start!");		
 	}
-
+	
 	private void destroyPlan(Plan plan) {
 		// TODO Auto-generated method stub
 		plan.killTopologies();		
