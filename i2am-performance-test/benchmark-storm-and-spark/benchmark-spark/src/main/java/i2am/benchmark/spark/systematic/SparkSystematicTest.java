@@ -3,9 +3,11 @@ package i2am.benchmark.spark.systematic;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -22,16 +24,14 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
 
 
 public class SparkSystematicTest {	
 
 	private final static Logger logger = Logger.getLogger(SparkSystematicTest.class);
-	private static JedisPool pool;
-
+	
 	public static void main(String[] args) throws InterruptedException {
 
 		// Args.
@@ -48,9 +48,23 @@ public class SparkSystematicTest {
 		// Sampling Parameters.
 		int sample_size = Integer.parseInt(args[6]);
 		int window_size = Integer.parseInt(args[7]);
+				
+		int interval = window_size/sample_size;
+		int randomNumber = (int)Math.random()%interval;
+		
+		// Redis conf.
 		String redis_key = args[8];
 		
-		int interval = window_size/sample_size;
+		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
+		redisNodes.add(new HostAndPort("192.168.0.100", 17000));
+		redisNodes.add(new HostAndPort("192.168.0.101", 17001));
+		redisNodes.add(new HostAndPort("192.168.0.102", 17002));
+		redisNodes.add(new HostAndPort("192.168.0.103", 17003));
+		redisNodes.add(new HostAndPort("192.168.0.104", 17004));
+		redisNodes.add(new HostAndPort("192.168.0.105", 17005));
+		redisNodes.add(new HostAndPort("192.168.0.106", 17006));
+		redisNodes.add(new HostAndPort("192.168.0.107", 17007));
+		redisNodes.add(new HostAndPort("192.168.0.108", 17008));		
 		
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("kafka-test");
@@ -90,7 +104,7 @@ public class SparkSystematicTest {
 
 		// Processing.		
 
-		// Step 1. Current Time.ㅉ
+		// Step 1. Current Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
@@ -99,33 +113,32 @@ public class SparkSystematicTest {
 
 			samples.foreach( sample -> {
 				
-				pool = new JedisPool(new JedisPoolConfig(), "192.168.56.100");
-				Jedis jedis = pool.getResource();
-				jedis.select(0);
-				
+				JedisCluster jc = new JedisCluster(redisNodes);	
+								
 				String[] commands = sample.split(",");
-				String value = commands[0];
-				int index = Integer.parseInt(commands[1]);				
-				int randomNumber = (int)(Math.random()*interval);
 				
-				//System.out.println(sample);
-
-				String out = value + "," + index + "," + commands[2] + "," + commands[3];
-				
+				int index = Integer.parseInt(commands[1]);
+								
 				if( (index%window_size)%interval == randomNumber ) {					
-					jedis.rpush(redis_key, out);
+					jc.rpush(redis_key, sample);
 				}				
+				else {
+					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+					producer.send(new ProducerRecord<String, String>(output_topic, "0:" + sample + "," + System.currentTimeMillis()));					
+					producer.close();
+				}
 				
 				if( index % window_size == 0 ) {
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-					List<String> sampleList = jedis.lrange(redis_key, 0, -1);
-					jedis.ltrim(redis_key, 0, -99999);
+					List<String> sampleList = jc.lrange(redis_key, 0, -1);
+					jc.ltrim(redis_key, 0, -99999);
 
 					for( String result: sampleList ) {					
-						producer.send(new ProducerRecord<String, String>(output_topic, result+","+System.currentTimeMillis()));
-					}				
+						producer.send(new ProducerRecord<String, String>(output_topic, "1:" + result + "," + System.currentTimeMillis()));
+					}
+					producer.close();
 				}					
-				jedis.close();				
+				jc.close();				
 			});				
 		});	
 
