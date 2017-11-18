@@ -4,8 +4,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -25,6 +27,9 @@ import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+
 
 public class SparkBloomFilterTestJSON {	
 
@@ -32,6 +37,20 @@ public class SparkBloomFilterTestJSON {
 		
 	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
 
+		// Redis Cluster.
+		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
+		redisNodes.add(new HostAndPort("MN", 17000));
+		redisNodes.add(new HostAndPort("MN", 17001));
+		redisNodes.add(new HostAndPort("MN", 17002));
+		redisNodes.add(new HostAndPort("MN", 17003));
+		redisNodes.add(new HostAndPort("MN", 17004));
+		redisNodes.add(new HostAndPort("MN", 17005));
+		redisNodes.add(new HostAndPort("MN", 17006));
+		redisNodes.add(new HostAndPort("MN", 17007));
+		redisNodes.add(new HostAndPort("MN", 17008));	
+		
+		JedisCluster jc = new JedisCluster(redisNodes);
+		
 		// Args.
 		String input_topic = args[0];
 		String output_topic = args[1];
@@ -42,9 +61,12 @@ public class SparkBloomFilterTestJSON {
 		String zookeeper_ip = args[4];
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
-
+	
+		// Bloom Filter Parameter from Redis.
+		Map<String, String> parameters = jc.hgetAll(args[6]); // Redis Key		
+		int bloom_size = Integer.parseInt(parameters.get("BucketSize"));
+		
 		// Filtering Keywords.
-		int bloom_size = Integer.parseInt(args[6]);
 		String[] input_keywords = args.clone();
 		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
 		
@@ -55,7 +77,7 @@ public class SparkBloomFilterTestJSON {
 		}
 		
 		// Context.
-		SparkConf conf = new SparkConf().setAppName("kafka-test");
+		SparkConf conf = new SparkConf().setAppName("Bloom-Filtering-Test-With-JSON");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 

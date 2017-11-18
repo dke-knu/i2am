@@ -3,9 +3,11 @@ package i2am.benchmark.spark.query;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -23,7 +25,9 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 
+import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol.Keyword;
@@ -31,8 +35,7 @@ import redis.clients.jedis.Protocol.Keyword;
 
 public class SparkQueryTest {	
 
-	private final static Logger logger = Logger.getLogger(SparkQueryTest.class);
-	private static JedisPool pool;
+	private final static Logger logger = Logger.getLogger(SparkQueryTest.class);	
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -47,13 +50,12 @@ public class SparkQueryTest {
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 
-		// Filtering Keywords.		
-		String redis_key = args[6];		
+		// Filtering Keywords.				
 		String[] input_keywords = args.clone();
-		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
-
+		String[] keywords = Arrays.copyOfRange(input_keywords, 6, input_keywords.length);		
+		
 		// Context.
-		SparkConf conf = new SparkConf().setAppName("kafka-test");
+		SparkConf conf = new SparkConf().setAppName("Query-Filtering-Test");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
@@ -97,42 +99,28 @@ public class SparkQueryTest {
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
 		JavaDStream<String> timeLines = lines.map(line -> line + "," + System.currentTimeMillis());
 
-		// Step 2. Filtering for String
-		JavaDStream<String> filtered = timeLines.filter( sample -> {						
-			for( String keyword: filter.value() ) {				
-
-				if(sample.contains(keyword)) {
-					return true;
-				}
+		// Step 2. Filtering for String.
+		JavaDStream<String> filtered = timeLines.map( sample -> {			
+			String[] commands = sample.split(",");			
+			for ( String keyword: filter.value() ) {				
+				if( commands[0].contains(keyword) ) {					
+					return "1:" + sample;
+				}							
 			}			
-			return false;
+			return "0:" + sample;
 		});
-
+		
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
 
-			samples.foreach( sample -> {
-
-				pool = new JedisPool(new JedisPoolConfig(), "192.168.56.100");
-				Jedis jedis = pool.getResource();
-				jedis.select(0);
-
-				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+			samples.foreach( sample -> {				
 				
-				//System.out.println(sample);
-				
-				String[] commands = sample.split(",");
-				String value = commands[0];
-				int index = Integer.parseInt(commands[1]);
-
-				String out = value + "," + index + "," + commands[2] + "," + commands[3] + "," + System.currentTimeMillis();
-				jedis.rpush(redis_key, out);				
-				producer.send(new ProducerRecord<String, String>(output_topic, out));				
-					
-				jedis.close();
+				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);				
+				String out = sample + "," + System.currentTimeMillis();												
+				producer.send(new ProducerRecord<String, String>(output_topic, out));
+				producer.close();
 			});				
 		});	
-
 
 		// Start.
 		jssc.start();

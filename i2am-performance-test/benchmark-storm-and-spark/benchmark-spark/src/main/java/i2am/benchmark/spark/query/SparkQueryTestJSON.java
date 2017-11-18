@@ -3,6 +3,7 @@ package i2am.benchmark.spark.query;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -25,15 +26,15 @@ import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-
-
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
 
 public class SparkQueryTestJSON {	
 
 	private final static Logger logger = Logger.getLogger(SparkQueryTestJSON.class);	
 
 	public static void main(String[] args) throws InterruptedException {
-
+		
 		// Args.
 		String input_topic = args[0];
 		String output_topic = args[1];
@@ -48,9 +49,9 @@ public class SparkQueryTestJSON {
 		// Filtering Keywords.				
 		String[] input_keywords = args.clone();
 		String[] keywords = Arrays.copyOfRange(input_keywords, 6, input_keywords.length);		
-		
+
 		// Context.
-		SparkConf conf = new SparkConf().setAppName("kafka-test");
+		SparkConf conf = new SparkConf().setAppName("Query-Filtering-Test-With-JSON");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
@@ -103,12 +104,12 @@ public class SparkQueryTestJSON {
 
 		// Step 2. Filtering for String.
 		JavaDStream<String> filtered = timeLines.map( sample -> {	
-			
+
 			JSONParser parser = new JSONParser();
 			JSONObject messages = (JSONObject) parser.parse(sample);
 			JSONObject tweet = (JSONObject) messages.get("tweet");
 			String text = (String) tweet.get("text");			
-						
+
 			for ( String keyword: filter.value() ) {				
 				if( text.contains(keyword) ) {
 					messages.put("sampleFlag", 1);
@@ -118,14 +119,14 @@ public class SparkQueryTestJSON {
 			messages.put("sampleFlag", 0);
 			return messages.toString();
 		});
-		
+
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
 
 			samples.foreach( sample -> {				
-				
+
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);				
-				
+
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
 				messages.put("outputTime", System.currentTimeMillis());
