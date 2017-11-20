@@ -280,7 +280,7 @@ class StormSqlImpl extends StormSql {
       sqlOperatorTables.add(SqlStdOperatorTable.instance());
       sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema),
                                                      false,
-                                                     Collections.<String>emptyList(), typeFactory));
+                                                     Collections.emptyList(), typeFactory));
       return Frameworks.newConfigBuilder().defaultSchema(schema)
               .operatorTable(new ChainedSqlOperatorTable(sqlOperatorTables)).build();
     } else {

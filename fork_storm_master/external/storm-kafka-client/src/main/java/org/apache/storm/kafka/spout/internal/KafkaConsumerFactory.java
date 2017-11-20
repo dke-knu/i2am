@@ -23,5 +23,5 @@ import org.apache.storm.kafka.spout.KafkaSpoutConfig;
  * This is here to enable testing
  */
 public interface KafkaConsumerFactory<K, V> extends Serializable {
-    public KafkaConsumer<K,V> createConsumer(KafkaSpoutConfig<K, V> kafkaSpoutConfig);
+    KafkaConsumer<K,V> createConsumer(KafkaSpoutConfig<K, V> kafkaSpoutConfig);
 }

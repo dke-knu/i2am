@@ -74,7 +74,7 @@ public class BlobSynchronizerTest {
     Map conf = Utils.readStormConfig();
     conf.put(Config.STORM_LOCAL_DIR, baseFile.getAbsolutePath());
     conf.put(Config.STORM_PRINCIPAL_TO_LOCAL_PLUGIN,"org.apache.storm.security.auth.DefaultPrincipalToLocal");
-    this.conf = conf;
+    BlobSynchronizerTest.conf = conf;
     store.prepare(conf, null, null);
     return store;
   }

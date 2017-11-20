@@ -333,7 +333,7 @@ public class PartitionManager {
         long lastCompletedOffset = lastCompletedOffset();
         if (_committedTo != lastCompletedOffset) {
             LOG.debug("Writing last completed offset ({}) to ZK for {} for topology: {}", lastCompletedOffset, _partition, _topologyInstanceId);
-            Map<Object, Object> data = (Map<Object, Object>) ImmutableMap.builder()
+            Map<Object, Object> data = ImmutableMap.builder()
                     .put("topology", ImmutableMap.of("id", _topologyInstanceId,
                             "name", _stormConf.get(Config.TOPOLOGY_NAME)))
                     .put("offset", lastCompletedOffset)

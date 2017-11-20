@@ -39,7 +39,7 @@ public class ThriftNettyClientCodec {
         DIGEST,
         KERBEROS,
         NONE
-    };
+    }
 
     private static final Logger LOG = LoggerFactory
         .getLogger(ThriftNettyClientCodec.class);

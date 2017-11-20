@@ -75,7 +75,7 @@ public class ResourceAwareScheduler implements IScheduler {
 
             if (schedulingPrioritystrategy == null) {
                 try {
-                    schedulingPrioritystrategy = (ISchedulingPriorityStrategy) Utils.newInstance((String) this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY));
+                    schedulingPrioritystrategy = Utils.newInstance((String) this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY));
                 } catch (RuntimeException ex) {
                     LOG.error(String.format("failed to create instance of priority strategy: %s with error: %s! No topologies will be scheduled.",
                                     this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY), ex.getMessage()), ex);
@@ -125,7 +125,7 @@ public class ResourceAwareScheduler implements IScheduler {
             SchedulingState schedulingState = checkpointSchedulingState();
             IStrategy rasStrategy = null;
             try {
-                rasStrategy = (IStrategy) Utils.newInstance((String) td.getConf().get(Config.TOPOLOGY_SCHEDULER_STRATEGY));
+                rasStrategy = Utils.newInstance((String) td.getConf().get(Config.TOPOLOGY_SCHEDULER_STRATEGY));
             } catch (RuntimeException e) {
                 LOG.error("failed to create instance of IStrategy: {} with error: {}! Topology {} will not be scheduled.",
                         td.getName(), td.getConf().get(Config.TOPOLOGY_SCHEDULER_STRATEGY), e.getMessage());
@@ -175,7 +175,7 @@ public class ResourceAwareScheduler implements IScheduler {
                         if (result.getStatus() == SchedulingStatus.FAIL_NOT_ENOUGH_RESOURCES) {
                             if (evictionStrategy == null) {
                                 try {
-                                    evictionStrategy = (IEvictionStrategy) Utils.newInstance((String) this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_EVICTION_STRATEGY));
+                                    evictionStrategy = Utils.newInstance((String) this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_EVICTION_STRATEGY));
                                 } catch (RuntimeException e) {
                                     LOG.error("failed to create instance of eviction strategy: {} with error: {}! No topology eviction will be done.",
                                             this.conf.get(Config.RESOURCE_AWARE_SCHEDULER_EVICTION_STRATEGY), e.getMessage());

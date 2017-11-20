@@ -344,7 +344,7 @@ public class TridentTopologyBuilder {
         return ret;
     }
     
-    private static interface InputDeclaration {
+    private interface InputDeclaration {
         void declare(InputDeclarer declarer);
         String getComponent();
         String getStream();

@@ -91,7 +91,7 @@ public class WordCountTridentRedisCluster {
         conf.setMaxSpoutPending(5);
         if (flag == 0) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("test_wordCounter_for_redis", conf, buildTopology(redisHostPort));) {
+                 LocalTopology topo = cluster.submitTopology("test_wordCounter_for_redis", conf, buildTopology(redisHostPort))) {
                 Thread.sleep(60 * 1000);
             }
             System.exit(0);

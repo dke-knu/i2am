@@ -79,7 +79,7 @@ public class StringGenSpout extends BaseRichSpout {
     public void nextTuple() {
         List<Object> tuple;
         if( curr < strCount ) {
-            tuple = Collections.singletonList((Object) records.get(curr));
+            tuple = Collections.singletonList(records.get(curr));
             ++curr;
             collector.emit(tuple, ++count);
         }

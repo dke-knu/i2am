@@ -24,7 +24,7 @@ import java.math.BigInteger;
 import java.util.Map;
 
 public interface ITransactionalSpout<T> extends IComponent {
-    public interface Coordinator<X> {
+    interface Coordinator<X> {
         /**
          * Create metadata for this particular transaction id which has never
          * been emitted before. The metadata should contain whatever is necessary
@@ -55,7 +55,7 @@ public interface ITransactionalSpout<T> extends IComponent {
         void close();
     }
     
-    public interface Emitter<X> {
+    interface Emitter<X> {
         /**
          * Emit a batch for the specified transaction attempt and metadata for the transaction. The metadata
          * was created by the Coordinator in the initializeTranaction method. This method must always emit

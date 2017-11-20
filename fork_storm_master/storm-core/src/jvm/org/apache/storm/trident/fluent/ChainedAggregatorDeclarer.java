@@ -36,11 +36,11 @@ import org.apache.storm.trident.tuple.ComboList;
 
 
 public class ChainedAggregatorDeclarer implements ChainedFullAggregatorDeclarer, ChainedPartitionAggregatorDeclarer {    
-    public static interface AggregationPartition {
+    public interface AggregationPartition {
         Stream partition(Stream input);
     }
     
-    private static enum AggType {
+    private enum AggType {
         PARTITION,
         FULL,
         FULL_COMBINE

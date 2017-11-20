@@ -2506,7 +2506,7 @@ public class StatsUtil {
         Map<String, Map<K, List>> initVal = null;
         for (int i = 0; i < avgSeq.size(); i++) {
             Map<String, Map<K, Double>> avg = avgSeq.get(i);
-            Map<String, Map<K, Long>> count = (Map) countSeq.get(i);
+            Map<String, Map<K, Long>> count = countSeq.get(i);
             if (initVal == null) {
                 initVal = expandAverages(avg, count);
             } else {

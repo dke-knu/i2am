@@ -31,5 +31,5 @@ public interface ITridentPartitionManager {
    * @param count max number of messages in this batch
    * @return list of EventData, if failed to receive, return empty list
    */
-  public List<EventData> receiveBatch(String offset, int count);
+  List<EventData> receiveBatch(String offset, int count);
 }

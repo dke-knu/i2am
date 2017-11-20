@@ -19,6 +19,7 @@ package org.apache.storm.messaging.jxio;
 
 import org.apache.storm.messaging.TaskMessage;
 
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -27,10 +28,8 @@ class MessageBatch {
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
     private int encoded_length;
-    private final byte[] fromIp;
 
-    MessageBatch(int buffer_size, byte[] fromIp) {
-        this.fromIp = fromIp;
+    MessageBatch(int buffer_size) {
         this.buffer_size = buffer_size;
         msgs = new ArrayList<>();
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
@@ -42,6 +41,15 @@ class MessageBatch {
 
         msgs.add(msg);
         encoded_length += msgEncodeLength(msg);
+    }
+
+    int add2(TaskMessage msg) {
+        if (msg == null)
+            throw new RuntimeException("null object forbidden in message batch");
+
+        msgs.add(msg);
+        encoded_length += msgEncodeLength(msg);
+        return (buffer_size - encoded_length);
     }
 
     private int msgEncodeLength(TaskMessage taskMsg) {
@@ -78,8 +86,7 @@ class MessageBatch {
      * create a buffer containing the encoding of this batch
      */
     ByteBuffer buffer() throws Exception {
-        ByteBuffer buffer = ByteBuffer.allocate(encoded_length+13);
-        buffer.put(fromIp);
+        ByteBuffer buffer = ByteBuffer.allocate(encoded_length);
         for (TaskMessage msg : msgs) {
             writeTaskMessage(buffer, msg);
         }

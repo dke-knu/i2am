@@ -28,7 +28,7 @@ import java.util.TreeMap;
  * A map from txid to a value. Automatically deletes txids that have been committed. 
  */
 public class RotatingTransactionalState {
-    public static interface StateInitializer {
+    public interface StateInitializer {
         Object init(BigInteger txid, Object lastState);
     }    
 

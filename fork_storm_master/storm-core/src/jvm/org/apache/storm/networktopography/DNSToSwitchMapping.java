@@ -26,7 +26,7 @@ import java.util.Map;
  *
  */
 public interface DNSToSwitchMapping {
-    public final static String DEFAULT_RACK = "/default-rack";
+    String DEFAULT_RACK = "/default-rack";
 
     /**
      * Resolves a list of DNS-names/IP-address and returns back a map of DNS-name->switch information ( network paths).
@@ -45,5 +45,5 @@ public interface DNSToSwitchMapping {
      * @return Map of hosts to resolved network paths.
      * If <i>names</i> is empty, then return empty Map
      */
-    public Map<String, String> resolve(List<String> names);
+    Map<String, String> resolve(List<String> names);
 }

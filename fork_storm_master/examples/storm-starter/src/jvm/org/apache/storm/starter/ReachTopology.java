@@ -177,7 +177,7 @@ public class ReachTopology {
     if (args == null || args.length == 0) {
       conf.setMaxTaskParallelism(3);
       try (LocalDRPC drpc = new LocalDRPC();
-          LocalCluster cluster = new LocalCluster();) {
+          LocalCluster cluster = new LocalCluster()) {
         cluster.submitTopology("reach-drpc", conf, builder.createLocalTopology(drpc));
 
         String[] urlsToTry = new String[]{ "foo.com/blog/1", "engineering.twitter.com/blog/5", "notaurl.com" };

@@ -95,7 +95,7 @@ public abstract class ConfigurableTopology {
         if (isLocal) {
             try (LocalCluster cluster = new LocalCluster();
                     LocalTopology topo = cluster.submitTopology(name, conf,
-                            builder.createTopology());) {
+                            builder.createTopology())) {
                 if (ttl != -1) {
                     Utils.sleep(ttl * 1000);
                     cluster.shutdown();
@@ -174,7 +174,7 @@ public abstract class ConfigurableTopology {
             if (ret.size() == 1) {
                 Object confNode = ret.get("config");
                 if (confNode != null && confNode instanceof Map) {
-                    ret = (Map) ret;
+                    ret = ret;
                 }
             }
         }

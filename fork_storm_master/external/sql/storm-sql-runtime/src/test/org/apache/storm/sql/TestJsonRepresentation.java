@@ -43,7 +43,7 @@ public class TestJsonRepresentation {
   @Test
   public void testJsonSerializer() {
     final List<String> fields = Lists.newArrayList("ID", "val");
-    List<Object> o = Lists.<Object> newArrayList(1, "2");
+    List<Object> o = Lists.newArrayList(1, "2");
     JsonSerializer s = new JsonSerializer(fields);
     ByteBuffer buf = s.write(o, null);
     byte[] b = Utils.toByteArray(buf);

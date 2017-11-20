@@ -133,7 +133,7 @@ public class CompilerUtil {
         @Override
         public Statistic getStatistic() {
           return stat != null ? stat : Statistics.of(rows.size(),
-                                                     ImmutableList.<ImmutableBitSet>of());
+                                                     ImmutableList.of());
         }
 
         @Override

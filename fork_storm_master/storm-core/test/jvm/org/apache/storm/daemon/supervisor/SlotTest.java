@@ -459,7 +459,7 @@ public class SlotTest {
             expectedPending.add(profile);
             
             
-            DynamicState dynamicState = new DynamicState(cAssignment, cContainer, cAssignment).withProfileActions(profileActions, Collections.<TopoProfileAction> emptySet());
+            DynamicState dynamicState = new DynamicState(cAssignment, cContainer, cAssignment).withProfileActions(profileActions, Collections.emptySet());
             
             DynamicState nextState = Slot.stateMachineStep(dynamicState, staticState);
             assertEquals(MachineState.RUNNING, nextState.state);

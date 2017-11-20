@@ -35,7 +35,7 @@ public interface JmsProvider extends Serializable {
      * @return the connection factory
      * @throws Exception
      */
-    public ConnectionFactory connectionFactory() throws Exception;
+    ConnectionFactory connectionFactory() throws Exception;
 
     /**
      * Provides the <code>Destination</code> (topic or queue) from which the
@@ -44,5 +44,5 @@ public interface JmsProvider extends Serializable {
      * @return
      * @throws Exception
      */
-    public Destination destination() throws Exception;
+    Destination destination() throws Exception;
 }

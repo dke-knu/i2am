@@ -106,9 +106,9 @@ public class LocalizerTest {
     public long getFileLength() {
         return 0;
     }
-  };
+  }
 
-  @Before
+    @Before
   public void setUp() throws Exception {
     baseDir = new File(System.getProperty("java.io.tmpdir") + "/blob-store-localizer-test-"+ UUID.randomUUID());
     if (!baseDir.mkdir()) {
@@ -427,8 +427,8 @@ public class LocalizerTest {
     when(mockblobstore.getBlob(key2)).thenReturn(new TestInputStreamWithMeta());
     when(mockblobstore.getBlob(key3)).thenReturn(new TestInputStreamWithMeta());
 
-    List<LocalResource> keys = Arrays.asList(new LocalResource[]{new LocalResource(key1, false),
-        new LocalResource(key2, false), new LocalResource(key3, false)});
+    List<LocalResource> keys = Arrays.asList(new LocalResource(key1, false),
+            new LocalResource(key2, false), new LocalResource(key3, false));
     File user1Dir = localizer.getLocalUserFileCacheDir(user1);
     assertTrue("failed to create user dir", user1Dir.mkdirs());
 

@@ -73,7 +73,7 @@ public class MetricsSample {
     }
 
     public static MetricsSample factory(LocalCluster localCluster, String topologyName) throws Exception {
-        TopologyInfo topologyInfo = localCluster.getTopologyInfo(topologyName);;
+        TopologyInfo topologyInfo = localCluster.getTopologyInfo(topologyName);
         return getMetricsSample(topologyInfo);
     }
 

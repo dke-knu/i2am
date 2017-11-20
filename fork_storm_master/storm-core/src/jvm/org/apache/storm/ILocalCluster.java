@@ -42,10 +42,10 @@ public interface ILocalCluster extends AutoCloseable {
      * Please see {@link org.apache.storm.LocalCluster.LocalTopology} for
      * more details on testing a Storm Topology. 
      */
-    public interface ILocalTopology extends AutoCloseable {
+    interface ILocalTopology extends AutoCloseable {
 
-    };
-    
+    }
+
     /**
      * Submit a topology to be run in local mode
      * @param topologyName the name of the topology to use

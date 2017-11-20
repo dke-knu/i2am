@@ -55,26 +55,31 @@ public class Config extends HashMap<String, Object> {
     private static final long serialVersionUID = -1550278723792864455L;
 
 
+
+    @isBoolean
+    public static final String STORM_MESSAGING_JXIO_PORTAL_HANDLER = "storm.messaging.jxio.portal.handler";
+    /**
+     * If the Netty messaging layer is busy, the Netty client will try to batch message as more as possible up to the size of STORM_NETTY_MESSAGE_BATCH_SIZE bytes
+     */
+    @isInteger
+    public static final String STORM_JXIO_MESSAGE_BATCH_SIZE = "storm.messaging.jxio.transfer.batch.size";
     /**
      * JXIO based messaging: The msgpool buffer size for send/recv at server/client
      */
     @isInteger
     @isPositiveNumber
-    public static final String STORM_MEESAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.msgpool.buffer.size";
+    public static final String STORM_MESSAGING_JXIO_MSGPOOL_BUFFER_SIZE = "storm.messaging.jxio.msgpool.buffer.size";
+
+    @isInteger
+    @isPositiveNumber
+    public static final String STORM_MESSAGING_JXIO_MSGPOOL_MINIMUM_BUFFER_SIZE = "storm.messaging.jxio.msgpool.minimum.buffer.size";
 
     /**
      * JXIO based messaging: The # of MSG for client-side input
      */
     @isInteger
     @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_CLIENT_INPUT_BUFFER_COUNT = "storm.messaging.jxio.client.input.buffer.count";
-
-    /**
-     * JXIO based messaging: The # of MSG for client-side output
-     */
-    @isInteger
-    @isPositiveNumber
-    public static final String STORM_MESSAGING_JXIO_CLIENT_OUTPUT_BUFFER_COUNT = "storm.messaging.jxio.client.output.buffer.count";
+    public static final String STORM_MESSAGING_JXIO_CLIENT_BUFFER_COUNT = "storm.messaging.jxio.client.buffer.count";
 
     /**
      * JXIO based messaging: capacity(number of msg that this pool will contain. Max is 100064)

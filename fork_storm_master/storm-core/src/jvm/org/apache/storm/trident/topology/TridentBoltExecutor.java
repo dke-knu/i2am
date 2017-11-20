@@ -334,7 +334,7 @@ public class TridentBoltExecutor implements IRichBolt {
         //if it already exists and attempt id is greater than the attempt there
         
         
-        TrackedBatch tracked = (TrackedBatch) _batches.get(id.getId());
+        TrackedBatch tracked = _batches.get(id.getId());
 //        if(_batches.size() > 10 && _context.getThisTaskIndex() == 0) {
 //            System.out.println("Received in " + _context.getThisComponentId() + " " + _context.getThisTaskIndex()
 //                    + " (" + _batches.size() + ")" +
@@ -431,7 +431,7 @@ public class TridentBoltExecutor implements IRichBolt {
         }
     }
     
-    static enum TupleType {
+    enum TupleType {
         REGULAR,
         COMMIT,
         COORD

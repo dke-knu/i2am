@@ -141,7 +141,7 @@ public class TridentReach {
     Config conf = new Config();
     try (LocalDRPC drpc = new LocalDRPC();
          LocalCluster cluster = new LocalCluster();
-         LocalTopology topo = cluster.submitTopology("reach", conf, buildTopology(drpc));) {
+         LocalTopology topo = cluster.submitTopology("reach", conf, buildTopology(drpc))) {
 
         Thread.sleep(2000);
 

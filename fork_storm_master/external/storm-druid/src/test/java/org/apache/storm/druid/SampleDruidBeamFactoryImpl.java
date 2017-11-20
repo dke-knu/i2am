@@ -64,7 +64,7 @@ public class SampleDruidBeamFactoryImpl implements DruidBeamFactory<Map<String, 
         final String discoveryPath = "/druid/discovery"; // Your overlord's druid.discovery.curator.path
         final String dataSource = "test";
         final List<String> dimensions = ImmutableList.of("publisher", "advertiser");
-        List<AggregatorFactory> aggregator = ImmutableList.<AggregatorFactory>of(
+        List<AggregatorFactory> aggregator = ImmutableList.of(
                 new CountAggregatorFactory(
                         "click"
                 )

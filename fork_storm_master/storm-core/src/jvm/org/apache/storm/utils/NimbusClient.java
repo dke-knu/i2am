@@ -37,7 +37,7 @@ public class NimbusClient extends ThriftClient {
     private static final Logger LOG = LoggerFactory.getLogger(NimbusClient.class);
 
     public interface WithNimbus {
-        public void run(Nimbus.Client client) throws Exception;
+        void run(Nimbus.Client client) throws Exception;
     }
 
     public static void withConfiguredClient(WithNimbus cb) throws Exception {
@@ -48,7 +48,7 @@ public class NimbusClient extends ThriftClient {
         ReqContext context = ReqContext.context();
         Principal principal = context.principal();
         String user = principal == null ? null : principal.getName();
-        try (NimbusClient client = getConfiguredClientAs(conf, user);) {
+        try (NimbusClient client = getConfiguredClientAs(conf, user)) {
             cb.run(client.getClient());
         }
     }

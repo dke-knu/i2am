@@ -206,7 +206,7 @@ public class TransactionalTopologyBuilder {
         }
     }
     
-    private static interface InputDeclaration {
+    private interface InputDeclaration {
         void declare(InputDeclarer declarer);
         String getComponent();
     }

@@ -102,7 +102,7 @@ public class AuthUtilsTest {
         Map emptyMap = new HashMap<String, String>();
         Map<String, Collection<String>> map = new HashMap<String, Collection<String>>();
         map.put(Config.TOPOLOGY_AUTO_CREDENTIALS, 
-                Arrays.asList(new String[]{"org.apache.storm.security.auth.AuthUtilsTestMock"}));
+                Arrays.asList("org.apache.storm.security.auth.AuthUtilsTestMock"));
 
         Assert.assertTrue(AuthUtils.GetAutoCredentials(emptyMap).isEmpty());
         Assert.assertEquals(AuthUtils.GetAutoCredentials(map).size(), 1);
@@ -113,7 +113,7 @@ public class AuthUtilsTest {
         Map emptyMap = new HashMap<String, String>();
         Map<String, Collection<String>> map = new HashMap<String, Collection<String>>();
         map.put(Config.NIMBUS_AUTO_CRED_PLUGINS, 
-                Arrays.asList(new String[]{"org.apache.storm.security.auth.AuthUtilsTestMock"}));
+                Arrays.asList("org.apache.storm.security.auth.AuthUtilsTestMock"));
 
         Assert.assertTrue(AuthUtils.getNimbusAutoCredPlugins(emptyMap).isEmpty());
         Assert.assertEquals(AuthUtils.getNimbusAutoCredPlugins(map).size(), 1);
@@ -124,7 +124,7 @@ public class AuthUtilsTest {
         Map emptyMap = new HashMap<String, String>();
         Map<String, Collection<String>> map = new HashMap<String, Collection<String>>();
         map.put(Config.NIMBUS_CREDENTIAL_RENEWERS, 
-                Arrays.asList(new String[]{"org.apache.storm.security.auth.AuthUtilsTestMock"}));
+                Arrays.asList("org.apache.storm.security.auth.AuthUtilsTestMock"));
 
         Assert.assertTrue(AuthUtils.GetCredentialRenewers(emptyMap).isEmpty());
         Assert.assertEquals(AuthUtils.GetCredentialRenewers(map).size(), 1);

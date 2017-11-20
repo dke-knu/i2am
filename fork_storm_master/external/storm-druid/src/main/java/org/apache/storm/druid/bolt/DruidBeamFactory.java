@@ -25,5 +25,5 @@ import java.io.Serializable;
 import java.util.Map;
 
 public interface DruidBeamFactory<E>  extends  Serializable {
-    public Beam<E> makeBeam(Map<?,?> conf, IMetricsContext metrics);
+    Beam<E> makeBeam(Map<?, ?> conf, IMetricsContext metrics);
 }

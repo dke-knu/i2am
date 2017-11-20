@@ -64,7 +64,7 @@ public class ChainedAggregatorImpl implements Aggregator<ChainedResult> {
     public void aggregate(ChainedResult val, TridentTuple tuple, TridentCollector collector) {
         val.setFollowThroughCollector(collector);
         for(int i=0; i<_aggs.length; i++) {
-            TridentTuple projected = _inputFactories[i].create((TridentTupleView) tuple);
+            TridentTuple projected = _inputFactories[i].create(tuple);
             _aggs[i].aggregate(val.objs[i], projected, val.collectors[i]);
         }
     }

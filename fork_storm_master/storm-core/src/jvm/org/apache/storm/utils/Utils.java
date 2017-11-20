@@ -222,7 +222,7 @@ public class Utils {
     public static JarTransformer jarTransformer(String klass) {
         JarTransformer ret = null;
         if (klass != null) {
-            ret = (JarTransformer)newInstance(klass);
+            ret = newInstance(klass);
         }
         return ret;
     }
@@ -517,7 +517,7 @@ public class Utils {
     }
 
     public static boolean isValidConf(Map<String, Object> stormConf) {
-        return normalizeConf(stormConf).equals(normalizeConf((Map) JSONValue.parse(JSONValue.toJSONString(stormConf))));
+        return normalizeConf(stormConf).equals(normalizeConf(JSONValue.parse(JSONValue.toJSONString(stormConf))));
     }
 
     public static Object getSetComponentObject(ComponentObject obj) {
@@ -552,7 +552,7 @@ public class Utils {
     }
 
     public static ClientBlobStore getClientBlobStoreForSupervisor(Map conf) {
-        ClientBlobStore store = (ClientBlobStore) newInstance(
+        ClientBlobStore store = newInstance(
                 (String) conf.get(Config.SUPERVISOR_BLOBSTORE));
         store.prepare(conf);
         return store;
@@ -567,7 +567,7 @@ public class Utils {
         if (type == null) {
             type = LocalFsBlobStore.class.getName();
         }
-        BlobStore store = (BlobStore) newInstance(type);
+        BlobStore store = newInstance(type);
         HashMap nconf = new HashMap(conf);
         // only enable cleanup of blobstore on nimbus
         nconf.put(Config.BLOBSTORE_CLEANUP_ENABLE, Boolean.TRUE);
@@ -606,7 +606,7 @@ public class Utils {
     }
 
     public static ClientBlobStore getClientBlobStore(Map conf) {
-        ClientBlobStore store = (ClientBlobStore) Utils.newInstance((String) conf.get(Config.CLIENT_BLOBSTORE));
+        ClientBlobStore store = Utils.newInstance((String) conf.get(Config.CLIENT_BLOBSTORE));
         store.prepare(conf);
         return store;
     }
@@ -614,7 +614,7 @@ public class Utils {
     private static boolean downloadResourcesAsSupervisorAttempt(ClientBlobStore cb, String key, String localFile) {
         boolean isSuccess = false;
         try (FileOutputStream out = new FileOutputStream(localFile);
-                InputStreamWithMeta in = cb.getBlob(key);) {
+                InputStreamWithMeta in = cb.getBlob(key)) {
             long fileSize = in.getFileLength();
 
             byte[] buffer = new byte[1024];
@@ -1900,7 +1900,7 @@ public class Utils {
         return split[0];
     }
 
-    public static int execCommand(String... command) throws ExecuteException, IOException {
+    public static int execCommand(String... command) throws IOException {
         CommandLine cmd = new CommandLine(command[0]);
         for (int i = 1; i < command.length; i++) {
             cmd.addArgument(command[i]);

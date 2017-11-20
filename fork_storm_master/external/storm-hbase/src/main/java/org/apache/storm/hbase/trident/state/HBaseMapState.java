@@ -227,7 +227,7 @@ public class HBaseMapState<T> implements IBackingMap<T> {
         for (int i = 0; i < keys.size(); i++) {
             byte[] hbaseKey = this.options.mapMapper.rowKey(keys.get(i));
             String qualifier = this.options.mapMapper.qualifier(keys.get(i));
-            LOG.info("Partiton: {}, Key: {}, Value: {}", new Object[]{this.partitionNum, new String(hbaseKey), new String(this.serializer.serialize(values.get(i)))});
+            LOG.info("Partiton: {}, Key: {}, Value: {}", this.partitionNum, new String(hbaseKey), new String(this.serializer.serialize(values.get(i))));
             Put put = new Put(hbaseKey);
             T val = values.get(i);
             put.add(this.options.columnFamily.getBytes(),

@@ -124,7 +124,7 @@ abstract class Node implements Serializable {
     }
 
     Set<Node> getParents(String stream) {
-        Multimap<String, Node> rev = Multimaps.invertFrom(parentStreams, ArrayListMultimap.<String, Node>create());
+        Multimap<String, Node> rev = Multimaps.invertFrom(parentStreams, ArrayListMultimap.create());
         return new HashSet<>(rev.get(stream));
     }
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,33 +25,45 @@ import org.apache.storm.messaging.TaskMessage;
 public class MessageBuffer {
     private final int mesageBatchSize;
     private MessageBatch currentBatch;
-    private final byte[] fromIp;
+    private int availableSize;
 
-    public MessageBuffer(int mesageBatchSize, byte[] fromIp){
-        this.fromIp = fromIp;
+    public MessageBuffer(int mesageBatchSize) {
         this.mesageBatchSize = mesageBatchSize;
-        this.currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+        this.currentBatch = new MessageBatch(mesageBatchSize);
+        availableSize = mesageBatchSize;
     }
 
-    public synchronized MessageBatch add(TaskMessage msg){
-        currentBatch.add(msg);
-        if(currentBatch.isFull()){
+    public MessageBatch checkAdd(TaskMessage msg) {
+        if ((msg.message().length + 6) < availableSize) {
+            availableSize = currentBatch.add2(msg);
+            return null;
+        } else {
             MessageBatch ret = currentBatch;
-            currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+            currentBatch = new MessageBatch(mesageBatchSize);
+            availableSize = currentBatch.add2(msg);
+            return ret;
+        }
+    }
+
+    public MessageBatch add(TaskMessage msg) {
+        currentBatch.add(msg);
+        if (currentBatch.isFull()) {
+            MessageBatch ret = currentBatch;
+            currentBatch = new MessageBatch(mesageBatchSize);
             return ret;
         } else {
             return null;
         }
     }
 
-    public synchronized boolean isEmpty() {
+    public boolean isEmpty() {
         return currentBatch.isEmpty();
     }
 
-    public synchronized MessageBatch drain() {
-        if(!currentBatch.isEmpty()) {
+    public MessageBatch drain() {
+        if (!currentBatch.isEmpty()) {
             MessageBatch ret = currentBatch;
-            currentBatch = new MessageBatch(mesageBatchSize, fromIp);
+            currentBatch = new MessageBatch(mesageBatchSize);
             return ret;
         } else {
             return null;

@@ -22,13 +22,15 @@ java.library.path: "/usr/local/lib:/opt/local/lib:/usr/lib:/usr/lib64"
 
 ### storm.* configs are general configurations
 # the local dir is where jars are kept
-storm.messaging.msgpool.buffer.size: 65536
-storm.messaging.jxio.client.input.buffer.count: 100
-storm.messaging.jxio.client.output.buffer.count: 100
-storm.messaging.jxio.server.initial.buffer.count: 500
-storm.messaging.jxio.server.inc.buffer.count: 100
+storm.messaging.jxio.portal.handler: true
+storm.messaging.jxio.transfer.batch.size: 245760
+storm.messaging.jxio.msgpool.buffer.size: 262144 #Msgpool size(both side) batch size 262144(256KB)
+storm.messaging.jxio.msgpool.minimum.buffer.size: 50
+storm.messaging.jxio.client.buffer.count: 5 #The number of Msg on Msgpool(client)
+storm.messaging.jxio.server.initial.buffer.count: 200 #The number of Msg on Msgpool(server)
+storm.messaging.jxio.server.inc.buffer.count: 50 #The number of Additional Msg on Msgpool(server)
 storm.messaging.jxio.client_worker_threads: 1
-storm.messaging.jxio.server_worker_threads: 1
+storm.messaging.jxio.server_worker_threads: 4
 storm.messaging.jxio.socket.backlog: 500
 storm.messaging.jxio.max_retries: 300
 storm.messaging.jxio.max_wait_ms: 1000

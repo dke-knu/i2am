@@ -102,7 +102,7 @@ public class StormMqttIntegrationTest implements Serializable{
         byte[] qoses = connection.subscribe(topics);
 
         try (LocalCluster cluster = new LocalCluster();
-             LocalTopology topo = cluster.submitTopology("test", new Config(), buildMqttTopology());) {
+             LocalTopology topo = cluster.submitTopology("test", new Config(), buildMqttTopology())) {
 
             LOG.info("topology started");
             while(!spoutActivated) {

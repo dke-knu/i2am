@@ -55,6 +55,6 @@ public class SimpleWhitelistAuthorizer implements IAuthorizer {
      */
     @Override
     public boolean permit(ReqContext context, String operation, Map topology_conf) {
-        return context.principal() != null ? users.contains(context.principal().getName()) : false;
+        return context.principal() != null && users.contains(context.principal().getName());
     }
 }

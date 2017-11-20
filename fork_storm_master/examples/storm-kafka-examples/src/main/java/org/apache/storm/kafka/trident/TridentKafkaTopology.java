@@ -81,7 +81,7 @@ public class TridentKafkaTopology {
         }
 
         try (LocalCluster cluster = new LocalCluster();
-             LocalTopology topo = cluster.submitTopology("wordCounter", new Config(), buildTopology(args[0]));) {
+             LocalTopology topo = cluster.submitTopology("wordCounter", new Config(), buildTopology(args[0]))) {
             Thread.sleep(60 * 1000);
         }
     }

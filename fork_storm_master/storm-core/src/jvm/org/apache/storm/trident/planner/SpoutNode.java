@@ -21,7 +21,7 @@ import org.apache.storm.tuple.Fields;
 
 
 public class SpoutNode extends Node {
-    public static enum SpoutType {
+    public enum SpoutType {
         DRPC,
         BATCH
     }

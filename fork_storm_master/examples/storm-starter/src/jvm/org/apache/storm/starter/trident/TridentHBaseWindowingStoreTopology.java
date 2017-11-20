@@ -79,7 +79,7 @@ public class TridentHBaseWindowingStoreTopology {
 
         if (args.length == 0) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("wordCounterWithWindowing", conf, buildTopology(windowStoreFactory));) {
+                 LocalTopology topo = cluster.submitTopology("wordCounterWithWindowing", conf, buildTopology(windowStoreFactory))) {
                 Utils.sleep(120 * 1000);
             }
             System.exit(0);

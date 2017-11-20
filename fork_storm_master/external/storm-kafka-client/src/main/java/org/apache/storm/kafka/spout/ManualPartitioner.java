@@ -36,5 +36,5 @@ public interface ManualPartitioner {
      * @param context the context of the topology
      * @return the subset of the partitions that this spout should use.
      */
-    public List<TopicPartition> partition(List<TopicPartition> allPartitions, TopologyContext context);
+    List<TopicPartition> partition(List<TopicPartition> allPartitions, TopologyContext context);
 }

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public interface IMetricsConsumer {
-    public static class TaskInfo {
+    class TaskInfo {
         public TaskInfo() {}
         public TaskInfo(String srcWorkerHost, int srcWorkerPort, String srcComponentId, int srcTaskId, long timestamp, int updateIntervalSecs) {
             this.srcWorkerHost = srcWorkerHost;
@@ -44,7 +44,7 @@ public interface IMetricsConsumer {
     }
 
     // We can't move this to outside without breaking backward compatibility.
-    public static class DataPoint {
+    class DataPoint {
         public DataPoint() {}
         public DataPoint(String name, Object value) {
             this.name = name;

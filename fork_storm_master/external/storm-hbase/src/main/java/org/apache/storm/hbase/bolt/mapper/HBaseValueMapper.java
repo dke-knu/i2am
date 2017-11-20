@@ -33,7 +33,7 @@ public interface HBaseValueMapper extends Serializable {
      * @return list of values that should be emitted by the lookup bolt.
      * @throws Exception
      */
-    public List<Values> toValues(ITuple input, Result result) throws Exception;
+    List<Values> toValues(ITuple input, Result result) throws Exception;
 
     /**
      * declares the output fields for the lookup bolt.

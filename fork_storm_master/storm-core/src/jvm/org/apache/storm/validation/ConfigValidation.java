@@ -110,7 +110,7 @@ public class ConfigValidation {
         public void validateField(String name, Object o) {
             SimpleTypeValidator.validateField(name, String.class, o);
             if(this.acceptedValues != null) {
-                if (!this.acceptedValues.contains((String) o)) {
+                if (!this.acceptedValues.contains(o)) {
                     throw new IllegalArgumentException("Field " + name + " is not an accepted value. Value: " + o + " Accepted values: " + this.acceptedValues);
                 }
             }
@@ -510,9 +510,9 @@ public class ConfigValidation {
             }
 
             if (o instanceof String &&
-                    (((String) o).equals("NONE") ||
-                            ((String) o).equals("DIGEST") ||
-                            ((String) o).equals("KERBEROS"))) {
+                    (o.equals("NONE") ||
+                            o.equals("DIGEST") ||
+                            o.equals("KERBEROS"))) {
                 return;
             }
             throw new IllegalArgumentException("Field " + name + " must be one of \"NONE\", \"DIGEST\", or \"KERBEROS\"");
@@ -684,7 +684,7 @@ public class ConfigValidation {
 
             Object value = null;
             try {
-                value = (Object) method.invoke(v);
+                value = method.invoke(v);
             } catch (IllegalArgumentException ex) {
                 value = null;
             }

@@ -153,7 +153,7 @@ public class StatefulWindowedBoltExecutor<T extends State> extends WindowedBoltE
             LOG.warn("State is already initialized. Ignoring initState");
             return;
         }
-        statefulWindowedBolt.initState((T) state);
+        statefulWindowedBolt.initState(state);
         // query the streamState for each input task stream and compute recoveryStates
         for (GlobalStreamId streamId : topologyContext.getThisSources().keySet()) {
             for (int taskId : topologyContext.getComponentTasks(streamId.get_componentId())) {

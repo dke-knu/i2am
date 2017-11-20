@@ -233,7 +233,7 @@ public class MasterBatchCoordinator extends BaseRichSpout {
         return ret;
     }
     
-    private static enum AttemptStatus {
+    private enum AttemptStatus {
         PROCESSING,
         PROCESSED,
         COMMITTING
@@ -284,8 +284,8 @@ public class MasterBatchCoordinator extends BaseRichSpout {
                 } else {
                     txidObj = (Number) e.getKey();
                 }
-                long txid = ((Number) txidObj).longValue();
-                int attemptId = ((Number) e.getValue()).intValue();
+                long txid = txidObj.longValue();
+                int attemptId = e.getValue().intValue();
                 Integer curr = ret.get(txid);
                 if(curr==null || attemptId > curr) {
                     ret.put(txid, attemptId);

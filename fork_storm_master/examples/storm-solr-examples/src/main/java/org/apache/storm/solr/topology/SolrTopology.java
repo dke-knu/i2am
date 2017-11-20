@@ -52,7 +52,7 @@ public abstract class SolrTopology {
 
     protected void submitTopologyLocalCluster(StormTopology topology, Config config) throws Exception {
         try (LocalCluster cluster = new LocalCluster();
-             LocalTopology topo = cluster.submitTopology("test", config, topology);) {
+             LocalTopology topo = cluster.submitTopology("test", config, topology)) {
             Thread.sleep(10000);
             System.out.println("Killing topology per client's request");
         }

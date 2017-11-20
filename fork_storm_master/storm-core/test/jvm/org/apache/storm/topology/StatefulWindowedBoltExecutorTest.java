@@ -114,7 +114,7 @@ public class StatefulWindowedBoltExecutorTest {
     }
 
     private TupleWindow getTupleWindow(List<Tuple> tuples) {
-        return new TupleWindowImpl(tuples, tuples, Collections.<Tuple>emptyList());
+        return new TupleWindowImpl(tuples, tuples, Collections.emptyList());
     }
 
     private List<Tuple> getMockTuples(int count) {

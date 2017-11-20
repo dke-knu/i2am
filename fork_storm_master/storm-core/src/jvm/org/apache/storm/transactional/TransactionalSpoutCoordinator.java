@@ -163,7 +163,7 @@ public class TransactionalSpoutCoordinator extends BaseRichSpout {
         return ret;
     }
     
-    private static enum AttemptStatus {
+    private enum AttemptStatus {
         PROCESSING,
         PROCESSED,
         COMMITTING

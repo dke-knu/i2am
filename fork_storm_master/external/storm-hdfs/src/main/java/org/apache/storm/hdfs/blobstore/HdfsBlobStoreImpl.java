@@ -223,7 +223,7 @@ public class HdfsBlobStoreImpl {
         Path hashDir = new Path(_fullPath, hash);
 
         Path ret = new Path(hashDir, key);
-        LOG.debug("{} Looking for {} in {}", new Object[]{_fullPath, key, hash});
+        LOG.debug("{} Looking for {} in {}", _fullPath, key, hash);
         return ret;
     }
 

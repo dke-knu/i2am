@@ -297,7 +297,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
             dropMessages(msgs);
             return;
         }
-
         synchronized (writeLock) {
             while (msgs.hasNext()) {
                 TaskMessage message = msgs.next();
@@ -376,7 +375,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
         }
 
         final int numMessages = batch.size();
-        LOG.debug("writing {} messages to channel {}", batch.size(), channel.toString());
+        LOG.debug("writing {}, {} messages to channel {}", batch.size(), batch.getEncoded_length(), channel.toString());
         pendingMessages.addAndGet(numMessages);
 
         ChannelFuture future = channel.write(batch);

@@ -33,6 +33,6 @@ public interface ITupleDruidEventMapper<E> extends Serializable {
      *
      * @param tuple tuple instance
      */
-    public E getEvent(ITuple tuple);
+    E getEvent(ITuple tuple);
 
 }

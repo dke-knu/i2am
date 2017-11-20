@@ -28,7 +28,7 @@ import java.util.Map;
  * replay the same batch every time it emits a batch for a transaction id.
  */
 public interface IOpaquePartitionedTransactionalSpout<T> extends IComponent {
-    public interface Coordinator {
+    interface Coordinator {
         /**
          * Returns true if its ok to emit start a new transaction, false otherwise (will skip this transaction).
          * 
@@ -39,7 +39,7 @@ public interface IOpaquePartitionedTransactionalSpout<T> extends IComponent {
         void close();
     }
     
-    public interface Emitter<X> {
+    interface Emitter<X> {
         /**
          * Emit a batch of tuples for a partition/transaction. 
          * 

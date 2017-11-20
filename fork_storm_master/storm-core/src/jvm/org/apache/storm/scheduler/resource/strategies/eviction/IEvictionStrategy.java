@@ -26,7 +26,7 @@ public interface IEvictionStrategy {
     /**
      * Initialization
      */
-    public void prepare(SchedulingState schedulingState);
+    void prepare(SchedulingState schedulingState);
 
     /**
      * This method when invoked should attempt to make space on the cluster so that the topology specified can be scheduled
@@ -36,7 +36,7 @@ public interface IEvictionStrategy {
      * trying to schedule the topology for this round of scheduling.  This method will be invoked until the topology indicated
      * could be scheduled or the method returns false
      */
-    public boolean makeSpaceForTopo(TopologyDetails td);
+    boolean makeSpaceForTopo(TopologyDetails td);
 
 
 }

@@ -47,7 +47,7 @@ public class SerializationFactory {
     public static final Logger LOG = LoggerFactory.getLogger(SerializationFactory.class);
 
     public static Kryo getKryo(Map conf) {
-        IKryoFactory kryoFactory = (IKryoFactory) Utils.newInstance((String) conf.get(Config.TOPOLOGY_KRYO_FACTORY));
+        IKryoFactory kryoFactory = Utils.newInstance((String) conf.get(Config.TOPOLOGY_KRYO_FACTORY));
         Kryo k = kryoFactory.getKryo(conf);
         k.register(byte[].class);
 

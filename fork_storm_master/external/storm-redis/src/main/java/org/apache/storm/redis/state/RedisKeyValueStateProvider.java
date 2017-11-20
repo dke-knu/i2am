@@ -71,7 +71,7 @@ public class RedisKeyValueStateProvider implements StateProvider {
     private Serializer getKeySerializer(StateConfig config) throws Exception {
         Serializer serializer = null;
         if (config.keySerializerClass != null) {
-            Class<?> klass = (Class<?>) Class.forName(config.keySerializerClass);
+            Class<?> klass = Class.forName(config.keySerializerClass);
             serializer = (Serializer) klass.newInstance();
         } else if (config.keyClass != null) {
             serializer = new DefaultStateSerializer(Collections.singletonList(Class.forName(config.keyClass)));
@@ -84,7 +84,7 @@ public class RedisKeyValueStateProvider implements StateProvider {
     private Serializer getValueSerializer(StateConfig config) throws Exception {
         Serializer serializer = null;
         if (config.valueSerializerClass != null) {
-            Class<?> klass = (Class<?>) Class.forName(config.valueSerializerClass);
+            Class<?> klass = Class.forName(config.valueSerializerClass);
             serializer = (Serializer) klass.newInstance();
         } else if (config.valueClass != null) {
             serializer = new DefaultStateSerializer(Collections.singletonList(Class.forName(config.valueClass)));

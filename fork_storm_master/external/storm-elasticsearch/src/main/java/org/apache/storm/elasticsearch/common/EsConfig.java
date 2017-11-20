@@ -46,7 +46,7 @@ public class EsConfig implements Serializable {
      * @throws NullPointerException     on any of the fields being null
      */
     public EsConfig(String clusterName, String[] nodes) {
-        this(clusterName, nodes, Collections.<String, String>emptyMap());
+        this(clusterName, nodes, Collections.emptyMap());
     }
 
     /**

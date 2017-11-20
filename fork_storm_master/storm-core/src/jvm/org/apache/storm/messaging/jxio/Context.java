@@ -8,6 +8,7 @@ import org.apache.storm.utils.Utils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by seokwoo on 17. 3. 17.
@@ -24,6 +25,7 @@ public class Context implements IContext {
     private Map storm_conf;
     private Map<String, IConnection> connections;
     private ScheduledThreadPoolExecutor clientScheduleService;
+    private boolean isEnablePortal = false;
     /*
     *
     *    Enqueue a task message to be sent to server
@@ -39,9 +41,13 @@ public class Context implements IContext {
     @SuppressWarnings("rawtypes")
     public void prepare(Map storm_conf) {
         this.storm_conf = storm_conf;
-        Constants.setStorm_conf(storm_conf);
         connections = new HashMap<>();
-        clientScheduleService = new ScheduledThreadPoolExecutor(Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_SERVER_WORKER_THREADS)));
+        ThreadFactory workerFactory = new JxioRenameThreadFactory("[Client-connection-scheduler]");
+        clientScheduleService = new ScheduledThreadPoolExecutor(
+                Utils.getInt(storm_conf.get(Config.STORM_MESSAGING_JXIO_CLIENT_WORKER_THREADS)),
+                workerFactory);
+        isEnablePortal = Utils.getBoolean(storm_conf.get(Config.STORM_MESSAGING_JXIO_PORTAL_HANDLER), true);
+
     }
 
     /*
@@ -52,7 +58,7 @@ public class Context implements IContext {
     * */
     @Override
     public void term() {
-//        clientScheduleService.stop();
+        clientScheduleService.shutdown();
 
         for (IConnection conn : connections.values()) {
             conn.close();
@@ -77,7 +83,12 @@ public class Context implements IContext {
     * */
     @Override
     public IConnection bind(String storm_id, int port) {
-        IConnection server = new Server(storm_conf, port);
+        IConnection server = null;
+        if(!isEnablePortal) {
+            server = new ServerNoPortal(storm_conf, port);
+        } else {
+            server = new Server(storm_conf, port);
+        }
         connections.put(key(storm_id, port), server);
         return server;
     }
@@ -95,8 +106,9 @@ public class Context implements IContext {
     @Override
     public IConnection connect(String storm_id, String host, int port) {
         //서버 객체의 ip, port와 겹칠 경우 서버 객체를 리턴??
-        IConnection connection = connections.get(key(host, port));
-        if (connection != null) {
+        IConnection connection = connections.get(key(host,port));
+        if(connection != null)
+        {
             return connection;
         }
         //스케줄러는 필요할꺼 같다..

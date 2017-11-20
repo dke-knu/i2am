@@ -166,7 +166,7 @@ public class TransactionalGlobalCount {
     config.setMaxSpoutPending(3);
  
     try (LocalCluster cluster = new LocalCluster();
-         LocalTopology topo = cluster.submitTopology("global-count-topology", config, builder.buildTopology());) {
+         LocalTopology topo = cluster.submitTopology("global-count-topology", config, builder.buildTopology())) {
         Thread.sleep(3000);
     }
   }

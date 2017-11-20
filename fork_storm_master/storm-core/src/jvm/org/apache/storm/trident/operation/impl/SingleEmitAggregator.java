@@ -27,7 +27,7 @@ import org.apache.storm.trident.tuple.TridentTuple;
 
 
 public class SingleEmitAggregator implements Aggregator<SingleEmitState> {
-    public static interface BatchToPartition extends Serializable {
+    public interface BatchToPartition extends Serializable {
         int partitionIndex(Object batchId, int numPartitions);
     }
     

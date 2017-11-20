@@ -42,5 +42,5 @@ public interface JmsMessageProducer extends Serializable {
      * @return
      * @throws JMSException
      */
-    public Message toMessage(Session session, ITuple input) throws JMSException;
+    Message toMessage(Session session, ITuple input) throws JMSException;
 }

@@ -56,7 +56,7 @@ public class Slot extends Thread implements AutoCloseable {
         WAITING_FOR_BASIC_LOCALIZATION,
         WAITING_FOR_BLOB_LOCALIZATION;
     };
-    
+
     static class StaticState {
         public final ILocalizer localizer;
         public final long hbTimeoutMs;
@@ -201,7 +201,7 @@ public class Slot extends Thread implements AutoCloseable {
                     pendingStopProfileActions);
         }
     };
-    
+
     static class TopoProfileAction {
         public final String topoId;
         public final ProfileRequest request;

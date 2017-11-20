@@ -66,7 +66,7 @@ public class KafkaSpoutConfig<K, V> implements Serializable {
      * If no offset has been committed, it behaves as LATEST.</li>
      * </ul>
      * */
-    public static enum FirstPollOffsetStrategy {
+    public enum FirstPollOffsetStrategy {
         EARLIEST,
         LATEST,
         UNCOMMITTED_EARLIEST,

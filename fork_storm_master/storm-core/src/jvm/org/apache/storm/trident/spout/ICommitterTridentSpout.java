@@ -22,10 +22,10 @@ import org.apache.storm.trident.topology.TransactionAttempt;
 import java.util.Map;
 
 public interface ICommitterTridentSpout<X> extends ITridentSpout<X> {
-    public interface Emitter extends ITridentSpout.Emitter {
+    interface Emitter extends ITridentSpout.Emitter {
         void commit(TransactionAttempt attempt);
     } 
     
     @Override
-    public Emitter getEmitter(String txStateId, Map conf, TopologyContext context);    
+    Emitter getEmitter(String txStateId, Map conf, TopologyContext context);
 }

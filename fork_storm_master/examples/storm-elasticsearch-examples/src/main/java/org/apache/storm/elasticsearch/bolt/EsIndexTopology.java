@@ -56,7 +56,7 @@ public class EsIndexTopology {
         EsTestUtil.waitForSeconds(5);
 
         try (LocalCluster cluster = new LocalCluster();
-            LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());) {
+            LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology())) {
             EsTestUtil.waitForSeconds(20);
         }
         System.exit(0);

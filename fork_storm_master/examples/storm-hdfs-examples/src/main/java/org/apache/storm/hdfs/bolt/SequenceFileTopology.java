@@ -100,7 +100,7 @@ public class SequenceFileTopology {
 
         if (args.length == 2) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());) {
+                 LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology())) {
                 waitForSeconds(120);
             }
             System.exit(0);

@@ -98,7 +98,7 @@ public class ResourceAwareExampleTopology {
     else {
 
       try (LocalCluster cluster = new LocalCluster();
-           LocalTopology topo = cluster.submitTopology("test", conf, builder.createTopology());) {
+           LocalTopology topo = cluster.submitTopology("test", conf, builder.createTopology())) {
         Utils.sleep(10000);
       }
     }

@@ -41,9 +41,9 @@ public class TestCLI {
            .parse("-a100", "--aa", "200", "-c2", "-b", "50", "--cc", "100", "A-VALUE", "1", "2", "3", "-b40", "-d1", "-d2", "-d3"
                 , "-f", "key1=value1", "-f", "key2=value2");
         assertEquals(8, values.size());
-        assertEquals("200", (String)values.get("a"));
-        assertEquals((Integer)40, (Integer)values.get("b"));
-        assertEquals((Integer)2, (Integer)values.get("c"));
+        assertEquals("200", values.get("a"));
+        assertEquals((Integer)40, values.get("b"));
+        assertEquals((Integer)2, values.get("c"));
         assertEquals(null, values.get("e"));
 
         List<String> d = (List<String>)values.get("d");

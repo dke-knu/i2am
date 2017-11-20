@@ -87,10 +87,10 @@ public class RichSpoutBatchTriggerer implements IRichSpout {
 
     @Override
     public void ack(Object msgId) {
-        Long batchId = _msgIdToBatchId.remove((Long) msgId);
+        Long batchId = _msgIdToBatchId.remove(msgId);
         FinishCondition cond = _finishConditions.get(batchId);
         if(cond!=null) {
-            cond.vals.remove((Long) msgId);
+            cond.vals.remove(msgId);
             if(cond.vals.isEmpty()) {
                 _finishConditions.remove(batchId);
                 _delegate.ack(cond.msgId);
@@ -100,7 +100,7 @@ public class RichSpoutBatchTriggerer implements IRichSpout {
 
     @Override
     public void fail(Object msgId) {
-        Long batchId = _msgIdToBatchId.remove((Long) msgId);
+        Long batchId = _msgIdToBatchId.remove(msgId);
         FinishCondition cond = _finishConditions.remove(batchId);
         if(cond!=null) {
             _delegate.fail(cond.msgId);            

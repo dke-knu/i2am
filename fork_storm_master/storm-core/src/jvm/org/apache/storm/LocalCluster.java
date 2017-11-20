@@ -444,7 +444,7 @@ public class LocalCluster implements ILocalCluster {
         }
     }
     
-    private boolean hasLeader() throws AuthorizationException, TException {
+    private boolean hasLeader() throws TException {
         ClusterSummary summary = getNimbus().getClusterInfo();
         if (summary.is_set_nimbuses()) {
             for (NimbusSummary sum: summary.get_nimbuses()) {

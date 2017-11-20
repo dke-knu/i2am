@@ -530,7 +530,7 @@ public class TestResourceAwareScheduler {
         topologies = new Topologies(topoMap);
         rs.schedule(topologies, cluster1);
 
-        newAssignment = (SchedulerAssignmentImpl)cluster1.getAssignmentById(topology1.getId());
+        newAssignment = cluster1.getAssignmentById(topology1.getId());
         newExecutorToSlot = newAssignment.getExecutorToSlot();
 
         for (ExecutorDetails executor : copyOfOldMapping.keySet()) {

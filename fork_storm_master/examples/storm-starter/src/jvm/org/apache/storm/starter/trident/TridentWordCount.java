@@ -73,7 +73,7 @@ public class TridentWordCount {
     if (args.length == 0) {
       try (LocalDRPC drpc = new LocalDRPC();
            LocalCluster cluster = new LocalCluster();
-           LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(drpc));) {
+           LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(drpc))) {
         for (int i = 0; i < 100; i++) {
           System.out.println("DRPC RESULT: " + drpc.execute("words", "cat the dog jumped"));
           Thread.sleep(1000);

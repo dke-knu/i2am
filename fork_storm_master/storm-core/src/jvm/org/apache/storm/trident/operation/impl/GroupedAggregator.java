@@ -64,12 +64,12 @@ public class GroupedAggregator implements Aggregator<Object[]> {
     public void aggregate(Object[] arr, TridentTuple tuple, TridentCollector collector) {
         GroupCollector groupColl = (GroupCollector) arr[0];
         Map<List, Object> val = (Map) arr[1];
-        TridentTuple group = _groupFactory.create((TridentTupleView) tuple);
-        TridentTuple input = _inputFactory.create((TridentTupleView) tuple);
+        TridentTuple group = _groupFactory.create(tuple);
+        TridentTuple input = _inputFactory.create(tuple);
         Object curr;
         if(!val.containsKey(group)) {
             curr = _agg.init(arr[2], groupColl);
-            val.put((List) group, curr);
+            val.put(group, curr);
         } else {
             curr = val.get(group);
         }

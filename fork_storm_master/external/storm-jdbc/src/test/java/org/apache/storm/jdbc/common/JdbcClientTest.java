@@ -75,7 +75,7 @@ public class JdbcClientTest {
         Assert.assertEquals(expectedRows, selectedRows);
 
 
-        selectedRows = client.select("select * from user_details order by id", Lists.<Column>newArrayList());
+        selectedRows = client.select("select * from user_details order by id", Lists.newArrayList());
         rows.add(row3);
         Assert.assertEquals(rows, selectedRows);
     }

@@ -236,7 +236,7 @@ public class TransactionalWords {
     config.setMaxSpoutPending(3);
  
     try (LocalCluster cluster = new LocalCluster();
-         LocalTopology topo = cluster.submitTopology("top-n-topology", config, builder.buildTopology());) {
+         LocalTopology topo = cluster.submitTopology("top-n-topology", config, builder.buildTopology())) {
       Thread.sleep(3000);
     }
   }

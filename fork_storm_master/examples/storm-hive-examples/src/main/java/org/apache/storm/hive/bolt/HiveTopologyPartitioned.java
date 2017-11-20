@@ -79,7 +79,7 @@ public class HiveTopologyPartitioned {
                 .shuffleGrouping(USER_SPOUT_ID);
         if (args.length == 3) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());) {
+                 LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, config, builder.createTopology())) {
                 waitForSeconds(20);
             }
             System.exit(0);

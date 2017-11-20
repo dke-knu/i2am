@@ -111,8 +111,8 @@ public class TridentKafkaState implements State {
 				+ " because of the following exceptions:" + System.lineSeparator());
 				
 		for (ExecutionException exception : exceptions) {
-			errorMsg = errorMsg.append(exception.getMessage()).append(System.lineSeparator()); ;
-		}
+			errorMsg = errorMsg.append(exception.getMessage()).append(System.lineSeparator());
+        }
 		String message = errorMsg.toString();
 		LOG.error(message);
 		throw new FailedException(message);

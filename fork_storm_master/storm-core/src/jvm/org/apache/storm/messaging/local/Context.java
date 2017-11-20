@@ -82,7 +82,7 @@ public class Context implements IContext {
         public void close() {
             //NOOP
         }
-    };
+    }
 
     private static class LocalClient implements IConnection {
         private final LocalServer _server;
@@ -178,7 +178,7 @@ public class Context implements IContext {
                 throw new RuntimeException("Interrupted while awaiting flusher shutdown", e);
             }
         }
-    };
+    }
 
     private static ConcurrentHashMap<String, LocalServer> _registry = new ConcurrentHashMap<>();
     private static LocalServer getLocalServer(String nodeId, int port) {

@@ -96,7 +96,7 @@ public class TestCompilerUtils {
         sqlOperatorTables.add(SqlStdOperatorTable.instance());
         sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema),
                 false,
-                Collections.<String>emptyList(), typeFactory));
+                Collections.emptyList(), typeFactory));
         SqlOperatorTable chainedSqlOperatorTable = new ChainedSqlOperatorTable(sqlOperatorTables);
         FrameworkConfig config = Frameworks.newConfigBuilder().defaultSchema(
                 schema).operatorTable(chainedSqlOperatorTable).build();
@@ -151,7 +151,7 @@ public class TestCompilerUtils {
         sqlOperatorTables.add(SqlStdOperatorTable.instance());
         sqlOperatorTables.add(new CalciteCatalogReader(CalciteSchema.from(schema),
                                                        false,
-                                                       Collections.<String>emptyList(), typeFactory));
+                                                       Collections.emptyList(), typeFactory));
         SqlOperatorTable chainedSqlOperatorTable = new ChainedSqlOperatorTable(sqlOperatorTables);
         FrameworkConfig config = Frameworks.newConfigBuilder().defaultSchema(
                 schema).operatorTable(chainedSqlOperatorTable).build();

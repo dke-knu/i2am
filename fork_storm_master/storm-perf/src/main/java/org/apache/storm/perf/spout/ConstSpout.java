@@ -58,7 +58,7 @@ public class ConstSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
-        List<Object> tuple = Collections.singletonList((Object) value);
+        List<Object> tuple = Collections.singletonList(value);
         collector.emit(tuple, count++);
     }
 

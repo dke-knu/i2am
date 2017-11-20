@@ -314,8 +314,8 @@ public class BasicContainerTest {
         }
     }
     
-    private static interface Run {
-        public void run() throws Exception;
+    private interface Run {
+        void run() throws Exception;
     }
     
     private static void checkpoint(Run r, String ... newValues) throws Exception {

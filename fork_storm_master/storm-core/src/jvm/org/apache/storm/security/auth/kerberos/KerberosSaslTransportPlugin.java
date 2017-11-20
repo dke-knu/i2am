@@ -210,7 +210,7 @@ public class KerberosSaslTransportPlugin extends SaslTransportPlugin {
     }
 
     private String getPrincipal(Subject subject) {
-        Set<Principal> principals = (Set<Principal>)subject.getPrincipals();
+        Set<Principal> principals = subject.getPrincipals();
         if (principals==null || principals.size()<1) {
             LOG.info("No principal found in login subject");
             return null;
@@ -232,7 +232,7 @@ public class KerberosSaslTransportPlugin extends SaslTransportPlugin {
             this.wrapped = wrapped;
             this.subject = subject;
 
-            Set<Principal> principals = (Set<Principal>)subject.getPrincipals();
+            Set<Principal> principals = subject.getPrincipals();
             if (principals.size()>0) 
                 LOG.info("Service principal:"+ ((Principal)(principals.toArray()[0])).getName());
         }

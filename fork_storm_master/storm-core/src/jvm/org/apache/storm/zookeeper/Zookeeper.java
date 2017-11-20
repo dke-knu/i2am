@@ -319,7 +319,7 @@ public class Zookeeper {
         }
         LOG.info("Starting inprocess zookeeper at port {} and dir {}", report, localdir);
         factory.startup(zk);
-        return Arrays.asList((Object) new Long(report), (Object) factory);
+        return Arrays.asList(new Long(report), factory);
     }
 
     public static void shutdownInprocessZookeeper(NIOServerCnxnFactory handle) {

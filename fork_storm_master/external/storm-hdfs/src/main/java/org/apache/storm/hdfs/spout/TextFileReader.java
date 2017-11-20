@@ -73,7 +73,7 @@ public class TextFileReader extends AbstractFileReader {
   public List<Object> next() throws IOException, ParseException {
     String line = readLineAndTrackOffset(reader);
     if(line!=null) {
-      return Collections.singletonList((Object) line);
+      return Collections.singletonList(line);
     }
     return null;
   }

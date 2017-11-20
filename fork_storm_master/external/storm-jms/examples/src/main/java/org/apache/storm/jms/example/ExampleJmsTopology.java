@@ -122,7 +122,7 @@ public class ExampleJmsTopology {
             conf.setDebug(true);
 
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("storm-jms-example", conf, builder.createTopology());) {
+                 LocalTopology topo = cluster.submitTopology("storm-jms-example", conf, builder.createTopology())) {
                 Utils.sleep(60000);
             }
         }

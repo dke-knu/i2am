@@ -52,28 +52,28 @@ public class LocalDRPC implements ILocalDRPC {
     }
 
     @Override
-    public void result(String id, String result) throws AuthorizationException, TException {
+    public void result(String id, String result) throws TException {
         drpc.returnResult(id, result);
     }
 
     @Override
-    public String execute(String functionName, String funcArgs) throws DRPCExecutionException, AuthorizationException, TException {
+    public String execute(String functionName, String funcArgs) throws TException {
         return drpc.executeBlocking(functionName, funcArgs);
     }
 
     @Override
-    public void failRequest(String id) throws AuthorizationException, TException {
+    public void failRequest(String id) throws TException {
         drpc.failRequest(id, null);
     }
     
 
     @Override
-    public void failRequestV2(String id, DRPCExecutionException e) throws AuthorizationException, TException {
+    public void failRequestV2(String id, DRPCExecutionException e) throws TException {
         drpc.failRequest(id, e);
     }
 
     @Override
-    public DRPCRequest fetchRequest(String functionName) throws AuthorizationException, TException {
+    public DRPCRequest fetchRequest(String functionName) throws TException {
         return drpc.fetchRequest(functionName);
     }
 

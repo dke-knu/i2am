@@ -42,7 +42,7 @@ public class JmsSpoutTest {
     private static final Logger LOG = LoggerFactory.getLogger(JmsSpoutTest.class);
 
     @Test
-    public void testFailure() throws JMSException, Exception{
+    public void testFailure() throws Exception{
         JmsSpout spout = new JmsSpout();
         JmsProvider mockProvider = new MockJmsProvider();
         MockSpoutOutputCollector mockCollector = new MockSpoutOutputCollector();

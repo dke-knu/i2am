@@ -52,7 +52,7 @@ public class ThriftDecoder extends FrameDecoder {
 
         byte serialized[] = new byte[thriftLen];
         buf.readBytes(serialized, 0, thriftLen);
-        HBMessage m = (HBMessage)Utils.thriftDeserialize(HBMessage.class, serialized);
+        HBMessage m = Utils.thriftDeserialize(HBMessage.class, serialized);
 
         if(m.get_type() == HBServerMessageType.CONTROL_MESSAGE) {
             ControlMessage cm = ControlMessage.read(m.get_data().get_message_blob());

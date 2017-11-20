@@ -21,6 +21,8 @@ import org.apache.storm.messaging.TaskMessage;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
@@ -33,6 +35,10 @@ class MessageBatch {
         this.buffer_size = buffer_size;
         msgs = new ArrayList<>();
         encoded_length = ControlMessage.EOB_MESSAGE.encodeLength();
+    }
+
+    public int getEncoded_length() {
+        return encoded_length;
     }
 
     void add(TaskMessage msg) {

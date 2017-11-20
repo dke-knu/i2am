@@ -28,7 +28,7 @@ import org.apache.storm.trident.tuple.TridentTuple;
 public class MapGet extends BaseQueryFunction<ReadOnlyMapState, Object> {
     @Override
     public List<Object> batchRetrieve(ReadOnlyMapState map, List<TridentTuple> keys) {
-        return map.multiGet((List) keys);
+        return map.multiGet(keys);
     }    
     
     @Override

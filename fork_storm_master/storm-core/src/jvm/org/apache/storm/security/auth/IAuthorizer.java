@@ -49,5 +49,5 @@ public interface IAuthorizer {
      * @param topology_conf configuration of targeted topology
      * @return true if the request is authorized, false if reject
      */
-    public boolean permit(ReqContext context, String operation, Map topology_conf);
+    boolean permit(ReqContext context, String operation, Map topology_conf);
 }

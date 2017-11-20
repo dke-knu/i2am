@@ -112,7 +112,7 @@ public class RexNodeToJavaCodeCompiler {
     final RexToLixTranslator.InputGetter inputGetter =
             new RexToLixTranslator.InputGetterImpl(
                     ImmutableList.of(
-                            Pair.<Expression, PhysType>of(
+                            Pair.of(
                                     Expressions.field(context_,
                                             BuiltInMethod.CONTEXT_VALUES.field),
                                     PhysTypeImpl.of(javaTypeFactory, inputRowType,
@@ -173,7 +173,7 @@ public class RexNodeToJavaCodeCompiler {
 
     final ClassDeclaration classDeclaration =
             Expressions.classDecl(Modifier.PUBLIC, className, null,
-                    ImmutableList.<Type>of(ExecutableExpression.class), declarations);
+                    ImmutableList.of(ExecutableExpression.class), declarations);
 
     return Expressions.toString(Lists.newArrayList(classDeclaration), "\n", false);
   }
@@ -199,7 +199,7 @@ public class RexNodeToJavaCodeCompiler {
       MAP = builder.build();
     }
 
-    private StormBuiltInMethod(Method method, Constructor constructor, Field field) {
+    StormBuiltInMethod(Method method, Constructor constructor, Field field) {
       this.method = method;
       this.constructor = constructor;
       this.field = field;

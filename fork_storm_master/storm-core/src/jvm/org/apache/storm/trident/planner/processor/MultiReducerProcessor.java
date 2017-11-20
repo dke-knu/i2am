@@ -59,7 +59,7 @@ public class MultiReducerProcessor implements TridentProcessor {
             _projectionFactories[i] = new ProjectionFactory(parents.get(i), _projectFields.get(i));
         }
         _collector = new FreshCollector(tridentContext);
-        _reducer.prepare(conf, new TridentMultiReducerContext((List) Arrays.asList(_projectionFactories)));
+        _reducer.prepare(conf, new TridentMultiReducerContext(Arrays.asList(_projectionFactories)));
     }
 
     @Override

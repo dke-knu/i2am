@@ -26,5 +26,5 @@ public interface IMetric {
      * If null is returned nothing will be sent.
      * If this value can be reset, like with a counter, a side effect of calling this should be that the value is reset.
      */
-    public Object getValueAndReset();
+    Object getValueAndReset();
 }

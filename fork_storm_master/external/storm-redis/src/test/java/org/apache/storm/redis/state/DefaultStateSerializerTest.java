@@ -44,13 +44,13 @@ public class DefaultStateSerializerTest {
         Serializer<CheckPointState> s2 = new DefaultStateSerializer<CheckPointState>();
         CheckPointState cs = new CheckPointState(100, CheckPointState.State.COMMITTED);
         bytes = s2.serialize(cs);
-        assertEquals(cs, (CheckPointState) s2.deserialize(bytes));
+        assertEquals(cs, s2.deserialize(bytes));
 
         List<Class<?>> classesToRegister = new ArrayList<>();
         classesToRegister.add(CheckPointState.class);
         Serializer<CheckPointState> s3 = new DefaultStateSerializer<CheckPointState>(classesToRegister);
         bytes = s2.serialize(cs);
-        assertEquals(cs, (CheckPointState) s2.deserialize(bytes));
+        assertEquals(cs, s2.deserialize(bytes));
 
     }
 }

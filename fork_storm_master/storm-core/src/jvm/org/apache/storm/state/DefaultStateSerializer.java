@@ -59,7 +59,7 @@ public class DefaultStateSerializer<T> implements Serializer<T> {
     }
 
     public DefaultStateSerializer() {
-        this(Collections.<Class<?>>emptyList());
+        this(Collections.emptyList());
     }
 
     @Override

@@ -136,7 +136,7 @@ public class StatefulTopology {
             StormSubmitter.submitTopologyWithProgressBar(args[0], conf, builder.createTopology());
         } else {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topology = cluster.submitTopology("test", conf, builder.createTopology());) {
+                 LocalTopology topology = cluster.submitTopology("test", conf, builder.createTopology())) {
                 Utils.sleep(40000);
             }
         }

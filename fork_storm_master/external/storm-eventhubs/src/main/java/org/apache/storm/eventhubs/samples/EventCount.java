@@ -137,7 +137,7 @@ public class EventCount {
       config.setMaxTaskParallelism(2);
 
       try (LocalCluster localCluster = new LocalCluster();
-           LocalTopology topo = localCluster.submitTopology("test", config, topology);) {
+           LocalTopology topo = localCluster.submitTopology("test", config, topology)) {
         Thread.sleep(5000000);
       }
     }

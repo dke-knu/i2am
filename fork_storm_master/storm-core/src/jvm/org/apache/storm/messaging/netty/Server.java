@@ -198,13 +198,16 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
 
     @Override
     public Status status() {
+        LOG.info("[Server] status called");
         if (closing) {
           return Status.Closed;
         }
         else if (!connectionEstablished(allChannels)) {
+            LOG.info("[Server] status called Connecting");
             return Status.Connecting;
         }
         else {
+            LOG.info("[Server] status called Ready");
             return Status.Ready;
         }
     }

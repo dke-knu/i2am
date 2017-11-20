@@ -85,7 +85,7 @@ public class TridentSequenceTopology {
 
         if (args.length == 2) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(args[0]));) {
+                 LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(args[0]))) {
                 Thread.sleep(120 * 1000);
             }
         } else if(args.length == 3) {

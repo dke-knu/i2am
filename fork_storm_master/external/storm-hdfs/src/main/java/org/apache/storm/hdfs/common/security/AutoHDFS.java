@@ -179,7 +179,7 @@ public class AutoHDFS implements IAutoCredentials, ICredentialsRenewer, INimbusC
                         //We need to re-login some other thread might have logged into hadoop using
                         // their credentials (e.g. AutoHBase might be also part of nimbu auto creds)
                         login(configuration);
-                        long expiration = (Long) token.renew(configuration);
+                        long expiration = token.renew(configuration);
                         LOG.info("HDFS delegation token renewed, new expiration time {}", expiration);
                     }
                 } else {

@@ -61,7 +61,7 @@ public class RedisKeyValueStateTest {
                     @Override
                     public Boolean answer(InvocationOnMock invocation) throws Throwable {
                         Object[] args = invocation.getArguments();
-                        return mockMap.containsKey((String) args[0]);
+                        return mockMap.containsKey(args[0]);
                     }
                 });
 

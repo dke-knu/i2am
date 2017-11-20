@@ -46,7 +46,7 @@ public class SingleJoinExample {
     conf.setDebug(true);
 
     try (LocalCluster cluster = new LocalCluster();
-         LocalTopology topo = cluster.submitTopology("join-example", conf, builder.createTopology());) {
+         LocalTopology topo = cluster.submitTopology("join-example", conf, builder.createTopology())) {
 
       for (int i = 0; i < 10; i++) {
         String gender;

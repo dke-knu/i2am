@@ -96,7 +96,7 @@ public class TridentMinMaxOfVehiclesTopology {
         conf.setMaxSpoutPending(20);
         if (args.length == 0) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("vehicles-topology", conf, topology);) {
+                 LocalTopology topo = cluster.submitTopology("vehicles-topology", conf, topology)) {
                 Utils.sleep(60 * 1000);
             }
             System.exit(0);

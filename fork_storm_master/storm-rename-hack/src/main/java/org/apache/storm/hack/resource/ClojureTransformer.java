@@ -34,10 +34,7 @@ public class ClojureTransformer implements ResourceTransformer {
 
     @Override
     public boolean canTransformResource(String s) {
-        if(s.endsWith(".clj")){
-            return true;
-        }
-        return false;
+        return s.endsWith(".clj");
     }
 
     @Override

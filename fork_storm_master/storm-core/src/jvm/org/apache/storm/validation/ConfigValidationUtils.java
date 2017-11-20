@@ -29,14 +29,14 @@ public class ConfigValidationUtils {
     /**
      * Declares methods for validating configuration values.
      */
-    public static interface FieldValidator {
+    public interface FieldValidator {
         /**
          * Validates the given field.
          * @param name the name of the field.
          * @param field The field to be validated.
          * @throws IllegalArgumentException if the field fails validation.
          */
-        public void validateField(String name, Object field) throws IllegalArgumentException;
+        void validateField(String name, Object field) throws IllegalArgumentException;
     }
 
     /**

@@ -66,7 +66,7 @@ public class LookupWordCount {
 
         if (args.length == 1) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("test", config, builder.createTopology());) {
+                 LocalTopology topo = cluster.submitTopology("test", config, builder.createTopology())) {
                 Thread.sleep(30000);
             }
             System.exit(0);

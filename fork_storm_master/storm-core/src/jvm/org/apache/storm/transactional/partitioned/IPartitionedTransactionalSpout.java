@@ -29,7 +29,7 @@ import java.util.Map;
  * is always emitted for the same transaction id. The partition metadata is stored in Zookeeper.
  */
 public interface IPartitionedTransactionalSpout<T> extends IComponent {
-    public interface Coordinator {
+    interface Coordinator {
         /**
          * Return the number of partitions currently in the source of data. The idea is
          * is that if a new partition is added and a prior transaction is replayed, it doesn't
@@ -49,7 +49,7 @@ public interface IPartitionedTransactionalSpout<T> extends IComponent {
         void close();
     }
     
-    public interface Emitter<X> {
+    interface Emitter<X> {
         /**
          * Emit a batch of tuples for a partition/transaction that's never been emitted before.
          * Return the metadata that can be used to reconstruct this partition/batch in the future.

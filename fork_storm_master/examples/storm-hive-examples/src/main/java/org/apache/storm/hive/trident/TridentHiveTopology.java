@@ -98,7 +98,7 @@ public class TridentHiveTopology {
         conf.setMaxSpoutPending(5);
         if(args.length == 3) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("tridentHiveTopology", conf, buildTopology(metaStoreURI, dbName, tblName,null,null));) {
+                 LocalTopology topo = cluster.submitTopology("tridentHiveTopology", conf, buildTopology(metaStoreURI, dbName, tblName,null,null))) {
                 LOG.info("waiting for 60 seconds");
                 waitForSeconds(60);
             }

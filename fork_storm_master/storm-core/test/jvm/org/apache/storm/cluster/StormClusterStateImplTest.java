@@ -63,7 +63,7 @@ public class StormClusterStateImplTest {
 
     @Test
     public void registeredCallback() {
-        Mockito.verify(storage).register(Matchers.<ZKStateChangedCallback>anyObject());
+        Mockito.verify(storage).register(Matchers.anyObject());
     }
 
     @Test

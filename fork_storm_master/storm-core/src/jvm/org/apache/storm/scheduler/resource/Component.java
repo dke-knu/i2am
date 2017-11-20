@@ -28,7 +28,7 @@ public class Component {
         SPOUT(1), BOLT(2);
         private int value;
 
-        private ComponentType(int value) {
+        ComponentType(int value) {
             this.value = value;
         }
     }

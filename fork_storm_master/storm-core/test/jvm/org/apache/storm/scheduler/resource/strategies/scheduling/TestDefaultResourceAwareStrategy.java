@@ -99,7 +99,7 @@ public class TestDefaultResourceAwareStrategy {
 
         TopologyDetails topo = new TopologyDetails("testTopology-id", conf, stormToplogy, 0,
                 TestUtilsForResourceAwareScheduler.genExecsAndComps(stormToplogy)
-                , this.currentTime);
+                , currentTime);
 
         Map<String, TopologyDetails> topoMap = new HashMap<String, TopologyDetails>();
         topoMap.put(topo.getId(), topo);

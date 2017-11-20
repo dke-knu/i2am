@@ -309,14 +309,14 @@ public class TestConfigValidate {
         Object[] passCasesIncludeZero = {null, 1.0, 0.01, 0, 2147483647, 0.0};
 
         for (Object value : passCasesIncludeZero) {
-            validator.validateField("test", true, value);
+            PositiveNumberValidator.validateField("test", true, value);
         }
 
         Object[] failCasesIncludeZero = {-1.0, -1, -0.01, "43", "string"};
 
         for (Object value : failCasesIncludeZero) {
             try {
-                validator.validateField("test", true, value);
+                PositiveNumberValidator.validateField("test", true, value);
                 Assert.fail("Expected Exception not Thrown for value: " + value);
             } catch (IllegalArgumentException Ex) {
             }
@@ -388,7 +388,6 @@ public class TestConfigValidate {
         Collection<Object> testCases3 = new LinkedList<Object>();
 
         Object[] testCase1 = {"one", "two", "three"};
-        ;
         Object[] testCase2 = {"three"};
         testCases1.add(Arrays.asList(testCase1));
         testCases1.add(Arrays.asList(testCase2));
@@ -684,7 +683,7 @@ public class TestConfigValidate {
         passCase1.get("derek").put("cpu", 30000);
         passCase1.get("derek").put("memory", 60148);
 
-        config.put(TestConfig.TEST_MAP_CONFIG_7, (Object) passCase1);
+        config.put(TestConfig.TEST_MAP_CONFIG_7, passCase1);
         ConfigValidation.validateFields(config, TestConfig.class);
 
         Map<String, Map<String, Integer>> failCase1 = new HashMap<String, Map<String, Integer>>();

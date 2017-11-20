@@ -112,7 +112,7 @@ public class WordCountTopologyNode {
       conf.setMaxTaskParallelism(3);
 
       try (LocalCluster cluster = new LocalCluster();
-           LocalTopology topo = cluster.submitTopology("word-count", conf, builder.createTopology());) {
+           LocalTopology topo = cluster.submitTopology("word-count", conf, builder.createTopology())) {
           Thread.sleep(10000);
       }
     }

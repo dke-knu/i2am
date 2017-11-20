@@ -40,7 +40,7 @@ public class FieldsTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void duplicateFieldsNotAllowedTestWhenConstructingFromListTest() {
-        new Fields(new String[] {"foo", "bar", "foo"});
+        new Fields("foo", "bar", "foo");
     }
 
     @Test

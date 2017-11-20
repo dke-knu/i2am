@@ -518,7 +518,7 @@ public class Cluster {
             }
 
             String clazz = (String) conf.get(Config.STORM_NETWORK_TOPOGRAPHY_PLUGIN);
-            DNSToSwitchMapping topographyMapper = (DNSToSwitchMapping) Utils.newInstance(clazz);
+            DNSToSwitchMapping topographyMapper = Utils.newInstance(clazz);
 
             Map<String, String> resolvedSuperVisors = topographyMapper.resolve(supervisorHostNames);
             for (Map.Entry<String, String> entry : resolvedSuperVisors.entrySet()) {

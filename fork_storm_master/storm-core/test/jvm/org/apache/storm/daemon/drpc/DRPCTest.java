@@ -48,8 +48,8 @@ import org.junit.Test;
 public class DRPCTest {
     private static final ExecutorService exec = Executors.newCachedThreadPool();
     
-    public static interface ThrowStuff {
-        public void run() throws Exception;
+    public interface ThrowStuff {
+        void run() throws Exception;
     }
     
     private static void assertThrows(ThrowStuff t, Class<? extends Exception> expected) {

@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TimedRotationPolicy implements FileRotationPolicy {
 
-    public static enum TimeUnit {
+    public enum TimeUnit {
 
         SECONDS((long)1000),
         MINUTES((long)1000*60),
@@ -35,7 +35,7 @@ public class TimedRotationPolicy implements FileRotationPolicy {
 
         private long milliSeconds;
 
-        private TimeUnit(long milliSeconds){
+        TimeUnit(long milliSeconds){
             this.milliSeconds = milliSeconds;
         }
 

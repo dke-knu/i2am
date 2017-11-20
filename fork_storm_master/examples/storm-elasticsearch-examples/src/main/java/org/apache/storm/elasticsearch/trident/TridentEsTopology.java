@@ -57,7 +57,7 @@ public class TridentEsTopology {
         EsTestUtil.waitForSeconds(5);
 
         try (LocalCluster cluster = new LocalCluster();
-             LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, null, topology.build());) {
+             LocalTopology topo = cluster.submitTopology(TOPOLOGY_NAME, null, topology.build())) {
             EsTestUtil.waitForSeconds(20);
         }
         System.exit(0);

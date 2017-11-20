@@ -144,9 +144,9 @@ public class DisruptorQueue implements IStatefulObject {
     }
 
     private interface ThreadLocalInserter {
-        public void add(Object obj);
-        public void forceBatch();
-        public void flush(boolean block);
+        void add(Object obj);
+        void forceBatch();
+        void flush(boolean block);
     }
 
     private class ThreadLocalJustInserter implements ThreadLocalInserter {

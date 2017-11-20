@@ -184,7 +184,7 @@ public class AutoHBase implements IAutoCredentials, ICredentialsRenewer, INimbus
 
                 User user = User.create(ugi);
 
-                if(user.isHBaseSecurityEnabled(hbaseConf)) {
+                if(User.isHBaseSecurityEnabled(hbaseConf)) {
                     TokenUtil.obtainAndCacheToken(hbaseConf, proxyUser);
 
                     LOG.info("Obtained HBase tokens, adding to user credentials.");

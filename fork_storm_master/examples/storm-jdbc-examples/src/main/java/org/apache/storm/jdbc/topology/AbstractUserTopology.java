@@ -101,7 +101,7 @@ public abstract class AbstractUserTopology {
         this.connectionProvider = new HikariCPConnectionProvider(map);
         if (args.length == 4) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("test", config, getTopology());) {
+                 LocalTopology topo = cluster.submitTopology("test", config, getTopology())) {
                 Thread.sleep(30000);
             }
             System.exit(0);

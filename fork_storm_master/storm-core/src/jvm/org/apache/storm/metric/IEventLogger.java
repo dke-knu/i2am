@@ -31,7 +31,7 @@ public interface IEventLogger {
     /**
      * A wrapper for the fields that we would log.
      */
-    public static class EventInfo {
+    class EventInfo {
         String ts;
         String component;
         String task;

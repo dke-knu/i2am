@@ -26,11 +26,11 @@ public interface ILocalDRPC extends DistributedRPC.Iface, DistributedRPCInvocati
     /**
      * Get the ID of the service.  This is used internally if multiple local DRPC clusters are in use at one time.
      */
-    public String getServiceId();
+    String getServiceId();
     
     /**
      * @deprecated use {@link #close()} instead
      */
     @Deprecated
-    public void shutdown();
+    void shutdown();
 }

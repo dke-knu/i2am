@@ -42,8 +42,8 @@ public class ThriftNettyServerCodec {
         DIGEST,
         KERBEROS,
         NONE
-    };
-    
+    }
+
     private IServer server;
     private AuthMethod authMethod;
     private Map storm_conf;

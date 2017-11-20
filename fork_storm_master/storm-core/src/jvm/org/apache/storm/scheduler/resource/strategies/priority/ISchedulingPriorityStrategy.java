@@ -26,11 +26,11 @@ public interface ISchedulingPriorityStrategy {
     /**
      * initializes
      */
-    public void prepare(SchedulingState schedulingState);
+    void prepare(SchedulingState schedulingState);
 
     /**
      * Gets the next topology to schedule
      * @return return the next topology to schedule.  If there is no topologies left to schedule, return null
      */
-    public TopologyDetails getNextTopologyToSchedule();
+    TopologyDetails getNextTopologyToSchedule();
 }

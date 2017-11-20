@@ -27,5 +27,5 @@ public interface IShellMetric extends IMetric {
      *     value used to update metric, its's meaning change according implementation
      *     Object can be any json support types: String, Long, Double, Boolean, Null, List, Map
      * */
-    public void updateMetricFromRPC(Object value);
+    void updateMetricFromRPC(Object value);
 }

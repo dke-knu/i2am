@@ -105,11 +105,8 @@ public class TestEventLogSpout extends BaseRichSpout implements CompletableSpout
             failedAmt = failed.get(uid);
         }
         int totalEmitted = ackedAmt + failedAmt;
-        
-        if (totalEmitted >= totalCount) {
-            return true;
-        }
-        return false;
+
+        return totalEmitted >= totalCount;
     }
         
     public void nextTuple() {

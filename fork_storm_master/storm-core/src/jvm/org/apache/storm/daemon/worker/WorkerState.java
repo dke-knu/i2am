@@ -455,6 +455,9 @@ public class WorkerState {
 
         if (now > nextUpdate.get()) {
             receiver.sendLoadMetrics(localLoad);
+            /*for(IConnection client : cachedNodeToPortSocket.get().values()) {
+                client.requestLoadMectrics();
+            }*/
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }
     }
@@ -640,12 +643,12 @@ public class WorkerState {
         }
         return receiveQueueMap;
     }
-    
+
     private Map<String, Object> makeDefaultResources() {
         int threadPoolSize = Utils.getInt(conf.get(Config.TOPOLOGY_WORKER_SHARED_THREAD_POOL_SIZE));
         return ImmutableMap.of(WorkerTopologyContext.SHARED_EXECUTOR, Executors.newFixedThreadPool(threadPoolSize));
     }
-    
+
     private Map<String, Object> makeUserResources() {
         /* TODO: need to invoke a hook provided by the topology, giving it a chance to create user resources.
         * this would be part of the initialization hook

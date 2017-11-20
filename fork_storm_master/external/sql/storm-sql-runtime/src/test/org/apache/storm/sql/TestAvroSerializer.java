@@ -57,8 +57,8 @@ public class TestAvroSerializer {
   public void testAvroComplexSchemeAndSerializer() {
     List<String> fields = Lists.newArrayList("ID", "val1", "val2");
 
-    Map<String,Long> mp = Maps.newHashMap();;
-    mp.put("l1",1234L);
+    Map<String,Long> mp = Maps.newHashMap();
+      mp.put("l1",1234L);
     mp.put("l2",56789L);
     List<String> ls = Lists.newArrayList("s1", "s2");
     List<Object> o = Lists.newArrayList(1, mp, ls);

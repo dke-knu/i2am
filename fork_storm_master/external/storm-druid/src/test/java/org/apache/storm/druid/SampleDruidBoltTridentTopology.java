@@ -80,7 +80,7 @@ public class SampleDruidBoltTridentTopology {
             conf.setMaxTaskParallelism(3);
 
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("druid-test", conf, tridentTopology.build());) {
+                 LocalTopology topo = cluster.submitTopology("druid-test", conf, tridentTopology.build())) {
                 Thread.sleep(30000);
             }
             System.exit(0);

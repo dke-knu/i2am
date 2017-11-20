@@ -27,7 +27,7 @@ public interface SchedulerAssignment {
      * @param slot
      * @return
      */
-    public boolean isSlotOccupied(WorkerSlot slot);
+    boolean isSlotOccupied(WorkerSlot slot);
 
     /**
      * is the executor assigned?
@@ -35,27 +35,27 @@ public interface SchedulerAssignment {
      * @param executor
      * @return
      */
-    public boolean isExecutorAssigned(ExecutorDetails executor);
+    boolean isExecutorAssigned(ExecutorDetails executor);
     
     /**
      * get the topology-id this assignment is for.
      * @return
      */
-    public String getTopologyId();
+    String getTopologyId();
 
     /**
      * get the executor -> slot map.
      * @return
      */
-    public Map<ExecutorDetails, WorkerSlot> getExecutorToSlot();
+    Map<ExecutorDetails, WorkerSlot> getExecutorToSlot();
 
     /**
      * Return the executors covered by this assignments
      * @return
      */
-    public Set<ExecutorDetails> getExecutors();
+    Set<ExecutorDetails> getExecutors();
     
-    public Set<WorkerSlot> getSlots();
+    Set<WorkerSlot> getSlots();
 
-    public Map<WorkerSlot, Collection<ExecutorDetails>> getSlotToExecutors();
+    Map<WorkerSlot, Collection<ExecutorDetails>> getSlotToExecutors();
 }

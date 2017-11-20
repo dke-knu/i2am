@@ -88,7 +88,7 @@ public class WordCountTrident {
         conf.setMaxSpoutPending(5);
         if (args.length == 1) {
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(args[0]));) {
+                 LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(args[0]))) {
                 Thread.sleep(60 * 1000);
             }
             System.exit(0);

@@ -415,7 +415,7 @@ public class Nimbus implements Iface, Shutdownable, DaemonCommon {
         }
         
     };
-    
+
     private static class CommonTopoInfo {
         public Map<String, Object> topoConf;
         public String topoName;

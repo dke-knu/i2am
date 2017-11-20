@@ -60,7 +60,7 @@ public class SampleOpenTsdbBoltTopology {
             conf.setMaxTaskParallelism(3);
 
             try (LocalCluster cluster = new LocalCluster();
-                 LocalTopology topo = cluster.submitTopology("word-count", conf, topologyBuilder.createTopology());) {
+                 LocalTopology topo = cluster.submitTopology("word-count", conf, topologyBuilder.createTopology())) {
                 Thread.sleep(30000);
             }
             System.exit(0);

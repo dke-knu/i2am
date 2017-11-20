@@ -30,7 +30,7 @@ import java.util.TreeMap;
 public class RotatingTransactionalState {
     private static final Logger LOG = LoggerFactory.getLogger(RotatingTransactionalState.class);
 
-    public static interface StateInitializer {
+    public interface StateInitializer {
         Object init(long txid, Object lastState);
     }    
 

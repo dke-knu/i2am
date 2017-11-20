@@ -24,6 +24,6 @@ import java.io.Serializable;
 import org.apache.storm.tuple.Fields;
 
 public interface MultiScheme extends Serializable {
-  public Iterable<List<Object>> deserialize(ByteBuffer ser);
-  public Fields getOutputFields();
+  Iterable<List<Object>> deserialize(ByteBuffer ser);
+  Fields getOutputFields();
 }

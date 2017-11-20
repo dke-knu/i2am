@@ -51,7 +51,7 @@ public class ManualDRPC {
     public static void main(String[] args) throws Exception {
         TopologyBuilder builder = new TopologyBuilder();
         try(LocalDRPC drpc = new LocalDRPC();
-            LocalCluster cluster = new LocalCluster();) {
+            LocalCluster cluster = new LocalCluster()) {
 
             DRPCSpout spout = new DRPCSpout("exclamation", drpc);
             builder.setSpout("drpc", spout);

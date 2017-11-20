@@ -85,7 +85,7 @@ public class TridentWindowingInmemoryStoreTopology {
 
             for (WindowConfig windowConfig : list) {
                 try (LocalCluster cluster = new LocalCluster();
-                     LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(mapState, windowConfig));) {
+                     LocalTopology topo = cluster.submitTopology("wordCounter", conf, buildTopology(mapState, windowConfig))) {
                     Utils.sleep(60 * 1000);
                 }
             }
