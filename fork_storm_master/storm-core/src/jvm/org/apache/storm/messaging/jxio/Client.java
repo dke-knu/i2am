@@ -519,7 +519,26 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                     throw new RuntimeException(e);
                 }
                 LOG.info("Metrics message received7");
+                msg.returnToParentPool();
+                return;
+            } else {
+                byte message = inputBuffer.get();
+                if ((char) message == 's') {
+//                    LOG.info("[Client-onResponse] success");
+                    pendingMessages.addAndGet(0 - numMessages);
+                    messagesSent.getAndSet(numMessages);
+                    msg.returnToParentPool();
+                    return;
+                } else if((char) message == 'n') {
+                    LOG.error("send empty message");
+                    LOG.error("failed to send {} messages to {}: {}", numMessages, uri.getHost(),
+                            uri.getPort());
+                    messagesLost.getAndSet(numMessages);
+                    msg.returnToParentPool();
+                    closeSessionAndReconnect(sessionRef.get());
+                }
             }
+            LOG.warn("No load metrics also no success message");
             msg.returnToParentPool();
         }
 

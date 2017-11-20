@@ -39,7 +39,7 @@ public class ServerSessionHandler {
         private Server server;
         //        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
         private AtomicInteger failure_count;
-        private char ch = 's';
+        private char succMsg = 's';
 
         public ServerSessionCallbacks(Server server) {
             this.server = server;
@@ -140,7 +140,6 @@ public class ServerSessionHandler {
             //batch TaskMessage
             Object msgs = decoder(msg.getIn());
             if (msgs != null) {
-//                msg.getOut().put((byte) ch);
                 try {
                     server.received(msgs, srcIp);
                 } catch (InterruptedException e) {
@@ -149,9 +148,10 @@ public class ServerSessionHandler {
                     e.printStackTrace();
                 }
 
-                if (msgs instanceof ByteBuffer) {
+                /*if (msgs instanceof ByteBuffer) {
                     msg.getOut().put(((ByteBuffer) msgs).array());
-                }
+                }*/
+                msg.getOut().put((byte)succMsg);
 
             }
 
