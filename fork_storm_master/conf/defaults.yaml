@@ -23,7 +23,7 @@ java.library.path: "/usr/local/lib:/opt/local/lib:/usr/lib:/usr/lib64"
 ### storm.* configs are general configurations
 # the local dir is where jars are kept
 storm.messaging.jxio.portal.handler: true
-storm.messaging.jxio.transfer.batch.size: 262144
+storm.messaging.jxio.transfer.batch.size: 245760
 storm.messaging.jxio.msgpool.buffer.size: 262144 #Msgpool size(both side) batch size 262144(256KB)
 storm.messaging.jxio.msgpool.minimum.buffer.size: 50
 storm.messaging.jxio.client.buffer.count: 5 #The number of Msg on Msgpool(client)
