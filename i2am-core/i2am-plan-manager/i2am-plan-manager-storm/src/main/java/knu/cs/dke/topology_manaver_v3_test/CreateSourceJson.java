@@ -27,7 +27,7 @@ public class CreateSourceJson {
 		content.put("srcName", "Source01");
 		content.put("usesIntelligentEngine", "N");
 		content.put("createdTime", "2017-11-15 17:32:18");
-		content.put("srcType", "kafka");	
+		content.put("srcType", "KAFKA");	
 		content.put("testData", "data");
 		
 		JSONObject params = new JSONObject();

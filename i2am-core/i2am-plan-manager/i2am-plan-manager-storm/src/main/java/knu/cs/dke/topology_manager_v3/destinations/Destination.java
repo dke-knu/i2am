@@ -1,6 +1,6 @@
 package knu.cs.dke.topology_manager_v3.destinations;
 
-public abstract class Destination {
+public abstract class Destination implements Runnable {
 	
 	// Destination Info.
 	private String destinationName;
@@ -23,10 +23,7 @@ public abstract class Destination {
 		this.owner = owner;
 		this.destinationType = dstType;
 		this.transTopic = owner + "-" + destinationName;
-	}	
-	
-	public abstract void write(); //우리 카프카프카에서 유저의 데스티네이션으루
-
+	}
 
 	public String getDestinationName() {
 		return destinationName;

@@ -12,30 +12,6 @@ public class StratifiedSamplingTopology extends ASamplingFilteringTopology {
 		this.windowSize = windowSize;				
 	}
 	
-	@Override
-	public void submitTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void killTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void activeTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactiveTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	public int getSampleSize() {
 		return sampleSize;
 	}
@@ -50,6 +26,30 @@ public class StratifiedSamplingTopology extends ASamplingFilteringTopology {
 
 	public void setWindowSize(int windowSize) {
 		this.windowSize = windowSize;
+	}
+
+	@Override
+	public void killTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void avtivateTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivateTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void submitTopology() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

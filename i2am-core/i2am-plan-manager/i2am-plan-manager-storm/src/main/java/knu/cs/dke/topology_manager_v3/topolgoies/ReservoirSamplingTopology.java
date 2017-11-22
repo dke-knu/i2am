@@ -10,32 +10,7 @@ public class ReservoirSamplingTopology extends ASamplingFilteringTopology {
 		super(createdTime, plan, index, topologyType);
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;				
-	}
-	
-	
-	@Override
-	public void submitTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void killTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void activeTopology() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void deactiveTopology() {
-		// TODO Auto-generated method stub
-		
-	}
+	}	
 
 	public int getWindowSize() {
 		return windowSize;
@@ -51,6 +26,30 @@ public class ReservoirSamplingTopology extends ASamplingFilteringTopology {
 
 	public void setSampleSize(int sampleSize) {
 		this.sampleSize = sampleSize;
+	}
+
+	@Override
+	public void killTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void avtivateTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deactivateTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void submitTopology() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

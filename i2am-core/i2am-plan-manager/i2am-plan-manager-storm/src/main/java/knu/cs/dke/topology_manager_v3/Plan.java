@@ -1,6 +1,12 @@
 package knu.cs.dke.topology_manager_v3;
 
+import java.io.IOException;
 import java.util.List;
+
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.generated.NotAliveException;
+import org.apache.storm.thrift.TException;
 
 import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
 
@@ -28,7 +34,7 @@ public class Plan {
 		this.lTopologies = null;
 	}	
 
-	public void submitTopologies() {
+	public void submitTopologies() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
@@ -36,7 +42,7 @@ public class Plan {
 		}
 	}
 
-	public void killTopologies() {
+	public void killTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
@@ -44,19 +50,19 @@ public class Plan {
 		}		
 	}
 
-	public void activateTopologies() {
+	public void activateTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
-			topology.activeTopology();
+			topology.avtivateTopology();
 		}		
 	}
 
-	public void deactivateTopologies() {
+	public void deactivateTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
-			topology.deactiveTopology();
+			topology.deactivateTopology();
 		}			
 	}
 

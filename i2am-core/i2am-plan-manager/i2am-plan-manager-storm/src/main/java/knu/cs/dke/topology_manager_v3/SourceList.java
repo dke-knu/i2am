@@ -43,7 +43,15 @@ public class SourceList {
 		return true;
 	}
 	
+	public synchronized boolean set(Source source) {		
+		// 값이 있으면 Update, 없으면 Add 됨..
+		if (!mSources.containsKey(source.getSourceName())) return false;
+		mSources.put(source.getSourceName(), source);		
+		return true;
+	}
+	
 	public synchronized int size() {
 		return mSources.size();
 	}
+	
 }

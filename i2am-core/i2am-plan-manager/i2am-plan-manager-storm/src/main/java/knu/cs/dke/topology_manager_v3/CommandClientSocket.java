@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.NotAliveException;
+import org.apache.storm.thrift.TException;
+import org.apache.storm.thrift.transport.TTransportException;
 import org.json.simple.parser.ParseException;
 
 public class CommandClientSocket implements Runnable {
@@ -35,8 +39,17 @@ public class CommandClientSocket implements Runnable {
             try {
 				String ret = new CommandHandler(plans, sources, destinations).executeCommand(commandJSON);
 				
-			} catch (ParseException e) {
+			} catch (ParseException | InterruptedException e) {
 				// TODO
+				e.printStackTrace();
+			} catch (NotAliveException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthorizationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
             

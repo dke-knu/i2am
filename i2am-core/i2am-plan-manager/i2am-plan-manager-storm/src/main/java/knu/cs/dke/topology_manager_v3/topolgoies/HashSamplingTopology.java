@@ -19,27 +19,30 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 		this.bucketSize = bucketSize;
 		this.selectedBucket = bucketNumber;
 		this.hashFunction = HashFunction;
-	}	
+	}
 	
 	@Override
-	public void submitTopology() {
-		
-	}
-
-	@Override
 	public void killTopology() {
-		// TODO Auto-generated method stub		
-	}
-
-	@Override
-	public void activeTopology() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void deactiveTopology() {
+	public void avtivateTopology() {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void deactivateTopology() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void submitTopology() {
+		// TODO Auto-generated method stub
+		
+	}	
+	
 }

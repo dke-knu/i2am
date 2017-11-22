@@ -1,5 +1,13 @@
 package knu.cs.dke.topology_manager_v3.topolgoies;
 
+import java.io.IOException;
+import java.util.UUID;
+
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.generated.NotAliveException;
+import org.apache.storm.thrift.TException;
+
 public abstract class ASamplingFilteringTopology {
 		
 	private String createdTime;
@@ -13,11 +21,14 @@ public abstract class ASamplingFilteringTopology {
 	private String inputTopic; // 첫 토폴로지는 Source의 정보를 읽어서 셋
 	private String outputTopic; // 마지막 토폴로지는 Destination의 정보를 읽어서 셋
 		
-	public abstract void submitTopology(); // [ACTIVATE_PLAN] Start Topology
-	public abstract void killTopology(); // [DESTROY_PLAN] Stop Topology
-	public abstract void activeTopology();
-	public abstract void deactiveTopology();
-		
+	private String topologyName;	
+	private String redisKey; 
+	
+	public abstract void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException;
+	public abstract void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;
+	public abstract void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;
+	public abstract void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;	
+	
 	public ASamplingFilteringTopology(String createdTime, String plan, int index, String topologyType) {
 	
 		this.createdTime = createdTime;
@@ -27,10 +38,11 @@ public abstract class ASamplingFilteringTopology {
 		this.topologyType = topologyType;
 		this.plan = plan;
 		
-		this.inputTopic = plan + "-input-" + index;
-		this.outputTopic = plan + "-output-" + index;		
-	}
-	
+		this.topologyName = plan + "-" + UUID.randomUUID().toString();		
+		this.inputTopic = topologyName + "-input";
+		this.outputTopic = topologyName + "-output";		
+		this.redisKey = topologyName + "-redis";		
+	}	
 	public String getModifiedTime() {
 		return modifiedTime;
 	}
@@ -78,5 +90,17 @@ public abstract class ASamplingFilteringTopology {
 	}
 	public void setOutputTopic(String outputTopic) {
 		this.outputTopic = outputTopic;
+	}
+	public String getTopologyName() {
+		return topologyName;
+	}
+	public void setTopologyName(String topologyName) {
+		this.topologyName = topologyName;
+	}
+	public String getRedisKey() {
+		return redisKey;
+	}
+	public void setRedisKey(String redisKey) {
+		this.redisKey = redisKey;
 	}	
 }

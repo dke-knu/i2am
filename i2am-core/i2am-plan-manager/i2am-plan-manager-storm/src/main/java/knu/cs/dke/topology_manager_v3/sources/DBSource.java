@@ -18,7 +18,13 @@ public class DBSource extends Source {
 		this.dbName = dbName;
 		this.tableName = dbTable;
 		this.query = query;		
-	}	
+	}
+	
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 	public void setDbId(String Id) {
 		this.id = Id;
@@ -49,11 +55,5 @@ public class DBSource extends Source {
 	}
 	public String getQuery() {
 		return this.query;
-	}	
-	
-	@Override
-	public void read() {
-		// TODO Auto-generated method stub
-		
-	}	
+	}
 }

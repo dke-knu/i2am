@@ -3,7 +3,6 @@ package i2am.benchmark.spark.query;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -26,9 +25,6 @@ import org.apache.spark.streaming.kafka010.LocationStrategies;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisCluster;
-
 public class SparkQueryTestJSON {	
 
 	private final static Logger logger = Logger.getLogger(SparkQueryTestJSON.class);	
@@ -42,9 +38,23 @@ public class SparkQueryTestJSON {
 		long duration = Long.valueOf(args[3]);
 
 		// MN.eth 9092.
+		String[] zookeepers = args[4].split(","); //KAFAK ZOOKEEPER
+		short zkPort = Short.parseShort(args[5]);
+		
+		
+		StringBuilder sb = new StringBuilder();
+		for(String zookeeper : zookeepers){
+			sb.append(zookeeper + ":" + zkPort +",");
+		}
+		
+		String kafkaUrl = sb.substring(0, sb.length()-1);
+		
+		/*
 		String zookeeper_ip = args[4];
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
+		*/
+
 
 		// Filtering Keywords.				
 		String[] input_keywords = args.clone();
@@ -60,7 +70,7 @@ public class SparkQueryTestJSON {
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
-		kafkaParams.put("bootstrap.servers", zk);
+		kafkaParams.put("bootstrap.servers", kafkaUrl);
 		kafkaParams.put("key.deserializer", StringDeserializer.class);
 		kafkaParams.put("value.deserializer", StringDeserializer.class);
 		kafkaParams.put("group.id", group);
@@ -69,12 +79,8 @@ public class SparkQueryTestJSON {
 
 		// Make Kafka Producer.		
 		Properties props = new Properties();
-		props.put("bootstrap.servers", zk);
-		props.put("acks", "all");
-		props.put("retries", 0);
-		props.put("batch.size", 16384);
-		props.put("linger.ms", 1);
-		props.put("buffer.memory", 33554432);
+		props.put("bootstrap.servers", kafkaUrl);
+		props.put("acks", "1");	
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
 
@@ -94,7 +100,8 @@ public class SparkQueryTestJSON {
 		// Step 1. Current Time.
 		// JSON + Input Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
-		JavaDStream<String> timeLines = lines.map(line -> {		
+		JavaDStream<String> timeLines = lines.map(line -> {	
+			
 			JSONParser parser = new JSONParser();
 			JSONObject messages = (JSONObject) parser.parse(line); 			
 			messages.put("inputTime", System.currentTimeMillis());						
@@ -123,10 +130,8 @@ public class SparkQueryTestJSON {
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
 
-			samples.foreach( sample -> {				
-
-				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);				
-
+			samples.foreach( sample -> {
+				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
 				messages.put("outputTime", System.currentTimeMillis());

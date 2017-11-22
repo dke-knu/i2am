@@ -46,8 +46,8 @@ public class kafkaToKafka {
 		//////////////////////
 		/////////////////////
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumer_props);
-		consumer.subscribe(Arrays.asList(read_topics));
+		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consumer_props);
+		consumer.subscribe(Arrays.asList("topic-in"));
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(producer_props);		
 
@@ -56,7 +56,7 @@ public class kafkaToKafka {
 				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
 				for (ConsumerRecord<String, String> record : records) {
 					System.out.println(record.value());
-					producer.send(new ProducerRecord<String,String>(write_topic, record.value()+" :)"));
+					producer.send(new ProducerRecord<String,String>("topic-out", record.value()+" :)"));
 				}
 			}			
 		} catch(Exception e) {

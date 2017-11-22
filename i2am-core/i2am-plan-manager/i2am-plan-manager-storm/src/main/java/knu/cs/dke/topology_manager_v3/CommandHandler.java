@@ -1,5 +1,11 @@
 package knu.cs.dke.topology_manager_v3;
 
+import java.io.IOException;
+
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.NotAliveException;
+import org.apache.storm.thrift.TException;
+import org.apache.storm.thrift.transport.TTransportException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,7 +26,7 @@ public class CommandHandler {
 		this.destinations = destinations;
 	}
 
-	public String executeCommand(String input_command) throws ParseException {
+	public String executeCommand(String input_command) throws ParseException, NotAliveException, AuthorizationException, TException, InterruptedException, IOException {
 
 		// Json에서 Command Type만 확인하여 해당 명령어를 호출하면서 Json 넘겨버리기!!
 		JSONParser jsonParser = new JSONParser();
@@ -44,6 +50,7 @@ public class CommandHandler {
 		// Command for Call Source Handler !!	
 		case "CREATE_SRC":			
 		case "DESTROY_SRC":			
+		case "CHANGE_STATUS_OF_SRC":
 			SourceHandler sh = new SourceHandler(sources, input_command);
 			sh.excute();			
 			break;

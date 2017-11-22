@@ -30,7 +30,6 @@ public class CommandServerSocket implements Runnable {
     	plans = PlanList.getInstance();
     }
 
-    @Override
     public void run(){
 //        synchronized(this){
 //            this.runningThread = Thread.currentThread();

@@ -30,7 +30,7 @@ public class RemoteSubmitter {
 		Map defaultConf = Utils.readStormConfig();
 
 		Map conf = Utils.readStormConfig();		
-		
+
 		List<String> seeds = new ArrayList<String>();
 		seeds.add("192.168.56.100");
 		conf.put(Config.NIMBUS_SEEDS, seeds);		
@@ -41,36 +41,36 @@ public class RemoteSubmitter {
 		conf.putAll(topologyConf);
 
 		// Code Upload.
-		String inputJar = "D:\\topologies\\test3.jar";
+		String inputJar = "D:\\topologies\\WordCountTopology.jar";
 		String remoteJar = StormSubmitter.submitJar(conf, inputJar);
 
 		System.out.println(remoteJar);
-		
+
 		// Topology Submit.
-		StormTopology topology = getTopology(String.format("file://" + "%s", remoteJar),
-			"test.wordcount.WordCountTopology", "buildTopology");
-				
+		StormTopology topology = getTopology(String.format("file://" + "%s", inputJar),
+				"test.wordcount.WordCountTopology", "buildTopology");
+
 		// Nimbus
 		NimbusClient client = NimbusClient.getConfiguredClient(conf);
-		
-		
+
 		try {
-			client.getClient().submitTopology("my-topology", inputJar, JSONValue.toJSONString(conf), topology);			
-			
+			client.getClient().submitTopology("my-topology", remoteJar, JSONValue.toJSONString(conf), topology);			
+
 		} catch ( AlreadyAliveException e ) {			
 			e.printStackTrace();
 		}
 	}
 
-	private static StormTopology getTopology(String path, String className, String methodName) throws MalformedURLException, ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private static StormTopology getTopology(String path, String className, String methodName)
+			throws MalformedURLException, ClassNotFoundException, NoSuchMethodException,
+			SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		
+		ClassLoader loader = URLClassLoader.newInstance(new URL[] { new URL(path) }, RemoteSubmitter.class.getClassLoader());
 
-		System.out.println(path);
-		
-		ClassLoader loader = URLClassLoader.newInstance(new URL[] { new URL(path) });		
-		
 		Class<?> clazz = loader.loadClass(className);
 		Method method = clazz.getMethod(methodName, new Class[] {});
-		
+
 		return (StormTopology) method.invoke(null, new Object[] {});
 	}
+
 }

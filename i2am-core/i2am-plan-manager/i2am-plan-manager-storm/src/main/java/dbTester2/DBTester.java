@@ -43,7 +43,7 @@ public class DBTester {
 		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		props.put("auto.offset.reset", "earliest");
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
 		consumer.subscribe(Arrays.asList(topics));
 
 		try {			

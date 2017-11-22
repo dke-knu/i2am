@@ -71,8 +71,7 @@ public class DbAdapter {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT * FROM TBL_USER "
-					+ "WHERE ID='" + id + "' AND PASSWORD='" + pw +"'";
+			sql = "SELECT * FROM TBL_USER " + "WHERE ID='" + id + "' AND PASSWORD='" + pw +"'";
 			ResultSet rs = stmt.executeQuery(sql);
 
 			if (rs.next())   return true;
@@ -144,7 +143,7 @@ public class DbAdapter {
 
 			switch(source.getSrcType()) {
 
-			case "kafka":				
+			case "KAFKA":				
 				KafkaSource ks = (KafkaSource) source;
 				String insertKafka = "INSERT INTO tbl_src_kafka_info "
 						+ "VALUES ("
@@ -157,7 +156,7 @@ public class DbAdapter {
 				ResultSet kafka = stmt.executeQuery(insertKafka);
 				break;
 
-			case "database":
+			case "DABABASE":
 				break;
 
 			default:
@@ -165,6 +164,8 @@ public class DbAdapter {
 				break;			
 			}
 
+			System.out.println("[DBAdapter] Source Added.");
+			
 			if (insert.next())   return true;
 
 		} catch (SQLException e) {
@@ -212,7 +213,7 @@ public class DbAdapter {
 			String destinationQuery = "SELECT IDX FROM tbl_dst WHERE NAME = '" + destination + "'";
 			ResultSet destinationIdx = stmt.executeQuery(destinationQuery);
 			destinationIdx.next();
-			int destinationNumber = ((Number) sourceIdx.getObject(1)).intValue();
+			int destinationNumber = ((Number) destinationIdx.getObject(1)).intValue();
 
 			// Plan			
 			String planQuery = "INSERT INTO tbl_plan "
@@ -256,7 +257,9 @@ public class DbAdapter {
 						+ "'" + topology.getTopologyType() + "',"
 						+ "'" + planNumber + "',"
 						+ "'" + topology.getInputTopic() + "',"
-						+ "'" + topology.getOutputTopic() + "'"
+						+ "'" + topology.getOutputTopic() + "',"
+						+ "'" + topology.getTopologyName() + "',"
+						+ "'" + topology.getRedisKey() + "'"
 						+ ")";
 
 				ResultSet insertTopology = stmt.executeQuery(topologyQuery) ;
@@ -378,6 +381,7 @@ public class DbAdapter {
 				break;			
 			}
 
+			System.out.println("[DBAdapter] Destination Added.");
 			if (insert.next())   return true;
 
 		} catch (SQLException e) {
@@ -397,7 +401,78 @@ public class DbAdapter {
 		return false;
 	}
 
+	public boolean changePlanStatus(Plan plan) {
+		
+		Connection con = null;
+		Statement stmt = null;		
+		
+		try {
+			
+			con = this.getConnection();
+			stmt = con.createStatement();
 
+			String status = plan.getStatus();
+			
+			String sql;			
+			sql = "UPDATE tbl_plan SET STATUS ='" + status + "' WHERE NAME ='" + plan.getPlanName() + "'";
+			
+			ResultSet rs = stmt.executeQuery(sql);			
+			
+			if (rs.next())   return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public boolean changeSourceStatus(Source source) {
+		
+		Connection con = null;
+		Statement stmt = null;		
+		
+		try {
+			
+			con = this.getConnection();
+			stmt = con.createStatement();
+
+			String status = source.getStatus();
+			
+			String sql;			
+			sql = "UPDATE tbl_src SET STATUS ='" + status + "' WHERE NAME ='" + source.getSourceName() + "'";
+			
+			ResultSet rs = stmt.executeQuery(sql);			
+			
+			if (rs.next())   return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}		
+		
+		return false;
+	}
 }
+
+
 
 

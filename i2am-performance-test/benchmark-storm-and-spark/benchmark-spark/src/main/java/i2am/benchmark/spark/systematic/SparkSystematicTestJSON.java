@@ -1,4 +1,4 @@
-package i2am.benchmark.spark.reservoir;
+package i2am.benchmark.spark.systematic;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,13 +29,11 @@ import org.json.simple.parser.JSONParser;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 
-public class SparkReservoirTestJSON {	
+public class SparkSystematicTestJSON {	
 
-	private final static Logger logger = Logger.getLogger(SparkReservoirTestJSON.class);
-	//private static JedisPool pool;	
+	private final static Logger logger = Logger.getLogger(SparkSystematicTestJSON.class);
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 
@@ -59,14 +57,13 @@ public class SparkReservoirTestJSON {
 		String group = args[2];
 		long duration = Long.valueOf(args[3]);
 
-		// Kafka Server
+		// MN.eth 9092
 		/*
 		String zookeeper_ip = args[4];
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
 		 */
 
-		// MN.eth 9092.
 		String[] zookeepers = args[4].split(","); //KAFAK ZOOKEEPER
 		short zkPort = Short.parseShort(args[5]);
 
@@ -79,16 +76,20 @@ public class SparkReservoirTestJSON {
 		String kafkaUrl = sb.substring(0, sb.length()-1);
 
 
-		// Get Parameters From Redis
-		Map<String, String> parameters = jc_params.hgetAll(args[6]); // Redis Key.
-		String sample_key = parameters.get("SampleKey");
+		// Sampling Parameters.
+		Map<String, String> parameters = jc_params.hgetAll(args[6]);
+		String sample_key = parameters.get("SampleKey");	
 		int sample_size = Integer.parseInt(parameters.get("SampleSize"));
 		int window_size = Integer.parseInt(parameters.get("WindowSize"));		
 		jc_params.ltrim(sample_key, 0, -99999);		
+
+		int interval = window_size/sample_size;
+		int randomNumber = (int)Math.random()%interval;	
+
 		jc_params.close();
 
 		// Context.
-		SparkConf conf = new SparkConf().setAppName("Reservoir-Sampling-Test-With-JSON");
+		SparkConf conf = new SparkConf().setAppName("Systematic-Sampling-Test-With-JSON");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		JavaStreamingContext jssc = new JavaStreamingContext(sc, Durations.milliseconds(duration));
 
@@ -104,7 +105,7 @@ public class SparkReservoirTestJSON {
 		// Make Kafka Producer.		
 		Properties props = new Properties();
 		props.put("bootstrap.servers", kafkaUrl);
-		props.put("acks", "1");
+		props.put("acks", "1");		
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
 
@@ -124,73 +125,51 @@ public class SparkReservoirTestJSON {
 		// Step 1. Current Time.
 		JavaDStream<String> lines = stream.map(ConsumerRecord::value);		
 		JavaDStream<String> timeLines = lines.map(line -> {
-
 			JSONParser parser = new JSONParser();
 			JSONObject messages = (JSONObject) parser.parse(line);
 			messages.put("inputTime", System.currentTimeMillis());
 			return messages.toJSONString();			
-		});		
+		});
+
 
 		// Step 2. Sampling.
 		timeLines.foreachRDD( samples -> {
 
 			samples.foreach( sample -> {
 
-				JedisCluster jc = new JedisCluster(redisNodes);				
+				JedisCluster jc = new JedisCluster(redisNodes);	
+
 				JSONParser parser = new JSONParser();
-				JSONObject messages = (JSONObject) parser.parse(sample);				
+				JSONObject messages = (JSONObject) parser.parse(sample);
 
 				int index = ((Number) messages.get("production")).intValue();
-				int prob = sample_size + 1;
-				int count = index % window_size;				
 
-				if( count != 0 && count < sample_size ) {  // 샘플이 비어있으면 무조건 뽑힘 -> Redis 저장
+				if( (index%window_size)%interval == randomNumber ) { // 샘플일 경우 -> Redis 임시 저장				
 					jc.rpush(sample_key, sample);
+				}				
+				else { // 샘플이 아닐 경우 -> Kafka로 바로 전송
+					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);					
+					messages.put("sampleFlag", 0);
+					messages.put("outputTime", System.currentTimeMillis());					
+					producer.send(new ProducerRecord<String, String>(output_topic, messages.toString()));					
+					producer.close();
 				}
-				else if( count == 0 ) { // Window가 가득참 -> Redis에 저장된 샘플을 Kafka 전송
+
+				if( index % window_size == 0 ) { // 윈도우가 가득 참! -> Redis에 있는 샘플을 Kafka로 전송!
 
 					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
 					List<String> sampleList = jc.lrange(sample_key, 0, -1);
 					jc.ltrim(sample_key, 0, -99999);
 
-					JSONObject temp;					
 					for( String result: sampleList ) {	
-						temp = (JSONObject) parser.parse(result);
-						temp.put("sampleFlag", 1);
-						temp.put("outputTime", System.currentTimeMillis());
-						producer.send(new ProducerRecord<String, String>(output_topic, temp.toString()));
+						JSONObject json = (JSONObject) parser.parse(result);
+						json.put("sampleFlag", 1);
+						json.put("outputTime", System.currentTimeMillis());
+						producer.send(new ProducerRecord<String, String>(output_topic, json.toString()));
 					}
 					producer.close();
-				}	
-				else { // 윈도우 진행중, 샘플은 가득참! -> 확률을 계산 -> 결과에 따라 Redis에 있는 데이터와 교체
-
-					prob = (int)(Math.random()*count); // 확률 계산
-					KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);					
-
-					if ( prob < sample_size ) { // 뽑힘 -> 기존 샘플과 교체
-
-						if ( jc.llen(sample_key) != 0 ) { // prob < jc.llen(sample_key) 
-
-							String nonSample = jc.lpop(sample_key);
-							JSONObject temp;						
-							temp = (JSONObject) parser.parse(nonSample);
-
-							temp.put("sampleFlag", 0);
-							temp.put("outputTime", System.currentTimeMillis());							
-
-							producer.send(new ProducerRecord<String, String>(output_topic, temp.toString()));
-						}
-						jc.rpush(sample_key, sample);
-					}
-					else { // 안뽑힘
-						messages.put("sampleFlag", 0);
-						messages.put("outputTime", System.currentTimeMillis());
-						producer.send(new ProducerRecord<String, String>(output_topic, messages.toString()));
-					}
-					producer.close();
-				}				
-
-				jc.close();
+				}					
+				jc.close();				
 			});				
 		});	
 

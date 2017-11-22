@@ -44,4 +44,11 @@ public class PlanList {
 	public synchronized int size() {
 		return mPlans.size();
 	}
+	
+	public synchronized boolean set(Plan changedPlan) {		
+		// 값이 있으면 Update, 없으면 Add 됨..
+		if (!mPlans.containsKey(changedPlan.getPlanName())) return false;
+		mPlans.put(changedPlan.getPlanName(), changedPlan);		
+		return true;
+	}
 }

@@ -34,23 +34,23 @@ import redis.clients.jedis.JedisCluster;
 public class SparkBloomFilterTestJSON {	
 
 	private final static Logger logger = Logger.getLogger(SparkBloomFilterTestJSON.class);
-		
+
 	public static void main(String[] args) throws InterruptedException, UnsupportedEncodingException {
 
 		// Redis Cluster.
 		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
-		redisNodes.add(new HostAndPort("MN", 17000));
-		redisNodes.add(new HostAndPort("MN", 17001));
-		redisNodes.add(new HostAndPort("MN", 17002));
-		redisNodes.add(new HostAndPort("MN", 17003));
-		redisNodes.add(new HostAndPort("MN", 17004));
-		redisNodes.add(new HostAndPort("MN", 17005));
-		redisNodes.add(new HostAndPort("MN", 17006));
-		redisNodes.add(new HostAndPort("MN", 17007));
-		redisNodes.add(new HostAndPort("MN", 17008));	
-		
+		redisNodes.add(new HostAndPort("192.168.0.100", 17000));
+		redisNodes.add(new HostAndPort("192.168.0.101", 17001));
+		// redisNodes.add(new HostAndPort("192.168.0.102", 17002));
+		redisNodes.add(new HostAndPort("192.168.0.103", 17003));
+		redisNodes.add(new HostAndPort("192.168.0.104", 17004));
+		redisNodes.add(new HostAndPort("192.168.0.105", 17005));
+		redisNodes.add(new HostAndPort("192.168.0.106", 17006));
+		// redisNodes.add(new HostAndPort("192.168.0.107", 17007));
+		// redisNodes.add(new HostAndPort("192.168.0.108", 17008));		
+
 		JedisCluster jc = new JedisCluster(redisNodes);
-		
+
 		// Args.
 		String input_topic = args[0];
 		String output_topic = args[1];
@@ -58,24 +58,39 @@ public class SparkBloomFilterTestJSON {
 		long duration = Long.valueOf(args[3]);
 
 		// MN.eth 9092.
+		/*
 		String zookeeper_ip = args[4];
 		String zookeeper_port = args[5];
 		String zk = zookeeper_ip + ":" + zookeeper_port;
-	
+		 */
+
+		// MN.eth 9092.
+		String[] zookeepers = args[4].split(","); //KAFAK ZOOKEEPER
+		short zkPort = Short.parseShort(args[5]);
+
+
+		StringBuilder sb = new StringBuilder();
+		for(String zookeeper : zookeepers){
+			sb.append(zookeeper + ":" + zkPort +",");
+		}
+
+		String kafkaUrl = sb.substring(0, sb.length()-1);
+
+
 		// Bloom Filter Parameter from Redis.
 		Map<String, String> parameters = jc.hgetAll(args[6]); // Redis Key		
 		int bloom_size = Integer.parseInt(parameters.get("BucketSize"));
-		
+
 		// Filtering Keywords.
 		String[] input_keywords = args.clone();
 		String[] keywords = Arrays.copyOfRange(input_keywords, 7, input_keywords.length);		
-		
+
 		// Make Bloom Filter.
 		BloomFilter bloom = new BloomFilter(bloom_size);		
 		for( String keyword: keywords ) {			
 			bloom.registData(keyword);			
 		}
-		
+
 		// Context.
 		SparkConf conf = new SparkConf().setAppName("Bloom-Filtering-Test-With-JSON");
 		JavaSparkContext sc = new JavaSparkContext(conf);
@@ -86,7 +101,7 @@ public class SparkBloomFilterTestJSON {
 
 		// Kafka Parameter.
 		Map<String, Object> kafkaParams = new HashMap<>();
-		kafkaParams.put("bootstrap.servers", zk);
+		kafkaParams.put("bootstrap.servers", kafkaUrl);
 		kafkaParams.put("key.deserializer", StringDeserializer.class);
 		kafkaParams.put("value.deserializer", StringDeserializer.class);
 		kafkaParams.put("group.id", group);
@@ -95,12 +110,8 @@ public class SparkBloomFilterTestJSON {
 
 		// Make Kafka Producer.		
 		Properties props = new Properties();
-		props.put("bootstrap.servers", zk);
-		props.put("acks", "3");
-		props.put("retries", 0);
-		props.put("batch.size", 16384);
-		props.put("linger.ms", 1);
-		props.put("buffer.memory", 33554432);
+		props.put("bootstrap.servers", kafkaUrl);
+		props.put("acks", "1");
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
 
@@ -125,18 +136,18 @@ public class SparkBloomFilterTestJSON {
 			messages.put("inputTime", System.currentTimeMillis());						
 			return messages.toJSONString();
 		});
-				
+
 		// Step 2. Filtering for String
 		JavaDStream<String> filtered = timeLines.map( sample -> {
-			
+
 			JSONParser parser = new JSONParser();
 			JSONObject messages = (JSONObject) parser.parse(sample);
 			JSONObject tweet = (JSONObject) messages.get("tweet");
 			String text = (String) tweet.get("text");		
-						
+
 			String[] words = text.split(" ");
 			BloomFilter temp = bloom_filter.value();
-			
+
 			for ( String word: words ) {
 				if ( temp.filtering(word) ) {
 					messages.put("sampleFlag", 1);
@@ -146,17 +157,18 @@ public class SparkBloomFilterTestJSON {
 			messages.put("sampleFlag", 0);
 			return messages.toString();
 		});
-		
+
+
 		// Step 3. Out > Kafka, Redis
 		filtered.foreachRDD( samples -> {
 			samples.foreach( sample -> {
-								
+
 				KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
-				
+
 				JSONParser parser = new JSONParser();
 				JSONObject messages = (JSONObject) parser.parse(sample);
 				messages.put("outputTime", System.currentTimeMillis());
-												
+
 				producer.send(new ProducerRecord<String, String>(output_topic, messages.toString()));								
 				producer.close();
 			});				
