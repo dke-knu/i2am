@@ -1,6 +1,7 @@
 import socket
 import threading
 import pymysql
+from .SamplingAccuracyEvaluation import SamplingAccuracyEvaluation as SAE
 
 HOST = '114.70.235.43'
 PORT = 7979
@@ -25,6 +26,9 @@ cursor.close()
 def samplingAlgorithmSelect(clientSocket, address):
     print("Start Sampling Algorithm Selection Engine for", address)
     data = clientSocket.recv()
+
+populationList = SAE.populationListGenerate(filePath)
+SAE.run(2000, 200, 40, 40)
 
 # while True:
 #     clientSocket, address = serverSocket.accept()
