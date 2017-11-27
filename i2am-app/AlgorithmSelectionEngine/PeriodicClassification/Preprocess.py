@@ -1,5 +1,5 @@
 import numpy as np
-from PeriodicClassfication import ModelConfig as myConfig
+from PeriodicClassification import ModelConfig as myConfig
 """
     Parameters
         path: user's sample data(1024, 1)

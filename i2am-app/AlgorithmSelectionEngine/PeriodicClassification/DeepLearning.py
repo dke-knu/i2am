@@ -1,7 +1,7 @@
 """ Learned classification model """
 import tensorflow as tf
-from PeriodicClassfication import ModelConfig as myConfig
-from PeriodicClassfication import Preprocess as pre
+from PeriodicClassification import ModelConfig as myConfig
+from PeriodicClassification import Preprocess as pre
 
 
 def _model(X, keep_prob):
