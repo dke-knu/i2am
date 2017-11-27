@@ -1,5 +1,11 @@
 import math
 
+def sumPerIndex(p, q):
+    for i in range(len(p)):
+        p[i] = p[i] + q[i]
+
+    return p
+
 def average(dataList):
     sum = 0.0
     for data in dataList:
@@ -29,28 +35,26 @@ def countFrequency(pieceCount, dataList):
     minValue = -5.0
     totalLength = maxValue + abs(minValue)
     interval = totalLength / float(pieceCount)
-    frequencyDistributionList = [0 for _ in range(pieceCount)]
+    frequencyDistributionList = [0 for _ in range(pieceCount+2)] # 양쪽 최소, 최대값
 
     for data in dataList:
-        if maxValue < float(data):
-            frequencyDistributionList[pieceCount] = frequencyDistributionList[pieceCount] + 1
+        if maxValue < float(data): # 왼쪽 끝 최소값
+            frequencyDistributionList[pieceCount+1] = frequencyDistributionList[pieceCount+1] + 1
+        elif float(data) < minValue: # 오른쪽 끝 최대값
+            frequencyDistributionList[0] = frequencyDistributionList[0] + 1
         else:
-            for i in range(0, pieceCount):
-                if float(data) < (minValue + i * interval):
+            for i in range(1, pieceCount):
+                if float(data) < (minValue + (i * interval)):
                     frequencyDistributionList[i] = frequencyDistributionList[i] + 1
                     break
 
     return frequencyDistributionList
 
 def probabilityDistribution(pieceCount, standardizingList):
-    maxValue = 5.0
-    minValue = -5.0
-    totalLength = maxValue + abs(minValue)
-    interval = totalLength / float(pieceCount)
     frequencyDistributionList = countFrequency(pieceCount, standardizingList)
-    probabilityDistribution = [0 for _ in range(pieceCount)]
+    probabilityDistribution = [0 for _ in range(pieceCount+2)]
 
-    for i in range(0, pieceCount):
-        probabilityDistribution[i] = float(frequencyDistributionList[i]) / len(standardizingList)
+    for i in range(0, pieceCount+2):
+        probabilityDistribution[i] = float(frequencyDistributionList[i]) / float(len(standardizingList))
 
     return probabilityDistribution

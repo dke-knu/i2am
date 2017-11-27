@@ -1,7 +1,8 @@
-from . import AccuracyMeasure as AM
-from . import StatisticalCalculation as SC
+from SamplingAccuracyEvaluation import AccuracyMeasure as AM
+from SamplingAccuracyEvaluation import StatisticalCalculation as SC
 
 def run(populationList, sampleList, jSDPieceCount, pAAPieceCount):
+    evaluationList = []
     populationAverage = SC.average(populationList)
     sampleAverage = SC.average(sampleList)
     populationStrdDeviation = SC.standardDeviation(populationAverage, populationList)
@@ -17,6 +18,9 @@ def run(populationList, sampleList, jSDPieceCount, pAAPieceCount):
     populationProbabilityDistribution = SC.probabilityDistribution(jSDPieceCount, standardizingPopulationList)
     sampleProbabilityDistribution = SC.probabilityDistribution(jSDPieceCount, standardizingSampleList)
 
-    AM.startZTest(populationAverage, sampleAverage, populationStrdDeviation, len(sampleList))
-    AM.startJSD(populationProbabilityDistribution, sampleProbabilityDistribution)
-    AM.startED(paaPopulationList, paaSampleList, pAAPieceCount)
+    # evaluationList --> [0] = ZTEST, [1] = JSD, [2] = ED
+    evaluationList.append(AM.startZTest(populationAverage, sampleAverage, populationStrdDeviation, len(sampleList)))
+    evaluationList.append(AM.startJSD(populationProbabilityDistribution, sampleProbabilityDistribution))
+    evaluationList.append(AM.startED(paaPopulationList, paaSampleList, pAAPieceCount))
+
+    return evaluationList

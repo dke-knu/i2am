@@ -2,7 +2,7 @@ import random
 import math
 
 # Systematic Sampling
-def systematic(interval, populationList):
+def systematicSam(interval, populationList):
     sampleList = []
     selectionNumber = random.randrange(0, interval)
     count = 0
@@ -15,7 +15,7 @@ def systematic(interval, populationList):
     return sampleList
 
 # Reservoir Sampling
-def reservoir(sampleSize, populationList):
+def reservoirSam(sampleSize, populationList):
     sampleList = []
     count = 1
     for data in populationList:
@@ -29,7 +29,7 @@ def reservoir(sampleSize, populationList):
 
     return sampleList
 
-def sortedReservoir(sampleSize, populationList):
+def sortedReservoirSam(sampleSize, populationList):
     sampleList = []
     count = 1
     for data in populationList:
@@ -45,7 +45,7 @@ def sortedReservoir(sampleSize, populationList):
     return sampleList
 
 # Hash Sampling
-def hash(sampleSize, populationList):
+def hashSam(sampleSize, populationList):
     bucketSize = int(len(populationList) / sampleSize)
     selectionBucket = random.randrange(0, bucketSize)
     sampleList = []
@@ -58,7 +58,7 @@ def hash(sampleSize, populationList):
     return sampleList
 
 # Priority Sampling
-def priority(sampleSize, populationList):
+def prioritySam(sampleSize, populationList):
     count = 1
     minimumIndex = 0
     minimumPriority = 1.0
@@ -94,7 +94,7 @@ def priority(sampleSize, populationList):
 
     return sampleList
 
-def sortedPriority(sampleSize, populationList):
+def sortedPrioritySam(sampleSize, populationList):
     count = 1
     minimumIndex = 0
     minimumPriority = 1.0
@@ -124,7 +124,7 @@ def sortedPriority(sampleSize, populationList):
                 sampleList.append(data)
                 priorityList.append(priority)
                 minimumPriority = 1.0
-                for i in range(0, len(sampleList)):
+                for i in range(0, len(priorityList)):
                     if priorityList[i] < minimumPriority:
                         minimumIndex = i
                         minimumPriority = priority

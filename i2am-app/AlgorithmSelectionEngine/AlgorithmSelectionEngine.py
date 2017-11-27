@@ -1,7 +1,8 @@
 import socket
 import threading
 import pymysql
-from .SamplingAccuracyEvaluation import SamplingAccuracyEvaluation as SAE
+from SamplingAccuracyEvaluation import SamplingAccuracyEvaluation as SAE
+from PeriodicClassfication import DeepLearning as DL
 
 HOST = '114.70.235.43'
 PORT = 7979
@@ -14,6 +15,10 @@ ADDRESS = (HOST, PORT)
 # print("Listening")
 # serverSocket.listen(1)
 
+def samplingAlgorithmSelect(clientSocket, address):
+    print("Start Sampling Algorithm Selection Engine for", address)
+    data = clientSocket.recv()
+
 # Connect MariaDB
 db = pymysql.connect(host = '114.70.235.43', port = 3306, user = 'plan-manager', passwd = 'dke214', db = 'i2am', charset = 'utf8', autocommit = True)
 cursor = db.cursor()
@@ -23,12 +28,13 @@ filePath = cursor.fetchone()
 print(filePath)
 cursor.close()
 
-def samplingAlgorithmSelect(clientSocket, address):
-    print("Start Sampling Algorithm Selection Engine for", address)
-    data = clientSocket.recv()
+flag = DL._DNN_main('/home/admin/whcho/algorithm-selection-engine/Temperature1.txt')
 
-populationList = SAE.populationListGenerate(filePath)
-SAE.run(2000, 200, 40, 40)
+if flag:
+    print('systematic')
+else:
+    selectionAlgorithm = SAE.run(1000, 200, '/home/admin/whcho/algorithm-selection-engine/Temperature1.txt')
+    print(selectionAlgorithm)
 
 # while True:
 #     clientSocket, address = serverSocket.accept()
