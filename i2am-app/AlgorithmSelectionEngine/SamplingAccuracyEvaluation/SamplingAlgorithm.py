@@ -89,7 +89,7 @@ def prioritySam(sampleSize, populationList):
                  for i in range(0, len(sampleList)):
                      if priorityList[i] < minimumPriority:
                          minimumIndex = i
-                         minimumPriority = priority
+                         minimumPriority = priorityList[i]
         count = count + 1
 
     return sampleList
@@ -127,7 +127,7 @@ def sortedPrioritySam(sampleSize, populationList):
                 for i in range(0, len(priorityList)):
                     if priorityList[i] < minimumPriority:
                         minimumIndex = i
-                        minimumPriority = priority
+                        minimumPriority = priorityList[i]
         count = count + 1
 
     return sampleList

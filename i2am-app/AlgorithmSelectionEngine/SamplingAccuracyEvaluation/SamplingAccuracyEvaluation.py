@@ -7,9 +7,12 @@ import operator
 def populationListGenerate(filePath):
     populationList = []
     populationFile = open(filePath, 'r')
-    lines = populationFile.readlines()
-    for line in lines:
-        populationList.append(line)
+
+    while True:
+        line = populationFile.readline()
+        if not line: break
+        populationList.append(line[:-1])
+
     populationFile.close()
 
     return populationList
@@ -41,24 +44,26 @@ def run(windowSize, sampleSize, filePath):
 
     for data in populationList:
         windowList.append(data)
-
         if count == windowSize:
-            PG.printSimplePlot(windowList)
+            PG.printGraph(windowList, 'Population', numOfTrials)
 
             print(str(numOfTrials)+'_ReservoirSampling')
             sampleList = SA.sortedReservoirSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(reservoirEvalList, tempEvalList)
+            if numOfTrials == 1: PG.printGraph(sampleList, 'Reservoir', numOfTrials)
 
             print(str(numOfTrials)+'_HashSampling')
             sampleList = SA.hashSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(hashEvalList, tempEvalList)
+            if numOfTrials == 1: PG.printGraph(sampleList, 'Hash', numOfTrials)
 
             print(str(numOfTrials)+'_PrioritySampling')
             sampleList = SA.sortedPrioritySam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(priorityEvalList, tempEvalList)
+            if numOfTrials == 1: PG.printGraph(sampleList, 'Priority', numOfTrials)
 
             numOfTrials = numOfTrials + 1
             count = 0
