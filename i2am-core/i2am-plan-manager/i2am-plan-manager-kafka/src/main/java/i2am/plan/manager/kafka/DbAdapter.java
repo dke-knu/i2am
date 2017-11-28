@@ -81,4 +81,37 @@ public class DbAdapter {
 		}
 		return topic;
 	}
+
+	public String getOutputTopic(String id, String dstName) {
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+		
+		String topic = null;
+		try {
+			con = this.getConnection();
+			stmt = con.createStatement();
+
+			sql = "SELECT TRANS_TOPIC "
+					+ "FROM tbl_dst WHERE NAME = '" + dstName + "' AND F_OWNER = "
+					+ "( SELECT IDX FROM tbl_user WHERE ID='" + id + "' );";
+			ResultSet rs = stmt.executeQuery(sql);
+
+			if (rs.next())	return rs.getString("TRANS_TOPIC");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return topic;
+	}
 }
