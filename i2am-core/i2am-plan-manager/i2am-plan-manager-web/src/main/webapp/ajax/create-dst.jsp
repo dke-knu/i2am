@@ -20,7 +20,7 @@
 	}
 	submitter.createDst(user_id, dstName, DST_TYPE.valueOf(dstType), database, kafka); 
 	
-	// submitter.submit();
+	submitter.submit();
 	String command = submitter.printCommand();
 %>
 <%=command %>

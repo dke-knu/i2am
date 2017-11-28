@@ -28,15 +28,17 @@
 		algorithm = new StratifiedSampling(1, Integer.parseInt(request.getParameter("sample_size")), 
 				Integer.parseInt(request.getParameter("window_size")));
 	} else if ( ALGORITHM_TYPE.valueOf(algorithmType) == ALGORITHM_TYPE.SYSTEMATIC_SAMPLING ) {
-		algorithm = new SystematicSampling(1, Integer.parseInt(request.getParameter("sample_ratio")), 
+		algorithm = new SystematicSampling(1, Integer.parseInt(request.getParameter("sample_size")), 
 				Integer.parseInt(request.getParameter("window_size")));
+	} else if ( ALGORITHM_TYPE.valueOf(algorithmType) == ALGORITHM_TYPE.QUERY_FILTERING ) {
+		algorithm = new QueryFiltering(1, request.getParameter("keywords"));
 	}
 	
 	List<Algorithm> algorithms = new ArrayList<Algorithm>();
 	algorithms.add(algorithm);
 	submitter.createPlan(user_id, planName, srcName, dstName, algorithms);
 	
-	// submitter.submit();
+	submitter.submit();
 	String command = submitter.printCommand();
 %>
 <%=command %>

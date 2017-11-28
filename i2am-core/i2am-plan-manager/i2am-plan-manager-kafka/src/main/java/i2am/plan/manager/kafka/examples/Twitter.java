@@ -3,7 +3,6 @@ package i2am.plan.manager.kafka.examples;
 import java.io.IOException;
 
 import i2am.plan.manager.kafka.I2AMProducer;
-import i2am.plan.manager.kafka.I2AMProducer2;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -22,7 +21,7 @@ public class Twitter {
 
 	public static void main(String[] args) throws TwitterException, IOException{
 		StatusListener listener = new StatusListener(){
-			I2AMProducer2 producer = new I2AMProducer2();
+			I2AMProducer producer = new I2AMProducer("abc@naver.com", "SRC1");
 			@Override
 			public void onStatus(Status status) {
 				producer.send(status.getUser().getName() + " : " + status.getText());

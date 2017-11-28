@@ -27,7 +27,9 @@ public class CommandSubmitter {
 	public enum DST_TYPE {CUSTOM, KAFKA, DATABASE};
 	public enum ALGORITHM_TYPE {
 		BINARY_BERNOULLI_SAMPLING, HASH_SAMPLING, PRIORITY_SAMPLING,
-		RESERVOIR_SAMPLING, STRATIFIED_SAMPLING, SYSTEMATIC_SAMPLING
+		RESERVOIR_SAMPLING, STRATIFIED_SAMPLING, SYSTEMATIC_SAMPLING,
+		
+		QUERY_FILTERING
 	};
 	public enum STATUS {ACTIVE, DEACTIVE};
 	
@@ -150,7 +152,7 @@ public class CommandSubmitter {
 	
 	private class Submitter implements Runnable {
 
-		private final String serverIp = "localhost";
+		private final String serverIp = "114.70.235.43";
 		private final int serverPort = 11111;
 		
 		private JSONObject obj = null;
