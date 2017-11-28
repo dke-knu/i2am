@@ -13,7 +13,7 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
-public class Twitter {
+public class Twitter { 
 	private static final String consumerKey = "jIUbnuPiKl13bGsFRkgYjEE9R";
 	private static final String consumerSecret = "SLg4MnVrgnPvUmpecjc5ACpZflko9500MfLdyqUSwtQlgcbS1h";
 	private static final String accessToken = "732534959529857026-aKaxOeEc92ci97mFmHiKnI9EbNXtEgF";
