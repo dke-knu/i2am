@@ -51,18 +51,4 @@ public class I2AMConsumer {
 	public String getInputTopic(String id, String dstName) {
 		return DbAdapter.getInstance().getOutputTopic(id, dstName);
 	}
-
-	public static void main(String[] args) {
-		Queue<String> q = new LinkedBlockingQueue<String>(100); 
-		new I2AMConsumer("abc@naver.com", "SRC1").receive(q);
-		
-		while (true) {
-			String message;
-			do {
-				message = q.poll();
-			} while(message == null);
-			System.out.println( message );
-		}
-	}
-
 }
