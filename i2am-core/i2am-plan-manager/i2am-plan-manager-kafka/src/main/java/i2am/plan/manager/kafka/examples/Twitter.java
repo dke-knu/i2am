@@ -18,7 +18,7 @@ public class Twitter {
 	private static final String consumerSecret = "SLg4MnVrgnPvUmpecjc5ACpZflko9500MfLdyqUSwtQlgcbS1h";
 	private static final String accessToken = "732534959529857026-aKaxOeEc92ci97mFmHiKnI9EbNXtEgF";
 	private static final String accessTokenSecret = "lsuDedlkhL7J9MUcMQVFvmR0wKhr9cvFmLglYlczvhZuk";
-
+ 
 	public static void main(String[] args) throws TwitterException, IOException{
 		StatusListener listener = new StatusListener(){
 			I2AMProducer producer = new I2AMProducer("abc@naver.com", "SRC1");
@@ -32,7 +32,7 @@ public class Twitter {
 			public void onTrackLimitationNotice(int numberOfLimitedStatuses) {}
 			@Override
 			public void onException(Exception ex) {
-				ex.printStackTrace();
+				ex.printStackTrace(); 
 			}
 			@Override
 			public void onScrubGeo(long arg0, long arg1) {}
