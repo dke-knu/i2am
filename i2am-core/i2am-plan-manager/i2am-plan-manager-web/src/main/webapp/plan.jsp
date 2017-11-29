@@ -40,6 +40,73 @@
 				}
 			});
 		});
+		  
+		function loadSrcList() {
+	      var list = null;
+	      var parent = $('#parent-of-src');
+	      parent.html("");
+  		  $.ajax({
+				type : 'post',
+				url : './ajax/get-list-src.jsp',
+				data : ({}),
+				async: false,
+				cache: false,
+				success : function(data) {
+					data = data.replace(/(^\s*)|(\s*$)/gi, "");
+					list = data;
+				} 
+		  });
+			
+		  if (list == null)	{
+				alert("Src cannot load.");
+				return ;
+		  }
+		  
+		  var arr = JSON.parse(list); 
+			
+		  if (arr.length > 0)	
+		  while (arr.length > 0) {
+			  var obj = arr.pop(); 
+			  var recommended = obj.RECOMMENDED_SAMPLING;
+			  parent.html(parent.html() +
+					  "<li><a href='#' onclick=\"showRecommendModal('" + recommended + "');\" data-toggle='tab'>" + obj.NAME + "</a></li>"
+			  );				
+		  }
+		}
+		loadSrcList();
+		  
+		function loadDstList() {
+	      var list = null;
+	      var parent = $('#parent-of-dst');
+	      parent.html("");
+  		  $.ajax({
+				type : 'post',
+				url : './ajax/get-list-dst.jsp',
+				data : ({}),
+				async: false,
+				cache: false,
+				success : function(data) {
+					data = data.replace(/(^\s*)|(\s*$)/gi, "");
+					list = data;
+				} 
+		  });
+			
+		  if (list == null)	{
+				alert("Dst cannot load.");
+				return ;
+		  }
+		  
+		  var arr = JSON.parse(list); 
+			
+		  if (arr.length > 0)	
+		  while (arr.length > 0) {
+			  var obj = arr.pop();
+			  parent.html(parent.html() +
+					  "<li><a href='#' data-toggle='tab'>" + obj.NAME + "</a></li>"
+			  );				
+		  }
+		}
+		loadDstList();
 		
 		$('#btn-plan-submit').click(function(e) {
 			var action = $("#form-plan").attr("action");
@@ -72,6 +139,7 @@
 			var windowSize;
 			var hashFunction;
 			var bucketSize;
+			var keywords;
 			if ( $("#bbs").hasClass('active') ) {
 				algorithmType = "BINARY_BERNOULLI_SAMPLING";
 				sampleSize = $("#sample-size-for-BBS").val();
@@ -96,13 +164,17 @@
 			}
 			else if ( $("#sts").hasClass('active') ) {
 				algorithmType = "STRATIFIED_SAMPLING";
-				sampleSize = $("#sample-size-for-STS").val();
-				windowSize = $("#window-size-for-STS").val();
+				sampleSize = $("#sample-size-for-StS").val();
+				windowSize = $("#window-size-for-StS").val();
 			}
 			else if ( $("#sys").hasClass('active') ) {
 				algorithmType = "SYSTEMATIC_SAMPLING";
-				sampleRatio = $("#sample-ratio-for-SYS").val();
-				windowSize = $("#window-size-for-SYS").val();
+				sampleSize = $("#sample-size-for-SyS").val();
+				windowSize = $("#window-size-for-SyS").val();
+			}
+			else if ( $("#qf").hasClass('active') ) {
+				algorithmType = "QUERY_FILTERING";
+				keywords = $("#keywords-for-QF").val();
 			} else {
 				alert("Please select a algorithm first.");
 				return false;
@@ -117,7 +189,8 @@
 			  sample_ratio: sampleRatio,
 			  window_size: windowSize,
 			  hash_function: hashFunction,
-			  bucket_size: bucketSize
+			  bucket_size: bucketSize,
+			  keywords: keywords
 			};
 			
 			$.ajax({
@@ -146,6 +219,29 @@
 			return false;
 		  })
 	  })
+	  
+	  function showRecommendModal(algorithm) {
+		  if (algorithm == null || algorithm == 'null')	return;
+		  
+		  $('#recommend-on-modal').html('We recommend <u>' + algorithm.replace('_',' ').toLowerCase() + '</u> for this source.');
+		  $('#recommend-sampling-modal').val(algorithm);
+		  $('#recommend-sampling-modal').modal('show');
+	  }
+	  
+	  function applyRecommendSampling() {
+		  var algorithm = $('#recommend-sampling-modal').val();
+		  var acronym;
+		  switch (algorithm) {
+		  case 'RESERVOIR_SAMPING'			: acronym='rs'; break;
+		  case 'PRIORITY_SAMPLING' 			: acronym='ps'; break;
+		  case 'STRATIFIED_SAMPLING'		: acronym='sts'; break;
+		  case 'BINARY_BERNOULLI_SAMPLING'	: acronym='bbs'; break;
+		  case 'SYSTEMATIC_SAMPLING'		: acronym='sys'; break;
+		  case 'HASH_SAMPLING'				: acronym='hs'; break;
+		  }
+		  $('#'+acronym).addClass('active').siblings().removeClass('active');
+		  $('#tab-for-'+acronym).removeClass('fade').addClass('active').siblings().removeClass('active');
+	  }
 	</script>
     <link href="./css/bootstrap.css" rel="stylesheet">
     <style type="text/css">
@@ -222,16 +318,18 @@
              
 		      <h4>Algorithms</h4>
               <ul class="nav nav-pills hero-unit" style="padding: 10px;">
-                <li id="bbs"><a href="#tab1-1" data-toggle="tab">Binary Bernoulli Sampling</a></li>
-                <li id="hs"><a href="#tab1-2" data-toggle="tab">Hash Sampling</a></li>
-                <li id="ps"><a href="#tab1-3" data-toggle="tab">Priority Sampling</a></li>
-                <li id="rs"><a href="#tab1-4" data-toggle="tab">Reservoir Sampling</a></li>
-                <li id="sts"><a href="#tab1-5" data-toggle="tab">Stratified Sampling</a></li>
-                <li id="sys"><a href="#tab1-6" data-toggle="tab">Systematic Sampling</a></li>
+                <li id="bbs"><a href="#tab-for-bbs" data-toggle="tab">Binary Bernoulli Sampling</a></li>
+                <li id="hs"><a href="#tab-for-hs" data-toggle="tab">Hash Sampling</a></li>
+                <li id="ps"><a href="#tab-for-ps" data-toggle="tab">Priority Sampling</a></li>
+                <li id="rs"><a href="#tab-for-rs" data-toggle="tab">Reservoir Sampling</a></li>
+                <li id="sts"><a href="#tab-for-sts" data-toggle="tab">Stratified Sampling</a></li>
+                <li id="sys"><a href="#tab-for-sys" data-toggle="tab">Systematic Sampling</a></li>
+                
+                <li id="qf"><a href="#tab-for-qf" data-toggle="tab">Query Filtering</a></li>
               </ul>
 
               <div id="tab-src-content" class="tab-content">
-                <div class="tab-pane fade" id="tab1-1">
+                <div class="tab-pane fade" id="tab-for-bbs">
                   <div class="form-horizontal">
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-BBS">Sample Size</label>
@@ -248,7 +346,7 @@
 				  </div>
                 </div>
                 
-                <div class="tab-pane fade" id="tab1-2">
+                <div class="tab-pane fade" id="tab-for-hs">
                   <div class="form-horizontal">
 				    <div class="control-group">
 				      <label class="control-label" for="sample-ratio-for-HS">Sample Size</label>
@@ -277,7 +375,7 @@
 				  </div>
                 </div>
                 
-                <div class="tab-pane fade" id="tab1-3">
+                <div class="tab-pane fade" id="tab-for-ps">
                   <div class="form-horizontal">
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-PS">Sample Size</label>
@@ -294,7 +392,7 @@
 				  </div>
                 </div>
                 
-                <div class="tab-pane fade" id="tab1-4">
+                <div class="tab-pane fade" id="tab-for-rs">
                   <div class="form-horizontal">
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-RS">Sample Size</label>
@@ -311,7 +409,7 @@
 				  </div>
                 </div>
                 
-                <div class="tab-pane fade" id="tab1-5">
+                <div class="tab-pane fade" id="tab-for-sts">
                   <div class="form-horizontal">
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-StS">Sample Size</label>
@@ -328,12 +426,12 @@
 				  </div>
                 </div>
                 
-                <div class="tab-pane fade" id="tab1-6">
+                <div class="tab-pane fade" id="tab-for-sys">
                   <div class="form-horizontal">
 				    <div class="control-group">
-				      <label class="control-label" for="sample-ratio-for-SyS">Sample Ratio</label>
+				      <label class="control-label" for="sample-size-for-SyS">Sample Size</label>
 				      <div class="controls">
-  				       <input type="text" id="sample-ratio-for-SyS">
+  				       <input type="text" id="sample-size-for-SyS">
 				      </div>
 				    </div>
 				    <div class="control-group">
@@ -344,6 +442,18 @@
 				    </div>
 				  </div>
                 </div>
+                
+                <div class="tab-pane fade" id="tab-for-qf">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="keywords-for-QF">Keywords</label>
+				      <div class="controls">
+  				       <input type="text" id="keywords-for-QF">
+				      </div>
+				    </div>
+				  </div>
+                </div>
+                
               </div>                            
             </div>      
                   
@@ -353,4 +463,18 @@
         </div>
     </div> <!-- /container -->
   </body>
+  
+	<div id="recommend-sampling-modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+	    <h3 id="myModalLabel">Intelligent Engine</h3>
+	  </div>
+	  <div class="modal-body">
+	    <p id='recommend-on-modal'></p>
+	  </div>
+	  <div class="modal-footer">
+	    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+	    <button class="btn btn-primary" onclick="applyRecommendSampling();" data-dismiss="modal" aria-hidden="true">Apply</button>
+	  </div>
+	</div>
 </html>

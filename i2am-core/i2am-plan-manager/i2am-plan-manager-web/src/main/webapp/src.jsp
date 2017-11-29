@@ -414,7 +414,7 @@
         <hr />
         <form class="navbar-form pull-left" name="testForm" id="testForm">
           <input type="text" placeholder="Test data name" id="uploadName">
-	      <input type="file" class="input-medium" name="uploadFile" id="uploadFile" />
+	      <input type="file" class="input-medium" name="uploadFile" id="uploadFile" accept=".csv,.json,.xml"/>
 	      <button class="btn" id="btn-upload">Add data</button>
 		</form>
       </div> 

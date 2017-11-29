@@ -9,7 +9,7 @@
 	CommandSubmitter submitter = new CommandSubmitter();
 	submitter.changeStatus(user_id, CommandSubmitter.COMMAND_TYPE.valueOf(commandType), name, CommandSubmitter.STATUS.valueOf(after));
 	
-	// submitter.submit();
+	submitter.submit();
 	String command = submitter.printCommand();
 %>
 <%=command %>

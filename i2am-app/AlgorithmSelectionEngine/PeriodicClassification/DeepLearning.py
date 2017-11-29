@@ -1,5 +1,6 @@
 """ Learned classification model """
 import tensorflow as tf
+import time
 from PeriodicClassification import ModelConfig as myConfig
 from PeriodicClassification import Preprocess as pre
 
@@ -51,9 +52,9 @@ def _classification(hypothesis):
 
 
 def _DNN_main(USER_DATA_PATH):
+    _start_msg()
     list_time_series = pre._reader(USER_DATA_PATH)
     time_series = pre._resize(list_time_series)
-    print(time_series.shape)
 
     X = tf.placeholder(tf.float32, [None, myConfig.INPUT_SIZE])
     keep_prob = tf.placeholder(tf.float32)  #0.1, 0.2, 0.3
@@ -67,6 +68,8 @@ def _DNN_main(USER_DATA_PATH):
     saver = tf.train.import_meta_graph(myConfig.SAVED_MODEL_PATH)
     saver.restore(sess, tf.train.latest_checkpoint(myConfig.CHECKPOINT_PATH))
 
+    _load_model_msg(1)
+
     t_trained = sess.run([h_predict], feed_dict={X: time_series, keep_prob: [1.0, 1.0, 1.0]})
     print(t_trained[0])
 
@@ -79,3 +82,21 @@ def _DNN_main(USER_DATA_PATH):
 
 # Usage Example
 # _DNN_main("user's data path")
+# _DNN_main("D:/DKE/data/period_classification/시연데이터/ECG_데이터_1.csv")
+
+def _start_msg():
+    print("")
+    print("***********************************************************")
+    print("Start Classification with Deep Learning")
+    print("                                 Model name: FFNN 1024")
+    print("                                 Optimize func.: Adam")
+    print("                                 Activation func.: softsign")
+    print("                                 Learning rate: 0.0001")
+    print("***********************************************************")
+    print("")
+
+
+def _load_model_msg(sleep_time):
+    print("")
+    time.sleep(sleep_time)
+    print(" The classification model was successfully imported!")

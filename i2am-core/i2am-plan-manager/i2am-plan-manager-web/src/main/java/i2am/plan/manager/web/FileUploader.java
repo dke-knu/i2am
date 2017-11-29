@@ -1,8 +1,6 @@
 package i2am.plan.manager.web;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
@@ -19,7 +17,8 @@ import org.apache.tomcat.util.http.fileupload.servlet.ServletRequestContext;
 
 @SuppressWarnings("serial")
 public class FileUploader extends HttpServlet {
-	private final String UPLOAD_DIRECTORY = "D:/test_files/";
+//	private final String UPLOAD_DIRECTORY = "D:/test_files/";
+	private final String UPLOAD_DIRECTORY = "/data/test_files/";
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {

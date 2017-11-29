@@ -21,7 +21,7 @@
 	}
 	submitter.createSrc(user_id, srcName, SRC_TYPE.valueOf(srcType), database, kafka, usesIntelli, testDataName);
 	
-	// submitter.submit();
+	submitter.submit();
 	String command = submitter.printCommand();
 %>
 <%=command %>

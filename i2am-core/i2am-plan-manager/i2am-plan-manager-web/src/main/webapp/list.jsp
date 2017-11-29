@@ -51,16 +51,17 @@
 			
 			var arr = JSON.parse(list);
 			
-			if (arr.length > 0)	
 			while (arr.length > 0) {
 				var obj = arr.pop();
 				var after = obj.STATUS=="ACTIVE"?"DEACTIVE":"ACTIVE";
+				var recommendation = (obj.IS_RECOMMENDATION=="N"?"Unused":
+					(obj.RECOMMENDED_SAMPLING==null?'Analyzing...':obj.RECOMMENDED_SAMPLING.replace('_',' ')));
 				tbl.html(tbl.html() +
 					"<tr>" +
 						"<td>" + obj.NAME + "</td>" +
 						"<td>" + obj.CREATED_TIME + "</td>" +
-						"<td>" + (obj.IS_RECOMMENDATION=="true"?"Used":"Unused") + "</td>" +
-						"<td>" + (obj.USES_LOAD_SHEDDING=="true"?"Used":"Unused") + "</td>" +
+						"<td>" + recommendation + "</td>" +
+						//"<td>" + (obj.USES_LOAD_SHEDDING=="Y"?"Used":"Unused") + "</td>" +
 						"<td>" + 
 							"<div class='btn-group'>" +
 								"<button class='btn btn-mini dropdown-toggle' data-toggle='dropdown'>" + 
@@ -165,7 +166,8 @@
 								"</ul>" +
 							"</div>" +
 						"</td>" +
-						"<td><button class='btn btn-mini'>View</button></td>" +
+						"<td><a href='http://114.70.235.43:3000/dashboard/db/kafka_monitoring?orgId=1&var-topic=" + obj.INPUT + "&var-topic2=" + obj.OUTPUT + "'>" +
+							"<button class='btn btn-mini'>View</button></a></td>" +
 					"</tr>"
 				);				
 			}
@@ -261,7 +263,7 @@
                   <th>Name</th>
                   <th>Created time</th>
                   <th>Intelligent engine</th>
-                  <th>Load shedding engine</th>
+                  <!-- <th>Load shedding engine</th>  -->
                   <th>Status</th>
                 </tr>
               </thead>

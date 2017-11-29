@@ -191,7 +191,7 @@ public class DbAdapter {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT NAME, CREATED_TIME, IS_RECOMMENDATION, USES_LOAD_SHEDDING, STATUS "
+			sql = "SELECT NAME, CREATED_TIME, IS_RECOMMENDATION, USES_LOAD_SHEDDING, STATUS, RECOMMENDED_SAMPLING "
 					+ "FROM tbl_src WHERE F_OWNER = "
 					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
 			return getJSONArray(stmt.executeQuery(sql));
@@ -251,9 +251,10 @@ public class DbAdapter {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT NAME, CREATED_TIME, STATUS "
-					+ "FROM tbl_plan WHERE F_OWNER = "
-					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
+			sql = "SELECT p.NAME, p.CREATED_TIME, p.STATUS, s.TRANS_TOPIC as INPUT, d.TRANS_TOPIC as OUTPUT "
+					+ "FROM tbl_plan p, tbl_src s, tbl_dst d "
+					+ "WHERE p.F_SRC = s.IDX AND p.F_DST = d.IDX AND "
+					+ "p.F_OWNER = ( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
 			return getJSONArray(stmt.executeQuery(sql));
 
 		} catch (SQLException e) {
@@ -263,7 +264,7 @@ public class DbAdapter {
 				if (stmt != null) {
 					stmt.close();
 				}
-				if (con != null) {
+				if (con != null) { 
 					close(con);
 				}
 			} catch (SQLException e) {
@@ -282,10 +283,10 @@ public class DbAdapter {
 				ResultSetMetaData rmd = rs.getMetaData();
 
 				for ( int i=1; i<=rmd.getColumnCount(); i++ ) {
-					obj.put(rmd.getColumnName(i),rs.getString(rmd.getColumnName(i)));
+					obj.put(rmd.getColumnLabel(i),rs.getString(rmd.getColumnLabel(i)));
 				}
 
-				jarray.add(obj);
+				jarray.add(obj); 
 			}
 		}
 		catch (SQLException sqle) {
