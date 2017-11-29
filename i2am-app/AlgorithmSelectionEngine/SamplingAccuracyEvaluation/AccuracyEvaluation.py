@@ -10,6 +10,12 @@ def run(populationList, sampleList, jSDPieceCount, pAAPieceCount):
     standardizingPopulationList = SC.standardizing(populationAverage, populationStrdDeviation, populationList)
     standardizingSampleList = SC.standardizing(sampleAverage, sampleStrdDeviation, sampleList)
 
+    print('Population Average: ', populationAverage)
+    print('populationStrdDeviation: ', populationStrdDeviation)
+    print('Sample Average: ', sampleAverage)
+    print('Sample Standard Deviation: ', sampleStrdDeviation)
+    print()
+
     # ED Parameters
     paaPopulationList = AM.startPAA(pAAPieceCount, standardizingPopulationList)
     paaSampleList = AM.startPAA(pAAPieceCount, standardizingSampleList)

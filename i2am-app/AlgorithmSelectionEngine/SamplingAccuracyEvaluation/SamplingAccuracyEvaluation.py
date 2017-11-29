@@ -5,6 +5,7 @@ from SamplingAccuracyEvaluation import StatisticalCalculation as SC
 import operator
 
 def populationListGenerate(filePath):
+    print('Generate Population List')
     populationList = []
     populationFile = open(filePath, 'r')
 
@@ -28,11 +29,15 @@ def calculateScore(evalList):
     return score
 
 def run(windowSize, sampleSize, filePath):
+    print('############## Sampling Accuracy Evaluation ##############')
     count = 1
     numOfTrials = 1
     jSDPieceCount = 20
     pAAPieceCount = 20
-
+    print('Window Size: ' ,windowSize)
+    print('Sample Size: ' ,sampleSize)
+    print('JSD Piece Count: ' ,jSDPieceCount)
+    print('PAA Piece Count: ' ,pAAPieceCount)
     populationList =  populationListGenerate(filePath)
     windowList = []
 
@@ -41,29 +46,35 @@ def run(windowSize, sampleSize, filePath):
     reservoirEvalList = [0.0 for _ in range(accuracyMeasureCount)]
     hashEvalList = [0.0 for _ in range(accuracyMeasureCount)]
     priorityEvalList = [0.0 for _ in range(accuracyMeasureCount)]
+    print()
 
     for data in populationList:
         windowList.append(data)
         if count == windowSize:
-            PG.printGraph(windowList, 'Population', numOfTrials)
+            print('################## ' + str(numOfTrials) + ' Evaluation Start ####################')
+            if numOfTrials == 1: PG.printGraph(windowList, 'Population', numOfTrials)
+            print()
 
             print(str(numOfTrials)+'_ReservoirSampling')
             sampleList = SA.sortedReservoirSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(reservoirEvalList, tempEvalList)
             if numOfTrials == 1: PG.printGraph(sampleList, 'Reservoir', numOfTrials)
+            print()
 
             print(str(numOfTrials)+'_HashSampling')
             sampleList = SA.hashSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(hashEvalList, tempEvalList)
             if numOfTrials == 1: PG.printGraph(sampleList, 'Hash', numOfTrials)
+            print()
 
             print(str(numOfTrials)+'_PrioritySampling')
             sampleList = SA.sortedPrioritySam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(priorityEvalList, tempEvalList)
             if numOfTrials == 1: PG.printGraph(sampleList, 'Priority', numOfTrials)
+            print()
 
             numOfTrials = numOfTrials + 1
             count = 0
@@ -76,9 +87,9 @@ def run(windowSize, sampleSize, filePath):
         hashEvalList[i] = hashEvalList[i] / numOfTrials
         priorityEvalList[i] = priorityEvalList[i] / numOfTrials
 
-    evalDic['reservoir'] = calculateScore(reservoirEvalList)
-    evalDic['hash'] = calculateScore(hashEvalList)
-    evalDic['priority'] = calculateScore(priorityEvalList)
+    evalDic['RESERVOIR_SAMPLING'] = calculateScore(reservoirEvalList)
+    evalDic['HASH_SAMPLING'] = calculateScore(hashEvalList)
+    evalDic['PRIORITY_SAMPLING'] = calculateScore(priorityEvalList)
 
     sortedEvalList = sorted(evalDic.items(), key = operator.itemgetter(1))
 
