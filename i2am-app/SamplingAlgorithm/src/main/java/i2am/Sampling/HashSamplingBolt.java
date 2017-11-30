@@ -10,6 +10,8 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
 import java.util.List;
@@ -35,6 +37,9 @@ public class HashSamplingBolt extends BaseRichBolt{
     private JedisCommands jedisCommands = null;
 
     protected OutputCollector collector;
+
+    /* Logger */
+    private final static Logger logger = LoggerFactory.getLogger(HashSamplingBolt.class);
 
     public HashSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;

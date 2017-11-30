@@ -38,7 +38,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt{
     protected OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(ReservoirSamplingBolt.class);
 
     public ReservoirSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;

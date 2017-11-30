@@ -37,9 +37,9 @@ public class PrioritySamplingBolt extends BaseRichBolt{
     protected OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(PrioritySamplingBolt.class);
 
-    public PrioritySamplingBolt(){
+    public PrioritySamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }

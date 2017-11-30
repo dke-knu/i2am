@@ -1,6 +1,9 @@
 package i2am.Common;
 
 import i2am.Declaring.DeclaringBolt;
+import i2am.Declaring.PriorityDeclaringBolt;
+import i2am.Sampling.HashSamplingBolt;
+import i2am.Sampling.PrioritySamplingBolt;
 import i2am.Sampling.ReservoirSamplingBolt;
 import i2am.Sampling.SystematicSamplingBolt;
 import org.apache.storm.Config;
@@ -93,8 +96,13 @@ public class SamplingTopology {
                 .setNumTasks(1);
 
         /* DeclaringBolt */
-        if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING") || algorithmName.equals("PRIORITY_SAMPLING")){
+        if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING")){
             topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new DeclaringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
+        }
+        else if(algorithmName.equals("PRIORITY_SAMPLING")){
+            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new PriorityDeclaringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
@@ -112,6 +120,16 @@ public class SamplingTopology {
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(4);
         }
+        else if(algorithmName.equals("HASH_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new HashSamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("DECLARING_BOLT")
+                    .setNumTasks(4);
+        }
+        else if(algorithmName.equals("PRIORITY_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new PrioritySamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("DECLARING_BOLT")
+                    .setNumTasks(4);
+        }
 
         /* PassingBolt and KafkaBolt */
         topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
@@ -124,9 +142,13 @@ public class SamplingTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
-            config.setNumWorkers(8);
-        }else{
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE") ){
+            config.setNumWorkers(7);
+        }
+        else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
+            config.setNumWorkers(10);
+        }
+        else{
             config.setNumWorkers(8);
         }
 
