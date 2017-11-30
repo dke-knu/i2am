@@ -14,22 +14,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
 public class SystematicSamplingBolt extends BaseRichBolt {
-    private int sampleSize;
-    private int windowSize;
     private int interval;
     private int randomNumber;
+    private long count;
     private String sampleName = null;
+
     private Map<String, String> allParameters;
 
     /* RedisKey */
     private String redisKey = null;
-    private String sampleKey = "SampleKey";
-    private String sampleSizeKey = "SampleSize";
-    private String windowSizeKey = "WindowSize";
+    private String intervalKey = "IntervalKey";
 
     /* Jedis */
     private JedisCommandsInstanceContainer jedisContainer = null;
@@ -42,7 +41,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
     private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
 
     public SystematicSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
-        randomNumber = (int)(Math.random()*interval);
+        count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -59,32 +58,25 @@ public class SystematicSamplingBolt extends BaseRichBolt {
         }
 
 		/* Get parameters */
-        allParameters = jedisCommands.hgetAll(redisKey);
-        sampleName = allParameters.get(sampleKey);
-        sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
-        windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        interval = windowSize/sampleSize;
+        interval = Integer.parseInt(jedisCommands.hget(redisKey, intervalKey));
+        randomNumber = (int)(Math.random()*interval);
     }
 
     @Override
     public void execute(Tuple input) {
-        String data = input.getStringByField("data");
-        int count = input.getIntegerByField("count");
+        if(count == Long.MAX_VALUE) count = 0; // Overflow Exception
+
+        count++;
+        String data = input.getString(0);
 
         /* Systematic Sampling */
-        if((count%windowSize)%interval == randomNumber){
-            jedisCommands.rpush(sampleName, data);
-        }
-
-        if(count%windowSize == 0){
-            List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
-            jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
-            collector.emit(new Values(sampleList)); // Emit
+        if(count%interval == randomNumber) {
+            collector.emit(new Values(data));
         }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("sampleList"));
+        declarer.declare(new Fields("data"));
     }
 }
