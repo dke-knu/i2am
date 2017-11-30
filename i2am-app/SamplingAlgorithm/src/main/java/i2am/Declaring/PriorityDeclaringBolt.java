@@ -14,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PriorityDeclaringBolt extends BaseRichBolt {
-    private int windowSize;
     private int count;
+    private int windowSize;
+    private Map<String, Integer> dataMap; // It saves data's weight
 
     /* Redis */
     private String redisKey;
@@ -36,6 +38,7 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
 
     public PriorityDeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
+        dataMap = new HashMap<String, Integer>();
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -59,7 +62,17 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         count++;
         String data = input.getString(0);
-        collector.emit(new Values(data, count));
+        int weight;
+
+        if(dataMap.containsKey(data)){
+            weight = dataMap.get(data) + 1;
+            dataMap.replace(data, weight);
+        }else{
+            weight = 1;
+            dataMap.put(data, 1);
+        }
+
+        collector.emit(new Values(data, count, weight));
 
         if(count == windowSize){
             count = 0;
@@ -68,6 +81,6 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data", "count"));
+        declarer.declare(new Fields("data", "count", "weight"));
     }
 }

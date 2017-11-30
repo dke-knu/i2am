@@ -16,9 +16,9 @@ import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
 
-public class DeclaringBolt extends BaseRichBolt{
-    private int windowSize;
+public class DeclaringBolt extends BaseRichBolt {
     private int count;
+    private int windowSize;
 
     /* Redis */
     private String redisKey;
