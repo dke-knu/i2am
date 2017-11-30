@@ -1,4 +1,4 @@
-package i2am.Common;
+package i2am.Declaring;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;

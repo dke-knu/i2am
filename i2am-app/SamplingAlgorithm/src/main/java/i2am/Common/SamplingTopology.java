@@ -1,5 +1,7 @@
 package i2am.Common;
 
+import i2am.Declaring.DeclaringBolt;
+import i2am.Sampling.ReservoirSamplingBolt;
 import i2am.Sampling.SystematicSamplingBolt;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -92,13 +94,21 @@ public class SamplingTopology {
 
         /* DeclaringBolt */
         if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING") || algorithmName.equals("PRIORITY_SAMPLING")){
+            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new DeclaringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
         }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
         }
 
         /* SamplingBolt */
         if(algorithmName.equals("SYSTEMATIC_SAMPLING")){
-            topologyBuilder.setBolt("SYSTEMATIC_SAMPLING", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 4)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new SystematicSamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(4);
+        }
+        else if(algorithmName.equals("RESERVOIR_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(4);
         }

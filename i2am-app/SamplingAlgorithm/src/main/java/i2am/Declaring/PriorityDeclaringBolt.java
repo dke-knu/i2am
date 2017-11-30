@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.Declaring;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -9,22 +9,19 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
 
-public class PrioritySamplingBolt extends BaseRichBolt{
-    private int sampleSize;
+public class PriorityDeclaringBolt extends BaseRichBolt {
     private int windowSize;
-    private String sampleName = null;
-    private Map<String, String> allParameters;
+    private int count;
 
-    /* RedisKey */
-    private String redisKey = null;
-    private String sampleKey = "SampleKey";
-    private String sampleSizeKey = "SampleSize";
+    /* Redis */
+    private String redisKey;
     private String windowSizeKey = "WindowSize";
 
     /* Jedis */
@@ -35,9 +32,10 @@ public class PrioritySamplingBolt extends BaseRichBolt{
     protected OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(PriorityDeclaringBolt.class);
 
-    public PrioritySamplingBolt(){
+    public PriorityDeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+        count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -46,6 +44,7 @@ public class PrioritySamplingBolt extends BaseRichBolt{
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
 
+        /* Connect to Redis */
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
@@ -53,22 +52,22 @@ public class PrioritySamplingBolt extends BaseRichBolt{
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
-        /* Get parameters */
-        allParameters = jedisCommands.hgetAll(redisKey);
-        sampleName = allParameters.get(sampleKey);
-        sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
-        windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+        windowSize = Integer.parseInt(jedisCommands.hget(redisKey, windowSizeKey));
     }
 
     @Override
     public void execute(Tuple input) {
-        int count = input.getIntegerByField("count");
-        String data = input.getStringByField("data");
+        count++;
+        String data = input.getString(0);
+        collector.emit(new Values(data, count));
+
+        if(count == windowSize){
+            count = 0;
+        }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("sampleList"));
+        declarer.declare(new Fields("data", "count"));
     }
 }
