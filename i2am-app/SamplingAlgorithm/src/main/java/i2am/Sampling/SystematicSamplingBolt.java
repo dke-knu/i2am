@@ -23,7 +23,6 @@ public class SystematicSamplingBolt extends BaseRichBolt {
     private int randomNumber;
     private long count;
     private String sampleName = null;
-
     private Map<String, String> allParameters;
 
     /* RedisKey */
