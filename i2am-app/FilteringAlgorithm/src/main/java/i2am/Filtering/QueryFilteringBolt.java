@@ -27,6 +27,7 @@ public class QueryFilteringBolt extends BaseRichBolt{
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        this.collector = collector;
     }
 
     @Override
