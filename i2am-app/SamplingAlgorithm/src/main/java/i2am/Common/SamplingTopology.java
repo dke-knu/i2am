@@ -91,12 +91,9 @@ public class SamplingTopology {
                 .setNumTasks(1);
 
         /* DeclaringBolt */
-        if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
+        if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING") || algorithmName.equals("PRIORITY_SAMPLING")){
         }
-        else{
-            topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(redisKey, jedisClusterConfig), 1)
-                    .globalGrouping("KAFKA_SPOUT")
-                    .setNumTasks(1);
+        else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
         }
 
         /* SamplingBolt */
