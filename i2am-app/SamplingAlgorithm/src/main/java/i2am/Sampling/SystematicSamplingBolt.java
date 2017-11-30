@@ -34,7 +34,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
     private JedisClusterConfig jedisClusterConfig = null;
     private JedisCommands jedisCommands = null;
 
-    protected OutputCollector collector;
+    private OutputCollector collector;
 
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);

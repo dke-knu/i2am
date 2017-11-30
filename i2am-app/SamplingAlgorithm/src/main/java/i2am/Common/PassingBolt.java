@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PassingBolt extends BaseRichBolt{
-    protected OutputCollector collector;
+    private OutputCollector collector;
 
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(PassingBolt.class);

@@ -57,14 +57,8 @@ public class SamplingTopology {
 
         /* Jedis Connection Configuration */
         jedisClusterConfig = new JedisClusterConfig(redisNodes, Protocol.DEFAULT_TIMEOUT, 5);
-
-        /* Connect to Redis */
-        if(jedisClusterConfig != null){
-            jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
-            jedisCommands = jedisContainer.getInstance();
-        } else{
-            throw new IllegalArgumentException("Jedis configuration not found");
-        }
+        jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
+        jedisCommands = jedisContainer.getInstance();
 
         /* Get all parameters from Redis */
         Map<String, String> allParameters = jedisCommands.hgetAll(redisKey);
@@ -142,7 +136,7 @@ public class SamplingTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE") ){
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
             config.setNumWorkers(7);
         }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
