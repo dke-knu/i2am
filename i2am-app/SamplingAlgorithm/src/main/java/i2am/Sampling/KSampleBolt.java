@@ -16,6 +16,7 @@ import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
 
+
 public class KSampleBolt extends BaseRichBolt {
     //private int interval;
     private double samplingRate;
