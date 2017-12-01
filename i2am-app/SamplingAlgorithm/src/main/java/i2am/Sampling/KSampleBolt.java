@@ -19,11 +19,10 @@ import java.util.Map;
 
 public class KSampleBolt extends BaseRichBolt {
     //private int interval;
-    private double samplingRate;
+    private int samplingRate;
     //private double randomNumber;
     private long count;
-    private String sampleName = null;
-    private Map<String, String> allParameters;
+    private String sampleElement="";
 
     /* RedisKey */
     private String redisKey = null;
@@ -37,7 +36,7 @@ public class KSampleBolt extends BaseRichBolt {
     private OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(KSampleBolt.class);
 
     public KSampleBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
@@ -47,7 +46,7 @@ public class KSampleBolt extends BaseRichBolt {
 
 
     @Override
-    public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
+    public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
         this.collector = collector;
 
         if (jedisClusterConfig != null) {
@@ -64,36 +63,35 @@ public class KSampleBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-        String sampleElement="";
+
         String data = input.getString(0);
-        int sampleSize=1;
-        double slot=0;
+        count++;
+        double slot;
         double prob=0.0;
         double randomNumber = 1.0;
 
-        count++;
+        if ( (count%samplingRate)==0) slot=samplingRate;
+        else slot = count%samplingRate;
 
         /* KSample */
-        if (sampleSize <= (samplingRate*count)){
-            collector.emit(new Values(sampleElement));
-            slot=0;
-            sampleSize++;
-        }
-        slot+=1.0;
-
         prob=(1.0/slot);
         randomNumber = Math.random();
+
+        /*
+        logger.info("##########HJKIM Data: " + data);
+        logger.info("##########HJKIM Prob: " + prob);
+        logger.info("##########HJKIM Rand: " + randomNumber);
+        */
 
         if (prob > randomNumber){
             sampleElement=data;
         }
 
-        if(count == 1000) {
-            count = 0; // Overflow Exception
-            sampleSize=1;
+        logger.info("##########HJKIM dataEle: " + sampleElement);
+
+        if(count%samplingRate == 0){
+            collector.emit(new Values(sampleElement));
         }
-
-
 
     }
 

@@ -4,10 +4,7 @@ import i2am.Declaring.DeclaringBolt;
 import i2am.Declaring.PriorityDeclaringBolt;
 import i2am.Passing.PassingBolt;
 import i2am.Passing.SystematicPassingBolt;
-import i2am.Sampling.HashSamplingBolt;
-import i2am.Sampling.PrioritySamplingBolt;
-import i2am.Sampling.ReservoirSamplingBolt;
-import i2am.Sampling.SystematicSamplingBolt;
+import i2am.Sampling.*;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
@@ -126,9 +123,14 @@ public class SamplingTopology {
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(4);
         }
+        else if(algorithmName.equals("K_SAMPLE")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(4);
+        }
 
         /* PassingBolt and KafkaBolt */
-        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
             topologyBuilder.setBolt("PASSING_BOLT", new SystematicPassingBolt(), 1)
                     .shuffleGrouping(algorithmName+"_BOLT")
                     .setNumTasks(1);
