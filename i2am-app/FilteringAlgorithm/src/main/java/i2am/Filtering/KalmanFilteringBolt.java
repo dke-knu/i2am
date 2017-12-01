@@ -50,6 +50,9 @@ public class KalmanFilteringBolt extends BaseRichBolt{
             // calculate R
             RCalculator rCalculator = new RCalculator();
             R = rCalculator.calcR(inputDataArray, windowSize);
+
+            // clear list
+            inputData.clear();
         }
 
         x_next = x;
