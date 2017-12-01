@@ -16,6 +16,7 @@ import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
 
+
 public class KSampleBolt extends BaseRichBolt {
     //private int interval;
     private double samplingRate;
@@ -87,7 +88,10 @@ public class KSampleBolt extends BaseRichBolt {
             sampleElement=data;
         }
 
-        if(count == 1000) count = 0; // Overflow Exception
+        if(count == 1000) {
+            count = 0; // Overflow Exception
+            sampleSize=1;
+        }
 
 
 
