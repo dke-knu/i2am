@@ -26,6 +26,9 @@ public class ServerSessionHandler {
     private ServerSession session;
     private final String srcIp;
 
+    private final short LOAD_METRICS_NO = -900;
+    private final short LOAD_METRICS_REQ = -901;
+
     public ServerSessionHandler(ServerSession.SessionKey sesKey, Server server, String srcIp) {
         this.srcIp = srcIp;
         session = new ServerSession(sesKey, new ServerSessionCallbacks(server));
@@ -46,24 +49,94 @@ public class ServerSessionHandler {
             failure_count = new AtomicInteger(0);
         }
 
+        @Override
+        public void onRequest(Msg msg) {
+//            LOG.info("Server-onRequest, msg info: " + msg.toString());
+
+            ByteBuffer bb = msg.getIn();
+
+            short code = bb.getShort();
+
+            if (code == LOAD_METRICS_REQ) {
+                LOG.info("[Server] LoadMetrics message = {}", code);
+                MessageBatch mb = new MessageBatch(1);
+                try {
+                    mb.add(new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad))));
+//                    tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    msg.getOut().put(mb.buffer().array());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else if(code == LOAD_METRICS_NO) {
+                try {
+                    ControlMessage.LOADMETRICS_NO.write(msg.getOut());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+//                msg.getOut().putShort(ControlMessage.LOADMETRICS_NO.write());
+            }
+
+            //batch TaskMessage
+            Object msgs = decoder(bb);
+            if (msgs != null) {
+                try {
+                    server.received(msgs, srcIp);
+                } catch (InterruptedException e) {
+                    LOG.info("failed to enqueue a request message", e);
+                    failure_count.incrementAndGet();
+                    e.printStackTrace();
+                }
+
+                /*if (msgs instanceof ByteBuffer) {
+                    msg.getOut().put(((ByteBuffer) msgs).array());
+                }*/
+            }
+
+            try {
+                session.sendResponse(msg);
+            } catch (JxioGeneralException e) {
+                e.printStackTrace();
+            } catch (JxioSessionClosedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onSessionEvent(EventName eventName, EventReason eventReason) {
+            String str = "[ServerSession][EVENT] Got event " + eventName + " because of " + eventReason;
+            if (eventName == EventName.SESSION_CLOSED) { // normal exit
+                LOG.info(str);
+            } else {
+                LOG.error(str);
+            }
+            if (session.getIsClosing()) {
+                session = null;
+                return;
+            }
+            LOG.error("[OnSessionEvent] srcIp = {}", srcIp);
+            session.close();
+//            LOG.info("[ServerSession][EVENT] session size: {}", server.allSessions.size());
+        }
+
+        @Override
+        public boolean onMsgError(Msg msg, EventReason eventReason) {
+            if (session.getIsClosing()) {
+                LOG.info("On Message Error while closing. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
+            } else {
+                LOG.error("On Message Error. Reason is = " + eventReason + " drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
+            }
+            return true;
+        }
+
         private Object decoder(ByteBuffer buf) {
             long available = buf.remaining();
-            if (available <=2) {
+            if (available < 2) {
                 //need more data
-                if (available == 2) {
-                    short code = buf.getShort();
-                    LOG.info("[Server] LoadMetrics message = {}", code);
-                    if (code == -111) {
-                        TaskMessage tm = null;
-                        try {
-                            tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        ByteBuffer bb = tm.serialize();
-                        return bb;
-                    }
-                }
                 return null;
             }
             List<Object> ret = new ArrayList<>();
@@ -131,65 +204,6 @@ public class ServerSessionHandler {
             } else {
                 return ret;
             }
-        }
-
-        @Override
-        public void onRequest(Msg msg) {
-//            LOG.info("Server-onRequest, msg info: " + msg.toString());
-
-            //batch TaskMessage
-            Object msgs = decoder(msg.getIn());
-            if (msgs != null) {
-                try {
-                    server.received(msgs, srcIp);
-                } catch (InterruptedException e) {
-                    LOG.info("failed to enqueue a request message", e);
-                    failure_count.incrementAndGet();
-                    e.printStackTrace();
-                }
-
-                /*if (msgs instanceof ByteBuffer) {
-                    msg.getOut().put(((ByteBuffer) msgs).array());
-                }*/
-                msg.getOut().put((byte)succMsg);
-
-            }
-
-            try {
-                session.sendResponse(msg);
-            } catch (JxioGeneralException e) {
-                e.printStackTrace();
-            } catch (JxioSessionClosedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        @Override
-        public void onSessionEvent(EventName eventName, EventReason eventReason) {
-            String str = "[ServerSession][EVENT] Got event " + eventName + " because of " + eventReason;
-            if (eventName == EventName.SESSION_CLOSED) { // normal exit
-                LOG.info(str);
-            } else {
-                LOG.error(str);
-            }
-            if (session.getIsClosing()) {
-                session = null;
-                return;
-            }
-            LOG.error("[OnSessionEvent] srcIp = {}", srcIp);
-            session.close();
-//            LOG.info("[ServerSession][EVENT] session size: {}", server.allSessions.size());
-        }
-
-        @Override
-        public boolean onMsgError(Msg msg, EventReason eventReason) {
-            if (session.getIsClosing()) {
-                LOG.info("On Message Error while closing. Reason is = " + eventReason + "drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
-            } else {
-                LOG.error("On Message Error. Reason is = " + eventReason + " drop Msg = {}, srcIp = {}", msg.toString(), srcIp);
-            }
-            return true;
         }
     }
 }
