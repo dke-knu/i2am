@@ -40,6 +40,14 @@ public class KalmanFilteringBolt extends BaseRichBolt{
             inputData.add(x_present);
         }
 
+        x_next = x;
+        P_next = P+ Q; 	//Q: white noise --> by environment
+        K = P_next*H / (H*H*P_next + R);					//kalman gain
+
+        z = x_present;
+        x = x_next + K*(z - H*x_next);				//
+        P = (1 - K*H)*P_next;
+
         if(inputData.size() == windowSize) {    // calculate R
             // double list to double array
             double[] inputDataArray = new double[windowSize];
@@ -54,14 +62,6 @@ public class KalmanFilteringBolt extends BaseRichBolt{
             // clear list
             inputData.clear();
         }
-
-        x_next = x;
-        P_next = P+ Q; 	//Q: white noise --> by environment
-        K = P_next*H / (H*H*P_next + R);					//kalman gain
-
-        z = x_present;
-        x = x_next + K*(z - H*x_next);				//
-        P = (1 - K*H)*P_next;
 
         collector.emit(new Values(x));
     }
