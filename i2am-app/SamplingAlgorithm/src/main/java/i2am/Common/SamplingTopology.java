@@ -2,6 +2,8 @@ package i2am.Common;
 
 import i2am.Declaring.DeclaringBolt;
 import i2am.Declaring.PriorityDeclaringBolt;
+import i2am.Passing.PassingBolt;
+import i2am.Passing.SystematicPassingBolt;
 import i2am.Sampling.HashSamplingBolt;
 import i2am.Sampling.PrioritySamplingBolt;
 import i2am.Sampling.ReservoirSamplingBolt;
@@ -41,14 +43,14 @@ public class SamplingTopology {
         /* Redis Node Configurations */
         Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
         redisNodes.add(new InetSocketAddress("MN", 17000));
-        redisNodes.add(new InetSocketAddress("SN01", 17001));
-        redisNodes.add(new InetSocketAddress("SN02", 17002));
-        redisNodes.add(new InetSocketAddress("SN03", 17003));
-        redisNodes.add(new InetSocketAddress("SN04", 17004));
-        redisNodes.add(new InetSocketAddress("SN05", 17005));
-        redisNodes.add(new InetSocketAddress("SN06", 17006));
-        redisNodes.add(new InetSocketAddress("SN07", 17007));
-        redisNodes.add(new InetSocketAddress("SN08", 17008));
+        redisNodes.add(new InetSocketAddress("SN01", 17000));
+        redisNodes.add(new InetSocketAddress("SN02", 17000));
+        redisNodes.add(new InetSocketAddress("SN03", 17000));
+        redisNodes.add(new InetSocketAddress("SN04", 17000));
+        redisNodes.add(new InetSocketAddress("SN05", 17000));
+        redisNodes.add(new InetSocketAddress("SN06", 17000));
+        redisNodes.add(new InetSocketAddress("SN07", 17000));
+        redisNodes.add(new InetSocketAddress("SN08", 17000));
 
         /* Jedis */
         JedisClusterConfig jedisClusterConfig = null;
@@ -126,11 +128,19 @@ public class SamplingTopology {
         }
 
         /* PassingBolt and KafkaBolt */
-        topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
-                .shuffleGrouping(algorithmName+"_BOLT")
-                .setNumTasks(1);
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
+            topologyBuilder.setBolt("PASSING_BOLT", new SystematicPassingBolt(), 1)
+                    .shuffleGrouping(algorithmName+"_BOLT")
+                    .setNumTasks(1);
+        }
+        else{
+            topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
+                    .shuffleGrouping(algorithmName+"_BOLT")
+                    .setNumTasks(1);
+        }
+
         topologyBuilder.setBolt("KAFKA_BOLT", kafkaBolt, 1)
-                .shuffleGrouping("PassingBolt")
+                .shuffleGrouping("PASSING_BOLT")
                 .setNumTasks(1);
 
         Config config = new Config();

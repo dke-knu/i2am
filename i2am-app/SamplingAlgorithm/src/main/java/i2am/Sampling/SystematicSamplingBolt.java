@@ -27,7 +27,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
 
     /* RedisKey */
     private String redisKey = null;
-    private String intervalKey = "IntervalKey";
+    private String intervalKey = "Interval";
 
     /* Jedis */
     private JedisCommandsInstanceContainer jedisContainer = null;
