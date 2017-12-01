@@ -33,7 +33,7 @@ public class KalmanFilteringBolt extends BaseRichBolt{
 
     @Override
     public void execute(Tuple input) {
-        double x_present = input.getDouble(0);
+        double x_present = Double.parseDouble(input.getString(0));
         double x_next, P_next, K, z, H = 1, Q = 0.001;
 
         if(inputData.size() < windowSize) {     //
@@ -63,7 +63,8 @@ public class KalmanFilteringBolt extends BaseRichBolt{
             inputData.clear();
         }
 
-        collector.emit(new Values(x));
+        collector.emit(new Values(Double.toString(x)));
+
     }
 
     @Override

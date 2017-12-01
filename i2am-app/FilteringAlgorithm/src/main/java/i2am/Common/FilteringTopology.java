@@ -1,6 +1,7 @@
 package i2am.Common;
 
 import i2am.Filtering.BloomFilteringBolt;
+import i2am.Filtering.KalmanFilteringBolt;
 import i2am.Filtering.QueryFilteringBolt;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -106,20 +107,25 @@ public class FilteringTopology {
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
+        else if(algorithmName.equals("KALMAN_FILTERING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
+        }
 
         /* PassingBolt and KafkaBolt */
         topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
                 .shuffleGrouping(algorithmName+"_BOLT")
                 .setNumTasks(1);
         topologyBuilder.setBolt("KAFKA_BOLT", kafkaBolt, 1)
-                .shuffleGrouping("PassingBolt")
+                .shuffleGrouping("PASSING_BOLT")
                 .setNumTasks(1);
 
         Config config = new Config();
         config.setDebug(true);
 
         if(algorithmName.equals("KALMAN_FILTERING")){
-            config.setNumWorkers(8);
+            config.setNumWorkers(4);
         }
         else{
             config.setNumWorkers(7);
