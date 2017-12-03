@@ -455,10 +455,10 @@ public class WorkerState {
 
         if (now > nextUpdate.get()) {
             receiver.sendLoadMetrics(localLoad);
-            /*for(IConnection client : cachedNodeToPortSocket.get().values()) {
+            for(IConnection client : cachedNodeToPortSocket.get().values()) {
                 LOG.info("[WorkerState-client] sendLoadMetrics");
                 client.requestLoadMectrics();
-            }*/
+            }
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }
     }

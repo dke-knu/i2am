@@ -59,6 +59,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final MessageBuffer batcher;
 
     private int numMessages;
+    private boolean loadMetricsFlag = false;
 
     //JXIO's
     private final MsgPool msgPool;
@@ -67,6 +68,9 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private ClientSession cs;
     private URI uri;
 //    private ExecutorService eqhThread;
+
+    private final short LOAD_METRICS_NO = -900;
+    private final short LOAD_METRICS_REQ = -901;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         int messageBatchSize = Utils.getInt(stormConf.get(Config.STORM_JXIO_MESSAGE_BATCH_SIZE));
@@ -208,6 +212,13 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             //maximum batch size is 262144B (256KB)
             //so, Msg size must be upper than 256KB
             bb = batch.buffer();
+
+            if (loadMetricsFlag) {
+                msg.getOut().putShort(LOAD_METRICS_REQ);
+                loadMetricsFlag = false;
+            } else
+                msg.getOut().putShort(LOAD_METRICS_NO);
+
             msg.getOut().put(bb.array());
         } catch (Exception e) {
             LOG.error("writing {}:{}, msg size = {}", numMessages, bb.array().length, msg.getOut().toString());
@@ -384,7 +395,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void requestLoadMectrics() {
-        LOG.info("[Client] Request load");
+
+        loadMetricsFlag = true;
+
+        /*LOG.info("[Client] Request load");
         if (sessionRef.get() == null) {
             LOG.warn("[Client] Connection not available...");
             return;
@@ -406,7 +420,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         }
         LOG.info("[Client] run event loop");
         eqh.runEventLoop(1, -1);
-        LOG.info("[Client] complete event loop");
+        LOG.info("[Client] complete event loop");*/
     }
 
     private void waitForPendingMessagesToBeSent() {
@@ -441,6 +455,80 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         LOG.error("Failed to send {} messages to {}", numMessages, uri.toString());
         closeSessionAndReconnect(sessionRef.get());
         messagesLost.getAndAdd(numMessages);
+    }
+
+    private Object decoder(ByteBuffer buf) {
+        long available = buf.remaining();
+        if (available < 2) {
+            //need more data
+            if ('s' == (char) buf.get())
+                return null;
+        }
+        List<Object> ret = new ArrayList<>();
+
+        //Use while loop, try to decode as more messages as possible in single call
+        while (available >= 2) {
+
+            // Mark the current buffer position before reading task/len field
+            // because the whole frame might not be in the buffer yet.
+            // We will reset the buffer position to the marked position if
+            // there's not enough bytes in the buffer.
+            buf.mark();
+
+            short code = buf.getShort();
+            available -= 2;
+
+            //case 1: Control message
+            //who send controlmessage?
+            ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
+            if (ctrl_msg != null) {
+                if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
+                    continue;
+                } else {
+                    return ctrl_msg;
+                }
+            }
+            //case 2: SaslTokenMeesageRequest
+            //skip
+
+            //case 3: TaskMessage
+            //Make sure that we have received at least an integer (length)
+            if (available < 4) {
+                //need more data
+                buf.reset();
+                break;
+            }
+            //Read the length field.
+            int length = buf.getInt();
+            available -= 4;
+
+            if (length <= 0) {
+                ret.add(new TaskMessage(code, null));
+                break;
+            }
+
+            //Make sure if there's enough bytes in the buffer.
+            if (available < length) {
+                //The whole bytes were not received yet - return null.
+                buf.reset();
+                break;
+            }
+            available -= length;
+
+            //There's enough bytes in the buffer. Read it.
+            byte[] payload = new byte[length];
+            buf.get(payload);
+
+            //Successfully decoded a frame.
+            //Return a TaskMessage object
+            ret.add(new TaskMessage(code, payload));
+        }
+
+        if (ret.size() == 0) {
+            return null;
+        } else {
+            return ret;
+        }
     }
 
     private class Connect extends TimerTask {
@@ -490,7 +578,41 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         @Override
         public void onResponse(Msg msg) {
-//            LOG.info("Client-onResponse, msg: " + msg.toString());
+            Object obj = decoder(msg.getIn());
+            if (obj instanceof ControlMessage) {
+                ControlMessage ctrl_msg = (ControlMessage) obj;
+                if (ctrl_msg == ControlMessage.FAILURE_RESPONSE)
+                    LOG.info("failure response:{}", msg);
+                if(ctrl_msg == ControlMessage.LOADMETRICS_NO) {
+                    LOG.info("[Client-onResponse] success");
+                    pendingMessages.addAndGet(0 - numMessages);
+                    messagesSent.getAndSet(numMessages);
+                }
+            } else if (obj instanceof List) {
+                try {
+                    List<TaskMessage> list = (List<TaskMessage>) obj;
+                    if (list.size() < 1)
+                        throw new RuntimeException("Didn't see enough load metrics (" + client.getDstAddress() + ") " + list);
+                    TaskMessage tm = ((List<TaskMessage>) obj).get(list.size() - 1);
+                    if (tm.task() != -1)
+                        throw new RuntimeException("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + tm);
+                    List metrics = _des.deserialize(tm.message());
+                    if (metrics.size() < 1)
+                        throw new RuntimeException("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
+                    if (!(metrics.get(0) instanceof Map))
+                        throw new RuntimeException("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") " + metrics);
+                    client.setServerLoad((Map<Integer, Double>) metrics.get(0));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+            } else {
+                throw new RuntimeException("Don't know how to handle a message of type "
+                        + obj + " (" + client.getDstAddress() + ")");
+            }
+
+
+/*
             ByteBuffer inputBuffer = msg.getIn();
             if (inputBuffer.remaining() >= 2) {
                 LOG.info("[Client] load metrics response");
@@ -524,12 +646,12 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             } else {
                 byte message = inputBuffer.get();
                 if ((char) message == 's') {
-//                    LOG.info("[Client-onResponse] success");
+                    LOG.info("[Client-onResponse] success");
                     pendingMessages.addAndGet(0 - numMessages);
                     messagesSent.getAndSet(numMessages);
                     msg.returnToParentPool();
                     return;
-                } else if((char) message == 'n') {
+                } else if ((char) message == 'n') {
                     LOG.error("send empty message");
                     LOG.error("failed to send {} messages to {}: {}", numMessages, uri.getHost(),
                             uri.getPort());
@@ -539,6 +661,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 }
             }
             LOG.warn("No load metrics also no success message");
+
+            */
             msg.returnToParentPool();
         }
 
