@@ -17,14 +17,14 @@ import java.util.Map;
 /**
  * Created by sbpark on 2017-11-30.
  */
-public class KalmanFilteringBolt extends BaseRichBolt{
+public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
     double x = 0, R = 0.5, P = 1000;
     int windowSize = 32;
     List<Double> inputData = new ArrayList<Double>();
     private OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(KalmanFilteringBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(NoiseRecKalmanFilteringBolt.class);
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
