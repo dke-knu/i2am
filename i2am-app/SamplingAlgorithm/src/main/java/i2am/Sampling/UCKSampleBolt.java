@@ -56,9 +56,13 @@ public class UCKSampleBolt extends BaseRichBolt{
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(KSampleBolt.class);
 
-    public UCKSampleBolt(){
+    public UCKSampleBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+        count = 0;
+        this.redisKey = redisKey;
+        this.jedisClusterConfig = jedisClusterConfig;
         windowSize = window_calculator();
     }
+
 
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
@@ -79,7 +83,7 @@ public class UCKSampleBolt extends BaseRichBolt{
 
     @Override
     public void execute(Tuple input) {
-        double rand;
+        double rand=0;
         int wLength;
         int sLength;
         String element = input.getString(0);
@@ -117,7 +121,7 @@ public class UCKSampleBolt extends BaseRichBolt{
     }
 
     public int window_calculator(){
-        int size=1000;
+        int size=300;
 
         return size;
     }
