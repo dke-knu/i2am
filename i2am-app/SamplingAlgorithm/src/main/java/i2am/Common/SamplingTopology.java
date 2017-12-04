@@ -1,5 +1,6 @@
 package i2am.Common;
 
+import i2am.Declaring.BBSDeclaringBolt;
 import i2am.Declaring.DeclaringBolt;
 import i2am.Declaring.PriorityDeclaringBolt;
 import i2am.Passing.PassingBolt;
@@ -100,6 +101,9 @@ public class SamplingTopology {
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
+            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new BBSDeclaringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
         }
 
         /* SamplingBolt */
@@ -127,6 +131,14 @@ public class SamplingTopology {
             topologyBuilder.setBolt(algorithmName+"_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
+        }
+        else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_SITE_BOLT", new BBSSiteBolt(), 4)
+                    .shuffleGrouping("DECLARING_BOLT")
+                    .setNumTasks(4);
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new BBSCoordinatorBolt(redisKey, jedisClusterConfig), 2)
+                    .shuffleGrouping(algorithmName+"_SITE_BOLT")
+                    .setNumTasks(2);
         }
 
         /* PassingBolt and KafkaBolt */
