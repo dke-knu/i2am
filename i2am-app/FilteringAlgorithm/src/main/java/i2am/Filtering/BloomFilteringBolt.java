@@ -23,11 +23,13 @@ import java.util.Map;
 
 public class BloomFilteringBolt extends BaseRichBolt {
     private int bucketSize;
+    private String keywords;
     private List<String> wordArray; // Filter List
     private BloomFilter bloomFilter; // Bloom Filter
 
     /* RedisKey */
     private String redisKey = null;
+    private String keywordsKey = "Keywords";
     private String bucketSizeKey = "BucketSize";
 
     /* Jedis */
@@ -40,7 +42,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(BloomFilteringBolt.class);
 
-    public BloomFilteringBolt(List<String> wordArray, String redisKey, JedisClusterConfig jedisClusterConfig){
+    public BloomFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.wordArray = wordArray;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
@@ -58,8 +60,9 @@ public class BloomFilteringBolt extends BaseRichBolt {
         }
 
         bucketSize = Integer.parseInt(jedisCommands.hget(redisKey, bucketSizeKey));
+        keywords = jedisCommands.hget(redisKey, keywordsKey);
         bloomFilter = new BloomFilter(bucketSize);
-        for(String word: wordArray){
+        for(String word: keywords.split(" ")){
             try {
                 bloomFilter.registData(word);
             } catch (UnsupportedEncodingException e) {
@@ -92,7 +95,6 @@ public class BloomFilteringBolt extends BaseRichBolt {
         declarer.declare(new Fields("data"));
     }
 }
-
 
 /* Bloom Filter Class */
 class BloomFilter{

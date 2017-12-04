@@ -2,6 +2,7 @@ package i2am.Common;
 
 import i2am.Filtering.BloomFilteringBolt;
 import i2am.Filtering.KalmanFilteringBolt;
+import i2am.Filtering.NoiseRecKalmanFilteringBolt;
 import i2am.Filtering.QueryFilteringBolt;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -31,16 +32,6 @@ public class FilteringTopology {
         String topologyName = args[0];
         String redisKey = args[1];
         String algorithmName = args[2];
-        String query = args[3];
-        List<String> wordList = null;
-
-        /* Query */
-        if(query.equals("CONTAIN")){
-            wordList = new ArrayList<String>();
-            for(int i = 4; i < args.length; i++){
-                wordList.add(args[i]);
-            }
-        }
 
         /* Logger */
         Logger logger = LoggerFactory.getLogger(FilteringTopology.class);
@@ -48,14 +39,14 @@ public class FilteringTopology {
         /* Redis Node Configurations */
         Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
         redisNodes.add(new InetSocketAddress("MN", 17000));
-        redisNodes.add(new InetSocketAddress("SN01", 17001));
-        redisNodes.add(new InetSocketAddress("SN02", 17002));
-        redisNodes.add(new InetSocketAddress("SN03", 17003));
-        redisNodes.add(new InetSocketAddress("SN04", 17004));
-        redisNodes.add(new InetSocketAddress("SN05", 17005));
-        redisNodes.add(new InetSocketAddress("SN06", 17006));
-        redisNodes.add(new InetSocketAddress("SN07", 17007));
-        redisNodes.add(new InetSocketAddress("SN08", 17008));
+        redisNodes.add(new InetSocketAddress("SN01", 1700));
+        redisNodes.add(new InetSocketAddress("SN02", 17000));
+        redisNodes.add(new InetSocketAddress("SN03", 17000));
+        redisNodes.add(new InetSocketAddress("SN04", 17000));
+        redisNodes.add(new InetSocketAddress("SN05", 17000));
+        redisNodes.add(new InetSocketAddress("SN06", 17000));
+        redisNodes.add(new InetSocketAddress("SN07", 17000));
+        redisNodes.add(new InetSocketAddress("SN08", 17000));
 
         /* Jedis */
         JedisClusterConfig jedisClusterConfig = null;
@@ -98,17 +89,22 @@ public class FilteringTopology {
 
         /* FilteringBolt */
         if(algorithmName.equals("QUERY_FILTERING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new QueryFilteringBolt(wordList), 4)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new QueryFilteringBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("BLOOM_FILTERING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new BloomFilteringBolt(wordList, redisKey, jedisClusterConfig), 4)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new BloomFilteringBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("KALMAN_FILTERING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(), 1)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
+        }
+        else if(algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new NoiseRecKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
@@ -124,7 +120,7 @@ public class FilteringTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("KALMAN_FILTERING")){
+        if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
             config.setNumWorkers(4);
         }
         else{

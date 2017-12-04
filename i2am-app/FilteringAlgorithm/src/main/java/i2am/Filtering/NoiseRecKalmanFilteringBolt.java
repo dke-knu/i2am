@@ -40,7 +40,7 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(NoiseRecKalmanFilteringBolt.class);
 
-    private NoiseRecKalmanFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public NoiseRecKalmanFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }

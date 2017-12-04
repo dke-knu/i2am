@@ -36,7 +36,7 @@ public class KalmanFilteringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(KalmanFilteringBolt.class);
 
-    private KalmanFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public KalmanFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
