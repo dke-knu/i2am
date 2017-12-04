@@ -31,7 +31,6 @@ public class UCKSampleBolt extends BaseRichBolt{
         }
 
         public double getRand() { return rand; }
-        public String getData() { return data; }
 
     }
 
