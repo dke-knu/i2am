@@ -1,5 +1,8 @@
 package i2am.Filtering;
 
+import org.apache.storm.redis.common.config.JedisClusterConfig;
+import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
+import org.apache.storm.redis.common.container.JedisCommandsInstanceContainer;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -9,6 +12,7 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisCommands;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,34 +22,59 @@ import java.util.Map;
  * Created by sbpark on 2017-11-30.
  */
 public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
-    double x = 0, R = 0.5, P = 1000;
-    int windowSize = 32;
+    private double x = 0, R = 0.5, P = 1000, Q;
+    private int windowSize = 32;
     List<Double> inputData = new ArrayList<Double>();
+
+    /* RedisKey */
+    private String redisKey = null;
+    private String QValueKey = "Q_val";
+
+    /* Jedis */
+    private transient JedisCommandsInstanceContainer jedisContainer;
+    private JedisClusterConfig jedisClusterConfig;
+    private JedisCommands jedisCommands = null;
+
     private OutputCollector collector;
 
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(NoiseRecKalmanFilteringBolt.class);
 
+    private NoiseRecKalmanFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+        this.redisKey = redisKey;
+        this.jedisClusterConfig = jedisClusterConfig;
+    }
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
+
+        /* Get Q value from user(redis) */
+        if (jedisClusterConfig != null) {
+            this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
+            jedisCommands = jedisContainer.getInstance();
+        } else {
+            throw new IllegalArgumentException("Jedis configuration not found");
+        }
+
+        Q = Double.parseDouble(jedisCommands.hget(redisKey, QValueKey));
     }
 
     @Override
     public void execute(Tuple input) {
         double x_present = Double.parseDouble(input.getString(0));
-        double x_next, P_next, K, z, H = 1, Q = 0.001;
+        double x_next, P_next, K, z, H = 1;
 
-        if(inputData.size() < windowSize) {     //
+        if(inputData.size() < windowSize) {     // 다음 R 계산을 위해 차곡차곡 담는다
             inputData.add(x_present);
         }
 
         x_next = x;
         P_next = P+ Q; 	//Q: white noise --> by environment
-        K = P_next*H / (H*H*P_next + R);					//kalman gain
+        K = P_next*H / (H*H*P_next + R);	//kalman gain
 
         z = x_present;
-        x = x_next + K*(z - H*x_next);				//
+        x = x_next + K*(z - H*x_next);		// filtered data
         P = (1 - K*H)*P_next;
 
         if(inputData.size() == windowSize) {    // calculate R
@@ -72,7 +101,6 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
         declarer.declare(new Fields("data"));
     }
 }
-
 
 
 class RCalculator{
