@@ -89,7 +89,6 @@ public class BBSCoordinatorBolt extends BaseRichBolt {
             sampleList.addAll(preSampleList);
 
             collector.emit(new Values(sampleList)); // Emit
-
             jedisCommands.ltrim(sampleName, -0, -99999); // Remove sample list
             jedisCommands.ltrim(preSampleName, -0, -99999);
             jedisCommands.hset(redisKey, roundKey, "0");
