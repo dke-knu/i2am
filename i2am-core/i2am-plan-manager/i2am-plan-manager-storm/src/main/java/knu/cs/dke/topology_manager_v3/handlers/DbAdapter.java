@@ -8,12 +8,21 @@ import java.sql.Statement;
 import java.util.List;
 
 import knu.cs.dke.topology_manager_v3.Plan;
+import knu.cs.dke.topology_manager_v3.destinations.DBDestination;
 import knu.cs.dke.topology_manager_v3.destinations.Destination;
 import knu.cs.dke.topology_manager_v3.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager_v3.sources.DBSource;
 import knu.cs.dke.topology_manager_v3.sources.KafkaSource;
 import knu.cs.dke.topology_manager_v3.sources.Source;
 import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.BinaryBernoulliSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.BloomFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.KSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.KalmanFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.PrioritySamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.QueryFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.SystematicSamplingTopology;
 
 
 public class DbAdapter {  
@@ -38,7 +47,9 @@ public class DbAdapter {
 	protected DbAdapter() {}
 
 	private Connection cn;
+
 	protected Connection getConnection() throws SQLException {
+
 		String driverName = "org.mariadb.jdbc.Driver";
 		String url = "jdbc:mariadb://" + "114.70.235.43" + ":" + "3306" + "/i2am";
 		String user = "plan-manager"/* USER */;
@@ -109,11 +120,17 @@ public class DbAdapter {
 			int ownerNumber = ((Number) ownerIdx.getObject(1)).intValue();
 
 			// test data 테이블에서 [파일 이름]으로 [IDX]가져오기
-			String file = source.getTestData();
-			String fileQuery = "SELECT IDX FROM tbl_src_test_data WHERE NAME = '" + file +"'";
-			ResultSet fileIdx = stmt.executeQuery(fileQuery);
-			fileIdx.next();
-			int fileNumber = ((Number) fileIdx.getObject(1)).intValue();
+			String testData = source.getTestData();
+
+			int fileNumber = 0;
+
+			if(testData != null) {
+				String file = source.getTestData();
+				String fileQuery = "SELECT IDX FROM tbl_src_test_data WHERE NAME = '" + file +"'";
+				ResultSet fileIdx = stmt.executeQuery(fileQuery);
+				fileIdx.next();
+				fileNumber = ((Number) fileIdx.getObject(1)).intValue();
+			}
 
 			// INSERT source
 			String insertSource;
@@ -126,11 +143,18 @@ public class DbAdapter {
 					+ "'" + source.getStatus() + "',"
 					+ "'" + ownerNumber + "',"
 					+ "'" + source.getUseIntelliEngine() + "',"
-					+ "'" + source.getUseLoadShedding() + "',"
-					+ "'" + fileNumber + "',"
+					+ "'" + source.getUseLoadShedding() + "',";
+
+			if(testData != null)  
+				insertSource = insertSource + "'" + fileNumber + "',";
+			else
+				insertSource = insertSource + "null" + ",";
+
+			insertSource = insertSource					
 					+ "'" + source.getSrcType() + "',"
 					+ "'" + source.getSwitchMessaging() + "',"
-					+ "'" + source.getTransTopic() + "'"
+					+ "'" + source.getTransTopic() + "',"
+					+ "null"
 					+ ")";			
 
 			ResultSet insert = stmt.executeQuery(insertSource);			
@@ -156,7 +180,24 @@ public class DbAdapter {
 				ResultSet kafka = stmt.executeQuery(insertKafka);
 				break;
 
-			case "DABABASE":
+			case "DATABASE":
+				DBSource bs = (DBSource) source;
+				String insertDB = "INSERT INTO tbl_src_database_info "
+						+ "VALUES ("
+						+ "'0',"
+						+ "'" + bs.getIp() + "'," 
+						+ "'" + bs.getPort() + "',"
+						+ "'" + bs.getUserId() + "',"
+						+ "'" + bs.getUserPassword() + "',"
+						+ "'" + bs.getDbName() + "',"
+						+ "'" + bs.getQuery() + "',"
+						+ "'" + sourceNumber + "'" // 마지막 idx 값을 외래키로
+						+ ")";
+
+				ResultSet db = stmt.executeQuery(insertDB);
+				break;
+
+			case "CUSTOM":
 				break;
 
 			default:
@@ -165,7 +206,7 @@ public class DbAdapter {
 			}
 
 			System.out.println("[DBAdapter] Source Added.");
-			
+
 			if (insert.next())   return true;
 
 		} catch (SQLException e) {
@@ -280,19 +321,118 @@ public class DbAdapter {
 
 					BinaryBernoulliSamplingTopology bbs = (BinaryBernoulliSamplingTopology) topology;
 					// Topology Insert!
-					String paramsQuery = "INSERT INTO tbl_params_binary_bernoulli_sampling "
+					String bb_paramsQuery = "INSERT INTO tbl_params_binary_bernoulli_sampling "
 							+ "VALUES ("
 							+ "'0',"
 							+ "'" + topologyNumber + "',"
 							+ "'" + bbs.getSampleSize() + "',"
 							+ "'" + bbs.getWindowSize() + "',"
-							+ "'" + bbs.getInputTopic() + "',"
-							+ "'" + bbs.getOutputTopic() + "'"					
+							+ "'" + bbs.getPreSampleKey() + "'"
 							+ ")";
-					ResultSet paramsResult = stmt.executeQuery(paramsQuery);
+					ResultSet bb_paramsResult = stmt.executeQuery(bb_paramsQuery);
 					break;
 
-				default:
+				case "HASH_SAMPLING":
+
+					HashSamplingTopology hss = (HashSamplingTopology) topology;					
+					String hash_Query = "INSERT INTO tbl_params_hash_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"							
+							+ "'" + hss.getSampleSize() + "',"
+							+ "'" + hss.getWindowSize() + "',"
+							+ "'" + "DEFAULT" + "'," // Hash Function							
+							+ "'" + hss.getBucketSize() + "'"
+							+ ")";
+					ResultSet hash_paramsResult = stmt.executeQuery(hash_Query);
+					break;
+
+				case "KALMAN_FILTERING":
+
+					KalmanFilteringTopology kft = (KalmanFilteringTopology) topology;
+					String kalman_query = "INSERT INTO tbl_params_kalman_filtering "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "'"
+							+ ")";
+					ResultSet kalman_paramsResult = stmt.executeQuery(kalman_query);
+					break;
+
+				case "K_SAMPLING":
+
+					KSamplingTopology kst = (KSamplingTopology) topology;
+					String k_query = "INSERT INTO tbl_params_k_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + kst.getSamplingRate() + "'"
+							+ ")";					
+					ResultSet k_paramsResult = stmt.executeQuery(k_query);
+					break;
+
+				case "SYSTEMATIC_SAMPLING":					
+					SystematicSamplingTopology sft = (SystematicSamplingTopology) topology;
+
+					String systematic_Query = "INSERT INTO tbl_params_systematic_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"						
+							+ "'" + sft.getInterval() + "'"					
+							+ ")";
+					ResultSet systematic_paramsResult = stmt.executeQuery(systematic_Query);					
+					break;
+
+				case "QUERY_FILTERING":
+					QueryFilteringTopology qft = (QueryFilteringTopology) topology;
+
+					String query_Query = "INSERT INTO tbl_params_query_filtering "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"
+							+ "'" + qft.getKeywords() + "'"
+							+ ")";
+					ResultSet query_paramsResult = stmt.executeQuery(query_Query);					
+					break;					
+
+				case "PRIORITY_SAMPLING":					
+					PrioritySamplingTopology pst = (PrioritySamplingTopology) topology; 
+
+					String priority_Query ="INSERT INTO tbl_params_priority_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"
+							+ "'" + pst.getSampleSize() + "',"
+							+ "'" + pst.getWindowSize() + "'"					
+							+ ")";
+					ResultSet priority_paramsResult = stmt.executeQuery(priority_Query);					
+					break;
+
+				case "RESERVOIR_SAMPLING":					
+					PrioritySamplingTopology rvs = (PrioritySamplingTopology) topology; 
+
+					String reservoir_Query ="INSERT INTO tbl_params_reservoir_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"
+							+ "'" + rvs.getSampleSize() + "',"
+							+ "'" + rvs.getWindowSize() + "'"					
+							+ ")";
+					ResultSet reservoir_paramsResult = stmt.executeQuery(reservoir_Query);					
+					break;
+
+				case "BLOOM_FILTERING":
+					BloomFilteringTopology blf = (BloomFilteringTopology) topology;
+					
+					String bloom_Query = "INSERT INTO tbl_params_bloom_filtering "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"
+							+ "'" + blf.getBucketSize() + "',"
+							+ "'" + blf.getKeywords() + "'"
+							+ ")";
+					ResultSet bloom_paramsResult = stmt.executeQuery(bloom_Query);					
+					break;					
+					
+				default:					
 					System.out.println("[DBAdapter] Topology Type Error.");
 					break;
 				}			
@@ -373,7 +513,23 @@ public class DbAdapter {
 				ResultSet kafka = stmt.executeQuery(insertKafka);
 				break;
 
-			case "database":
+			case "DATABASE":
+				DBDestination dd = (DBDestination) destination;
+				String insertDB = "INSERT INTO tbl_dst_database_info "
+						+ "VALUES ("
+						+ "'0',"
+						+ "'" + dd.getIp() + "',"
+						+ "'" + dd.getPort() + "',"
+						+ "'" + dd.getUserId() + "',"
+						+ "'" + dd.getUserPassword() + "',"
+						+ "'" + dd.getDbName() + "',"
+						+ "'" + dd.getTableName() + "',"
+						+ "'" + destinationNumber + "'" // 마지막 idx 값을 외래키로
+						+ ")";
+				ResultSet db = stmt.executeQuery(insertDB);
+				break;
+
+			case "CUSTOM":
 				break;
 
 			default:
@@ -402,22 +558,22 @@ public class DbAdapter {
 	}
 
 	public boolean changePlanStatus(Plan plan) {
-		
+
 		Connection con = null;
 		Statement stmt = null;		
-		
+
 		try {
-			
+
 			con = this.getConnection();
 			stmt = con.createStatement();
 
 			String status = plan.getStatus();
-			
+
 			String sql;			
 			sql = "UPDATE tbl_plan SET STATUS ='" + status + "' WHERE NAME ='" + plan.getPlanName() + "'";
-			
+
 			ResultSet rs = stmt.executeQuery(sql);			
-			
+
 			if (rs.next())   return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -435,24 +591,24 @@ public class DbAdapter {
 		}
 		return false;
 	}
-	
+
 	public boolean changeSourceStatus(Source source) {
-		
+
 		Connection con = null;
 		Statement stmt = null;		
-		
+
 		try {
-			
+
 			con = this.getConnection();
 			stmt = con.createStatement();
 
 			String status = source.getStatus();
-			
+
 			String sql;			
 			sql = "UPDATE tbl_src SET STATUS ='" + status + "' WHERE NAME ='" + source.getSourceName() + "'";
-			
+
 			ResultSet rs = stmt.executeQuery(sql);			
-			
+
 			if (rs.next())   return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -468,7 +624,43 @@ public class DbAdapter {
 				e.printStackTrace();
 			}
 		}		
-		
+
+		return false;
+	}
+
+	public boolean changeDestinationStatus(Destination destination) {
+
+		Connection con = null;
+		Statement stmt = null;		
+
+		try {
+
+			con = this.getConnection();
+			stmt = con.createStatement();
+
+			String status = destination.getStatus();
+
+			String sql;			
+			sql = "UPDATE tbl_dst SET STATUS ='" + status + "' WHERE NAME ='" + destination.getDestinationName() + "'";
+			ResultSet rs = stmt.executeQuery(sql);			
+
+			if (rs.next())   return true;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}		
+
 		return false;
 	}
 }

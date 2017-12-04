@@ -1,15 +1,27 @@
 package knu.cs.dke.topology_manager_v3.topolgoies;
 
+import java.io.IOException;
+
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.generated.NotAliveException;
+import org.apache.storm.thrift.TException;
+import org.apache.storm.thrift.transport.TTransportException;
+
 public class ReservoirSamplingTopology extends ASamplingFilteringTopology {
 
 	private int sampleSize;
 	private int windowSize;
 	
-	public ReservoirSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) {
+	private RemoteStormController storm;
+	
+	public ReservoirSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
 		this.sampleSize = sampleSize;
-		this.windowSize = windowSize;				
+		this.windowSize = windowSize;
+		
+		storm = new RemoteStormController();
 	}	
 
 	public int getWindowSize() {
@@ -29,27 +41,28 @@ public class ReservoirSamplingTopology extends ASamplingFilteringTopology {
 	}
 
 	@Override
-	public void killTopology() {
+	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
+		storm.killTopology(super.getTopologyName());
+	}
+
+	@Override
+	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
+		// TODO Auto-generated method stub
+		storm.activateTopology(super.getTopologyName());
 		
 	}
 
 	@Override
-	public void avtivateTopology() {
+	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
-		
+		storm.deactivateTopology(super.getTopologyName());
 	}
 
 	@Override
-	public void deactivateTopology() {
+	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void submitTopology() {
-		// TODO Auto-generated method stub
-		
+		storm.runTopology(this);		
 	}
 
 }

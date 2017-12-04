@@ -34,7 +34,7 @@ public class CommandClientSocket implements Runnable {
             DataInputStream read = new DataInputStream(input);            
             
             String commandJSON = read.readUTF();
-            System.out.println("[Client Socket] Received Command: " +commandJSON);
+            System.out.println("[Client Socket] Received Command: " + commandJSON);
             
             try {
 				String ret = new CommandHandler(plans, sources, destinations).executeCommand(commandJSON);

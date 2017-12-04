@@ -24,15 +24,15 @@ public class DBTester {
 	static final String password = "1234";
 
 
-	public static void main(String[] args)  {
+	public static void main(String[] args)  { 
 
-		Connection connection = null;
-		Statement stmt = null;
+		// Kafka(Consumer) to Database
 
+		// Kafka Config
 		// Consumer: Read from User's Source
 		// Needed Parameters: server IP&Port, topic name ...
 		String servers = "MN:9092";
-		String topics = "query-in";
+		String topics = "db-topic";
 		String groupId = "test"; // Offset을 초기화 하려면 새로운 이름을 줘야한다.
 
 		Properties props = new Properties();
@@ -46,78 +46,57 @@ public class DBTester {
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
 		consumer.subscribe(Arrays.asList(topics));
 
-		try {			
-			while (true) {
+		// DB Config.
+		Connection connection = null;
+		Statement stmt = null;
 
-				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
-
-				for (ConsumerRecord<String, String> record : records) {
-					System.out.println(record.value());					
-				}
-			}			
-		} catch(Exception e) {
-			e.printStackTrace();
-		} finally {
-			consumer.close();
-		}
-
-
+		// DB Connect.
 		try {
-
+			
 			// Register JDBC driver
 			Class.forName("org.mariadb.jdbc.Driver");
 
 			// Open a Connection
 			System.out.println("Connecting to a selected database...");
-
 			connection = DriverManager.getConnection("jdbc:mariadb://127.0.0.1/test_database", "user1", "1234");
 			System.out.println("Connected database successfully...");
 
-			//STEP 4: Execute a query
+			// Execute a query
 			System.out.println("Creating table in given database...");
 			stmt = connection.createStatement();
-
-			String query = "select * from test_table";
-
-			stmt.executeUpdate(query);
-
-			ResultSet result = stmt.getResultSet();
-			ResultSetMetaData rsmd = result.getMetaData();
-
-			int columns = rsmd.getColumnCount();
-
-			while(result.next()) {				
-				for (int i = 1; i <= columns; i++) {
-					if (i > 1) System.out.print(",  ");
-					String columnValue = result.getString(i);
-					System.out.print(columnValue + " " + rsmd.getColumnName(i));
-				}
-				System.out.println("");				
-			}
-
-			System.out.println("Created table in given database...");
-
-		} catch( SQLException se ) {
-			se.printStackTrace();
-		} catch( Exception e ) {
-			e.printStackTrace();
-		} finally {
-
-			try {
-				if (stmt != null ) {
-					stmt.close();
-				}
-			} catch (SQLException se) {
-				se.printStackTrace();
-			}
-			try {
-				if (connection != null ) {
-					connection.close();
-				}
-			} catch (SQLException se) {
-				se.printStackTrace();
-			}
+			
+			
+			
 		}
-		System.out.println("[DB] Good Bye!");
+		catch(Exception e ) {
+			e.printStackTrace();
+		}
+		
+		while(true) {
+
+			try {
+			
+				// Consume.
+				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
+
+				for (ConsumerRecord<String, String> record : records) {					
+
+					System.out.println(record.value());	
+
+					// Send to DB!
+					String query = "insert into test_output_table values ('" + record.key() + "', '" + record.value() + "')";
+					stmt.executeUpdate(query);
+				}			
+				
+				System.out.println("DB Check");
+
+			} catch(Exception e) {
+				e.printStackTrace();
+			} 
+		}
+		
+		// consumer.close();
+		// stmt.close();
+		// connection.close();
 	}
 }

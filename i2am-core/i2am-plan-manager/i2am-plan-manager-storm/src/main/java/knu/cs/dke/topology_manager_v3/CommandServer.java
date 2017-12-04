@@ -34,6 +34,7 @@ public class CommandServer implements Runnable {
 
 	public void run(){		
 		openServerSocket();
+		printLogo();
 		System.out.println("[Server] Server started ~");
 		
 		while(!isStopped()){
@@ -72,5 +73,28 @@ public class CommandServer implements Runnable {
 		} catch (IOException e) {
 			throw new RuntimeException("[Server] Cannot open port " + this.serverPort, e);
 		}
+	}
+		
+	private void printLogo() {
+		
+		System.out.println(" ");
+		System.out.println("      ______   ______    ______   __       __ ");
+		System.out.println("     /      | /      \\  /      \\ /  \\     /  |");
+		System.out.println("     $$$$$$/ /$$$$$$  |/$$$$$$  |$$  \\   /$$ |");
+		System.out.println("       $$ |  $$____$$ |$$ |__$$ |$$$  \\ /$$$ |");
+		System.out.println("       $$ |   /    $$/ $$    $$ |$$$$  /$$$$ |");
+		System.out.println("       $$ |  /$$$$$$/  $$$$$$$$ |$$ $$ $$/$$ |");
+		System.out.println("      _$$ |_ $$ |_____ $$ |  $$ |$$ |$$$/ $$ |");
+		System.out.println("     / $$   |$$       |$$ |  $$ |$$ | $/  $$ |");
+		System.out.println("     $$$$$$/ $$$$$$$$/ $$/   $$/ $$/      $$/ ");				
+		System.out.println("     =========================================");
+		System.out.println("             Plan Manager v.0.3.12.04       ");
+		System.out.println("     =========================================");
+		System.out.println(" ");
+		
+	}
+	
+	private void loadDataBase() {
+		// To-Do
 	}
 }

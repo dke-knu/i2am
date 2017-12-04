@@ -27,7 +27,8 @@ import redis.clients.jedis.Protocol;
 
 public class PerformanceTestTopology {
 	public static void main(String[] args) throws AlreadyAliveException, InvalidTopologyException, AuthorizationException{
-		String[] zookeepers = args[0].split(","); //KAFAK ZOOKEEPER
+		
+		String[] zookeepers = args[0].split(","); //KAFKA ZOOKEEPER
 		short zkPort = Short.parseShort(args[1]);
 		
 		/* Kafka -> Storm Config */

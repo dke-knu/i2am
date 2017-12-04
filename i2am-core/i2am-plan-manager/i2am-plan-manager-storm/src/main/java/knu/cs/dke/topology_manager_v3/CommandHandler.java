@@ -58,6 +58,7 @@ public class CommandHandler {
 		// Command for Call Destination Handler !!!
 		case "CREATE_DST":			
 		case "DESTROY_DST":
+		case "CHANGE_STATUS_OF_DST":
 			DestinationHandler dh = new DestinationHandler(destinations, input_command);
 			dh.excute();			
 			break;

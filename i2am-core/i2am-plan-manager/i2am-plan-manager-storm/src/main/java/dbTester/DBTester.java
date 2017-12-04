@@ -1,7 +1,9 @@
 package dbTester;
 
+import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -41,29 +43,37 @@ public class DBTester {
 			String query = "select * from test_table";
 
 			stmt.executeUpdate(query);
-			
 			ResultSet result = stmt.getResultSet();
 			ResultSetMetaData rsmd = result.getMetaData();
-			
+
 			int columns = rsmd.getColumnCount();
+
+
+			while(true) {
+
+				if(result.next()) {
+
+					String message = "";
+					
+					for (int i = 1; i <= columns; i++) {
+
+						String columnValue = result.getString(i);											
+						message = message + columnValue + ",";
+
 						
-			while(result.next()) {				
-				for (int i = 1; i <= columns; i++) {
-			           if (i > 1) System.out.print(",  ");
-			           String columnValue = result.getString(i);
-			           System.out.print(columnValue + " " + rsmd.getColumnName(i));
-			       }
-			       System.out.println("");				
+					}
+					message = message.substring(0, message.length()-1);
+					System.out.println(message);					
+				}
 			}
-			
-			System.out.println("Created table in given database...");
-			
+			//System.out.println("Created table in given database...");
+
 		} catch( SQLException se ) {
 			se.printStackTrace();
 		} catch( Exception e ) {
 			e.printStackTrace();
 		} finally {
-			
+
 			try {
 				if (stmt != null ) {
 					stmt.close();

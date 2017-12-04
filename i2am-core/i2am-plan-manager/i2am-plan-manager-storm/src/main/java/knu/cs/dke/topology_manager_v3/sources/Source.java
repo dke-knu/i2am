@@ -1,6 +1,6 @@
 package knu.cs.dke.topology_manager_v3.sources;
 
-public abstract class Source {
+public abstract class Source implements Runnable {
 	
 	// Basic Info.
 	private String owner;
@@ -18,11 +18,9 @@ public abstract class Source {
 	private String switchMessaging;
 	
 	// System topic;	
-	private String transTopic;
-	
-	public abstract void read();
+	private String transTopic;	
 
-	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
+	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String useLoadShedding, String testData,
 			String srcType, String switchMessaging) {
 	
 		this.sourceName = sourceName;
@@ -38,7 +36,7 @@ public abstract class Source {
 		this.srcType = srcType;
 		this.switchMessaging = switchMessaging;		
 		
-		this.transTopic = owner + "-" + sourceName;
+		this.transTopic = sourceName + "transtopic";
 	}
 	
 	public String getOwner() {
