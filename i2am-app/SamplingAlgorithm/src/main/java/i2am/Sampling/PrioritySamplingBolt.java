@@ -60,7 +60,7 @@ public class PrioritySamplingBolt extends BaseRichBolt{
         sampleName = allParameters.get(sampleKey);
         sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
         windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+        jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
     }
 
     @Override
@@ -77,7 +77,7 @@ public class PrioritySamplingBolt extends BaseRichBolt{
         else if(count%windowSize == 0){
             List<String> sampleList = new ArrayList<String>();
             Set<String> dataSet = jedisCommands.zrange(sampleName, 0, -1); // Get data set
-            jedisCommands.zremrangeByRank(sampleName, 0, -99999); // Remove sample list
+            jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
             Iterator<String> iterator = dataSet.iterator();
 
             while(iterator.hasNext()){
@@ -97,8 +97,6 @@ public class PrioritySamplingBolt extends BaseRichBolt{
             }
             jedisCommands.zadd(sampleName, priority, data);
         }
-
-
     }
 
     @Override

@@ -62,8 +62,8 @@ public class HashSamplingBolt extends BaseRichBolt{
         sampleName = allParameters.get(sampleKey);
         sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
         windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
         bucketSize = windowSize/sampleSize;
+        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
         randomNumber = (int)(Math.random()*bucketSize);
     }
 

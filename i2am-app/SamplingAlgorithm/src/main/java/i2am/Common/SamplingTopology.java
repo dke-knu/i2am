@@ -112,29 +112,34 @@ public class SamplingTopology {
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
-        else if(algorithmName.equals("RESERVOIR_SAMPLING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
-                    .shuffleGrouping("DECLARING_BOLT")
-                    .setNumTasks(4);
-        }
-        else if(algorithmName.equals("HASH_SAMPLING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new HashSamplingBolt(redisKey, jedisClusterConfig), 4)
-                    .shuffleGrouping("DECLARING_BOLT")
-                    .setNumTasks(4);
-        }
-        else if(algorithmName.equals("PRIORITY_SAMPLING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new PrioritySamplingBolt(redisKey, jedisClusterConfig), 4)
-                    .shuffleGrouping("DECLARING_BOLT")
-                    .setNumTasks(4);
-        }
         else if(algorithmName.equals("K_SAMPLE")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
+        else if(algorithmName.equals("UC_K_SAMPLE")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(4);
+        }
+        else if(algorithmName.equals("RESERVOIR_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("DECLARING_FIELD_BOLT")
+                    .setNumTasks(4);
+        }
+        else if(algorithmName.equals("HASH_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new HashSamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("DECLARING_FIELD_BOLT")
+                    .setNumTasks(4);
+        }
+        else if(algorithmName.equals("PRIORITY_SAMPLING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new PrioritySamplingBolt(redisKey, jedisClusterConfig), 4)
+                    .shuffleGrouping("DECLARING_FIELD_BOLT")
+                    .setNumTasks(4);
+        }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
             topologyBuilder.setBolt(algorithmName+"_SITE_BOLT", new BBSSiteBolt(), 4)
-                    .shuffleGrouping("DECLARING_BOLT")
+                    .shuffleGrouping("DECLARING_FIELD_BOLT")
                     .setNumTasks(4);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new BBSCoordinatorBolt(redisKey, jedisClusterConfig), 2)
                     .shuffleGrouping(algorithmName+"_SITE_BOLT")
