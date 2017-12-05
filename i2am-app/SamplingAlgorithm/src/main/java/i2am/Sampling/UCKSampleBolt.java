@@ -1,6 +1,5 @@
 package i2am.Sampling;
 
-import com.yammer.metrics.stats.Sample;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
 import org.apache.storm.redis.common.container.JedisCommandsInstanceContainer;
@@ -15,36 +14,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
-import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
 
 
 public class UCKSampleBolt extends BaseRichBolt{
-    public class SampleElement{
-        public String data;
-        public double rand;
-
-        public SampleElement(String data, double rand){
-            this.data=data;
-            this.rand=rand;
-        }
-
-        public double getRand() { return rand; }
-
-    }
-
+    private long count;
     private int windowSize;
     private int  samplingRate;
     private double ucUnderBound;
     PriorityQueue<SampleElement> sample = new PriorityQueue<SampleElement>();
 
-    private long count;
-
     /* RedisKey */
     private String redisKey = null;
-    private String srKey = "SamplingRateKey";
-    private String ucKey = "UcUnderBoundKey";
+    private String srKey = "SamplingRate";
+    private String ucKey = "UCUnderBound";
 
     /* Jedis */
     private JedisCommandsInstanceContainer jedisContainer = null;
@@ -54,10 +39,12 @@ public class UCKSampleBolt extends BaseRichBolt{
     private OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(KSampleBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(UCKSampleBolt.class);
 
-    public UCKSampleBolt(){
-        windowSize = window_calculator();
+    public UCKSampleBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+        this.count = 0;
+        this.redisKey = redisKey;
+        this.jedisClusterConfig = jedisClusterConfig;
     }
 
     @Override
@@ -71,10 +58,13 @@ public class UCKSampleBolt extends BaseRichBolt{
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        logger.info("############# UCKSAMPLEBOLT");
+        logger.info(jedisCommands.hget(redisKey, srKey));
+
 		/* Get parameters */
         samplingRate = Integer.parseInt(jedisCommands.hget(redisKey, srKey));
         ucUnderBound = Double.parseDouble(jedisCommands.hget(redisKey, ucKey));
-
+        windowSize = window_calculator();
     }
 
     @Override
@@ -105,10 +95,12 @@ public class UCKSampleBolt extends BaseRichBolt{
         }
 
         if (wLength==0){
-            //emit
-            collector.emit(new Values(sample));
-        }
+            Iterator<SampleElement> iterator = sample.iterator();
 
+            while(iterator.hasNext()){
+                collector.emit(new Values(iterator.next().getElement())); //emit
+            }
+        }
     }
 
     @Override
@@ -117,8 +109,22 @@ public class UCKSampleBolt extends BaseRichBolt{
     }
 
     public int window_calculator(){
-        int size=1000;
+        int size=100;
 
         return size;
     }
+}
+
+class SampleElement{
+    private String data;
+    private double rand;
+
+    public SampleElement(String data, double rand){
+        this.data=data;
+        this.rand=rand;
+    }
+
+    public String getElement() { return data; }
+
+    public double getRand() { return rand; }
 }
