@@ -60,6 +60,10 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     private int numMessages;
     private boolean loadMetricsFlag = false;
+    private Msg msg = null;
+
+    private final short LOAD_METRICS_NO = -900;
+    private final short LOAD_METRICS_REQ = -901;
 
     //JXIO's
     private final MsgPool msgPool;
@@ -68,9 +72,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private ClientSession cs;
     private URI uri;
 //    private ExecutorService eqhThread;
-
-    private final short LOAD_METRICS_NO = -900;
-    private final short LOAD_METRICS_REQ = -901;
 
     public Client(Map stormConf, ScheduledThreadPoolExecutor scheduler, String host, int port, Context context) {
         int messageBatchSize = Utils.getInt(stormConf.get(Config.STORM_JXIO_MESSAGE_BATCH_SIZE));
@@ -205,8 +206,19 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             return;
         }
         numMessages = batch.size();
+
+//        for(StackTraceElement ste : Thread.currentThread().getStackTrace())
+//            LOG.info(""+ste);
+
         pendingMessages.addAndGet(numMessages);
-        Msg msg = msgPool.getMsg();
+        do {
+            if (!msgPool.isEmpty()) {
+                LOG.debug("msgPool was not empty");
+                msg = msgPool.getMsg();
+            }
+        } while (msg == null);
+
+
         ByteBuffer bb = null;
         try {
             //maximum batch size is 262144B (256KB)
@@ -214,19 +226,25 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             bb = batch.buffer();
 
             if (loadMetricsFlag) {
+                LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag true => false");
                 msg.getOut().putShort(LOAD_METRICS_REQ);
                 loadMetricsFlag = false;
-            } else
+            } else {
+                LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag false");
                 msg.getOut().putShort(LOAD_METRICS_NO);
+            }
 
             msg.getOut().put(bb.array());
         } catch (Exception e) {
-            LOG.error("writing {}:{}, msg size = {}", numMessages, bb.array().length, msg.getOut().toString());
+            LOG.debug("[seokwoo-error-checkpoint] send fail to " + uri.getHost() + " : " + uri.getPort() + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
+            LOG.debug("[seokwoo-error-checkpoint] bb.array().length = " + bb.array().length);
+            LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag = " + loadMetricsFlag);
+            LOG.error("writing {}:{} to {}:{}", numMessages, bb.array().length, uri.getHost(), uri.getPort());
             messagesLost.getAndAdd(numMessages);
         }
         try {
             cs.sendRequest(msg);
-//            LOG.info("writing {}, msg = {}, messages to session {}", numMessages, msg.getOut().toString(), uri.toString());
+//            LOG.debug("writing {}, msg = {}, messages to session {}", numMessages, msg.getOut().toString(), uri.toString());
         } catch (JxioGeneralException e) {
             failSendMessages(numMessages);
             msgPool.releaseMsg(msg);
@@ -240,6 +258,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             msgPool.releaseMsg(msg);
             e.printStackTrace();
         }
+        msg = null;
         eqh.runEventLoop(1, -1);
     }
 
@@ -374,6 +393,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     }
 
     public void setServerLoad(Map<Integer, Double> serverLoad) {
+        LOG.debug("set Server Load");
         this.serverLoad = serverLoad;
     }
 
@@ -395,7 +415,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
     @Override
     public void requestLoadMectrics() {
-
+        LOG.debug("requestLoadMetrics true");
         loadMetricsFlag = true;
 
         /*LOG.info("[Client] Request load");
@@ -581,31 +601,34 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             Object obj = decoder(msg.getIn());
             if (obj instanceof ControlMessage) {
                 ControlMessage ctrl_msg = (ControlMessage) obj;
-                if (ctrl_msg == ControlMessage.FAILURE_RESPONSE)
+                if (ctrl_msg == ControlMessage.FAILURE_RESPONSE) {
                     LOG.info("failure response:{}", msg);
-                if(ctrl_msg == ControlMessage.LOADMETRICS_NO) {
-                    LOG.info("[Client-onResponse] success");
-                    pendingMessages.addAndGet(0 - numMessages);
-                    messagesSent.getAndSet(numMessages);
+                } else if (ctrl_msg == ControlMessage.LOADMETRICS_NO) {
+                    LOG.debug("[seokwoo-error-checkpoint]sent {} messages to {}:{}", numMessages, uri.getHost(), uri.getPort());
                 }
             } else if (obj instanceof List) {
                 try {
                     List<TaskMessage> list = (List<TaskMessage>) obj;
+
                     if (list.size() < 1)
                         throw new RuntimeException("Didn't see enough load metrics (" + client.getDstAddress() + ") " + list);
+
                     TaskMessage tm = ((List<TaskMessage>) obj).get(list.size() - 1);
                     if (tm.task() != -1)
                         throw new RuntimeException("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + tm);
+
                     List metrics = _des.deserialize(tm.message());
                     if (metrics.size() < 1)
                         throw new RuntimeException("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
+
                     if (!(metrics.get(0) instanceof Map))
                         throw new RuntimeException("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") " + metrics);
+
                     client.setServerLoad((Map<Integer, Double>) metrics.get(0));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
+                LOG.debug("[seokwoo-error-checkpoint]Load Metrics success");
             } else {
                 throw new RuntimeException("Don't know how to handle a message of type "
                         + obj + " (" + client.getDstAddress() + ")");
@@ -663,6 +686,8 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             LOG.warn("No load metrics also no success message");
 
             */
+            pendingMessages.addAndGet(0 - numMessages);
+            messagesSent.getAndSet(numMessages);
             msg.returnToParentPool();
         }
 

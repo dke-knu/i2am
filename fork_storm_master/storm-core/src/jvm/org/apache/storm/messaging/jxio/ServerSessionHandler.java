@@ -58,15 +58,16 @@ public class ServerSessionHandler {
             short code = bb.getShort();
 
             if (code == LOAD_METRICS_REQ) {
-                LOG.info("[Server] LoadMetrics message = {}", code);
+                LOG.debug("[seokwoo-error-checkpoint] LoadMetrics message = {}", code);
                 MessageBatch mb = new MessageBatch(1);
                 try {
                     mb.add(new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad))));
-//                    tm = new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 try {
+                    LOG.debug("server msg out size = " + msg.getOut().capacity());
+                    LOG.debug("load metrics buffer size = " + mb.buffer().array().length);
                     msg.getOut().put(mb.buffer().array());
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -78,7 +79,7 @@ public class ServerSessionHandler {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                msg.getOut().putShort(ControlMessage.LOADMETRICS_NO.write());
+                LOG.debug("[seokwoo-error-checkpoint] LOAD_METRICS_NO");
             }
 
             //batch TaskMessage
@@ -99,6 +100,7 @@ public class ServerSessionHandler {
 
             try {
                 session.sendResponse(msg);
+                LOG.debug("[seokwoo-error-checkpoint]send response to ip = " + srcIp);
             } catch (JxioGeneralException e) {
                 e.printStackTrace();
             } catch (JxioSessionClosedException e) {
