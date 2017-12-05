@@ -546,6 +546,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject, ISa
         }
     }
 
+    @Override
+    public void requestLoadMectrics() {
+        
+    }
+
     /**
      * Asynchronously establishes a Netty connection to the remote address
      * This task runs on a single thread shared among all clients, and thus
