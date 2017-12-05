@@ -18,12 +18,16 @@
 package org.apache.storm.messaging.jxio;
 
 import org.apache.storm.messaging.TaskMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 class MessageBatch {
+
+//    private final static Logger LOG = LoggerFactory.getLogger(MessageBatch.class.getCanonicalName());
 
     private int buffer_size;
     private ArrayList<TaskMessage> msgs;
@@ -90,10 +94,8 @@ class MessageBatch {
         for (TaskMessage msg : msgs) {
             writeTaskMessage(buffer, msg);
         }
-
         //add a END_OF_BATCH indicator
         ControlMessage.EOB_MESSAGE.write(buffer);
-
         return buffer;
     }
 
@@ -109,7 +111,6 @@ class MessageBatch {
         int payload_len = 0;
         if (message.message() != null)
             payload_len = message.message().length;
-
 
         int task_id = message.task();
         if (task_id > Short.MAX_VALUE)
