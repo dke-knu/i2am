@@ -5,7 +5,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import knu.cs.dke.topology_manager_v3.DestinationList;
+import knu.cs.dke.topology_manager_v3.destinations.CustomDestination;
+import knu.cs.dke.topology_manager_v3.destinations.DBDestination;
+import knu.cs.dke.topology_manager_v3.destinations.Destination;
 import knu.cs.dke.topology_manager_v3.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager_v3.sources.Source;
 
 public class DestinationHandler {
 
@@ -23,21 +27,33 @@ public class DestinationHandler {
 	public void excute() {
 
 		String commandType = (String) command.get("commandType");
-		System.out.println("[Source Handler] Command Type: " + commandType);
+		System.out.println("[Destination Handler] Command Type: " + commandType);
 
 		switch (commandType) {
 
 		case "CREATE_DST":
 			createDestination();
 			break;
+
+		case "CHANGE_STATUS_OF_DST":				
+			JSONObject content = (JSONObject) command.get("commandContent");			
+			String after = (String) content.get("after");
+
+			if (after.equals("ACTIVE")) this.activeDestination();
+			else if (after.equals("DEACTIVE")) this.deactiveDestination();
+			break;
+
 		case "DESTROY_DST":
 			break;
+
 		case "ALTER_DST":
 			break;
+
 		case "ACTIVE_DST":
 			break;
+
 		default:
-			System.out.println("[Source Handler] Command is not exist.");
+			System.out.println("[Destination Handler] Command is not exist.");
 			break;			
 		}		
 	}
@@ -61,13 +77,41 @@ public class DestinationHandler {
 			String ip = (String) kafka.get("zookeeperIp");
 			String port = (String) kafka.get("zookeeperPort");
 			String topic = (String) kafka.get("topic");
-			
+
 			KafkaDestination destination = new KafkaDestination(dstName, createdTime, owner, destinationType, ip, port, topic);
-			
+
 			destinations.add(destination);
-			
+
 			DbAdapter db = new DbAdapter();
 			db.addDestination(destination);
+
+			break;
+
+		case "DATABASE":
+			JSONObject database = (JSONObject) content.get("databaseParams");
+			String dbIp = (String) database.get("databaseIp");
+			String dbPort = (String) database.get("databasePort");
+			String dbId = (String) database.get("databaseId");
+			String dbPassword = (String) database.get("databasePw");
+			String dbName = (String) database.get("database");
+			String dbTable = (String) database.get("table");	
+			
+			DBDestination db_destination = new DBDestination(dstName, createdTime, owner, destinationType, dbIp, dbPort, dbId, dbPassword, dbName, dbTable);
+
+			destinations.add(db_destination);
+
+			DbAdapter dbdb = new DbAdapter();
+			dbdb.addDestination(db_destination);
+			
+			break;
+			
+		case "CUSTOM":
+			CustomDestination custom_destination = new CustomDestination(dstName, createdTime, owner, destinationType);
+			
+			destinations.add(custom_destination);
+			
+			DbAdapter customDb = new DbAdapter();
+			customDb.addDestination(custom_destination);
 			
 			break;
 			
@@ -79,5 +123,43 @@ public class DestinationHandler {
 	public void destroyDestination() { }
 
 	public void alterDestination() { }	
+
+	public void activeDestination() {		
+
+		// Content.
+		JSONObject content = (JSONObject) command.get("commandContent");
+		String name = (String) content.get("dstName");
+
+		Destination destination = destinations.get(name);
+		destination.setStatus("ACTIVE");
+
+		destinations.set(destination);
+
+		DbAdapter db = new DbAdapter();
+		db.changeDestinationStatus(destination);
+
+		// Thread Start.
+		Thread dstThread = new Thread(destination);
+		dstThread.start();		
+	}
+
+	public void deactiveDestination() {
+
+		// Content.
+		JSONObject content = (JSONObject) command.get("commandContent");
+		String name = (String) content.get("dstName");
+
+		Destination destination = destinations.get(name);
+		destination.setStatus("DEACTIVE");
+
+		destinations.set(destination);
+
+		DbAdapter db = new DbAdapter();
+		db.changeDestinationStatus(destination);
+
+		// Thread Stop.
+		Thread dstThread = new Thread(destination);
+		if(dstThread.isAlive()) dstThread.stop();
+	}
 
 }

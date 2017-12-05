@@ -47,5 +47,11 @@ public class DestinationList {
 	public synchronized int size() {
 		return mDestinations.size();
 	}
-	
+
+	public synchronized boolean set(Destination destination) {		
+		// 값이 있으면 Update, 없으면 Add 됨..
+		if (!mDestinations.containsKey(destination.getDestinationName())) return false;
+		mDestinations.put(destination.getDestinationName(), destination);		
+		return true;
+	}
 }

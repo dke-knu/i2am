@@ -13,8 +13,8 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 	private int sampleSize;
 	private int windowSize;
 	
-	private String topologyClass = "test.wordcount.WordCountTopology";
-	
+	private String preSampleKey;
+		
 	private RemoteStormController storm;
 	
 	public BinaryBernoulliSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
@@ -23,7 +23,9 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;				
 		
-		storm = new RemoteStormController(topologyClass);
+		this.preSampleKey = super.getRedisKey() + "preSample";		
+		
+		storm = new RemoteStormController();
 	}
 	
 	public int getSampleSize() {
@@ -64,7 +66,15 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 	@Override
 	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
-		storm.runTopology(super.getTopologyName(), topologyClass);		
+		storm.runTopology(this);		
+	}
+
+	public String getPreSampleKey() {
+		return preSampleKey;
+	}
+
+	public void setPreSampleKey(String preSampleKey) {
+		this.preSampleKey = preSampleKey;
 	}
 
 }

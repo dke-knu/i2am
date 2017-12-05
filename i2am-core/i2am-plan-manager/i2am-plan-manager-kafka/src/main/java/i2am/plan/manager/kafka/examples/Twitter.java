@@ -21,7 +21,7 @@ public class Twitter {
  
 	public static void main(String[] args) throws TwitterException, IOException{
 		StatusListener listener = new StatusListener(){
-			I2AMProducer producer = new I2AMProducer("abc@naver.com", "SRC1");
+			I2AMProducer producer = new I2AMProducer("0KUK@naver.com", "TwitSRC");
 			@Override
 			public void onStatus(Status status) {
 				producer.send(status.getUser().getName() + " : " + status.getText());

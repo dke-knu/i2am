@@ -2,6 +2,8 @@ package knu.cs.dke.topology_manager_v3.sources;
 
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -16,14 +18,18 @@ public class KafkaSource extends Source {
 	private String zookeeperIp;
 	private String zookeeperPort;
 	private String topic;	
+		
+	private boolean status;
 	
 	// Create Kafka Source
 	public KafkaSource (String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
 			String srcType, String switchMessaging, String zookeeperIp, String zookeeperPort, String topic) {		
-		super(sourceName, createdTime, owner, useIntelliEngine, testData, srcType, switchMessaging);		
+		
+		super(sourceName, createdTime, owner, useIntelliEngine, "N", testData, srcType, switchMessaging);
+		
 		this.setZookeeperIp(zookeeperIp);
 		this.setZookeeperPort(zookeeperPort);
-		this.topic = topic;			
+		this.topic = topic;		
 	}
 
 	@Override
@@ -43,7 +49,7 @@ public class KafkaSource extends Source {
 		consumer_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		consumer_props.put("auto.offset.reset", "earliest");
 
-		// Producer
+		// Producer: To Server Kafka
 		String write_servers = "MN:9092";
 		String write_topic = super.getTransTopic();
 
@@ -67,21 +73,19 @@ public class KafkaSource extends Source {
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(producer_props);		
 
-		String sourceName = this.getSourceName();
-		boolean status = true;		
+		String sourceName = super.getSourceName();
+		// boolean status = true;				
 		
 		try {			
-			while (status) {
+			
+			while (!Thread.currentThread().isInterrupted()) {
 				
 				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
 				for (ConsumerRecord<String, String> record : records) {
 					// System.out.println(record.value());
-					producer.send(new ProducerRecord<String,String>(write_topic, record.value()+" :)"));
-				}	
-				
-				// DB Checker
-				
-				Thread.sleep(1000);
+					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
+				}					
+				Thread.sleep(100);
 			}			
 		} catch(Exception e) {
 			e.printStackTrace();

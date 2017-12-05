@@ -16,7 +16,7 @@ import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.BinaryBernoulliSamplingTopology;
 
 
-public class DbAdapter implements Runnable {  
+public class DbAdapter {  
 
 	private static final Class<?> klass = (new Object() {
 	}).getClass().getEnclosingClass();
@@ -60,21 +60,24 @@ public class DbAdapter implements Runnable {
 		con.close();
 	}
 
-	/*
-		DbAdapter.getInstance().login(id, pw);	
-	 */
-	public boolean login(String id, String pw) {
+	public boolean sourceDbCheck(String sourceName) {
+		
 		Connection con = null;
 		Statement stmt = null;
 		String sql = null;
+		
 		try {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT * FROM TBL_USER " + "WHERE ID='" + id + "' AND PASSWORD='" + pw +"'";
+			sql = "SELECT STATUS FROM TBL_SRC" + "WHERE NAME='" + sourceName + "'";
 			ResultSet rs = stmt.executeQuery(sql);
-
-			if (rs.next())   return true;
+			rs.next();
+			String status = ((String) rs.getObject(1)).toString();			
+			
+			if (status.equals("ACTIVE"))   return true;
+			else if(status.equals("DEACTIVE")) return false;
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -89,14 +92,8 @@ public class DbAdapter implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		return false;
-	}	
-
-	@Override
-	public void run() {
-		
-		
-	}
+		return true;
+	}		
 }
 
 

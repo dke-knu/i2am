@@ -41,7 +41,8 @@ public abstract class ASamplingFilteringTopology {
 		this.topologyName = plan + "-" + UUID.randomUUID().toString();		
 		this.inputTopic = topologyName + "-input";
 		this.outputTopic = topologyName + "-output";		
-		this.redisKey = topologyName + "-redis";		
+		this.redisKey = topologyName + "-redis";
+		
 	}	
 	public String getModifiedTime() {
 		return modifiedTime;

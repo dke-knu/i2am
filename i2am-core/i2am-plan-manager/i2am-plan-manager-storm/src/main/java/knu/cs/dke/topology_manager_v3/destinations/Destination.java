@@ -22,7 +22,7 @@ public abstract class Destination implements Runnable {
 		this.status = "DEACTIVE";
 		this.owner = owner;
 		this.destinationType = dstType;
-		this.transTopic = owner + "-" + destinationName;
+		this.transTopic = destinationName + "transtopic";
 	}
 
 	public String getDestinationName() {

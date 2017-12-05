@@ -5,15 +5,16 @@ import i2am.plan.manager.kafka.I2AMProducer;
 public class RandomTimeSeries {
 	final static double initial = 1;
 
-	public static void main(String[] args) {
-		I2AMProducer producer = new I2AMProducer("abc@naver.com", "SRC1");
+	public static void main(String[] args) throws InterruptedException {
+		I2AMProducer producer = new I2AMProducer("0KUK@naver.com", "test-topic");
 		
 		double current = initial;
 		while (true) {
-			System.out.println(current);
-//			producer.send(String.valueOf(current));
-			
+			// System.out.println(current);
+			producer.send(String.valueOf(current));			
 			current = nextRand(current);
+			
+			Thread.sleep(100);
 		}
 	}
 	
