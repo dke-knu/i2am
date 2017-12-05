@@ -115,7 +115,7 @@ public class SamplingTopology {
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("UC_K_SAMPLE")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new UCKSampleBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
