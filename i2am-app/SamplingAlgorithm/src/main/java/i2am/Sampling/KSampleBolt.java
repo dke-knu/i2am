@@ -59,6 +59,7 @@ public class KSampleBolt extends BaseRichBolt {
 		/* Get parameters */
         logger.info("############# KSAMPLEBOLT");
         logger.info(redisKey);
+        logger.info(srKey);
 
         logger.info(jedisCommands.hget(redisKey, srKey));
 
