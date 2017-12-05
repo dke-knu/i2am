@@ -26,7 +26,7 @@ public class KSampleBolt extends BaseRichBolt {
 
     /* RedisKey */
     private String redisKey = null;
-    private String srKey = "SamplingRateKey";
+    private String srKey = "SamplingRate";
 
     /* Jedis */
     private JedisCommandsInstanceContainer jedisContainer = null;
@@ -44,7 +44,6 @@ public class KSampleBolt extends BaseRichBolt {
         this.jedisClusterConfig = jedisClusterConfig;
     }
 
-
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
         this.collector = collector;
@@ -52,13 +51,18 @@ public class KSampleBolt extends BaseRichBolt {
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
+            logger.info("Jedis Connection");
         } else {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
 		/* Get parameters */
-        samplingRate = Integer.parseInt(jedisCommands.hget(redisKey, srKey));
+        logger.info("############# KSAMPLEBOLT");
+        logger.info(redisKey);
 
+        logger.info(jedisCommands.hget(redisKey, srKey));
+
+        samplingRate = Integer.parseInt(jedisCommands.hget(redisKey, srKey));
     }
 
     @Override

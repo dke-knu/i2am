@@ -1,10 +1,7 @@
 package i2am.Common;
 
-import i2am.Declaring.BBSDeclaringBolt;
-import i2am.Declaring.DeclaringBolt;
-import i2am.Declaring.PriorityDeclaringBolt;
-import i2am.Passing.PassingBolt;
-import i2am.Passing.SystematicPassingBolt;
+import i2am.Declaring.*;
+import i2am.Passing.*;
 import i2am.Sampling.*;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -118,7 +115,7 @@ public class SamplingTopology {
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("UC_K_SAMPLE")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
