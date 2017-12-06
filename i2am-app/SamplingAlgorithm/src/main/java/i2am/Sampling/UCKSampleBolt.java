@@ -113,7 +113,7 @@ public class UCKSampleBolt extends BaseRichBolt{
     }
 }
 
-class SampleElement{
+class SampleElement implements Comparable<SampleElement>{
     private String data;
     private double rand;
 
@@ -125,4 +125,12 @@ class SampleElement{
     String getElement() { return data; }
 
     double getRand() { return rand; }
+
+
+    @Override
+    public int compareTo(SampleElement o) {
+        if (rand<o.rand) return -1;
+        else if (rand==o.rand) return 0;
+        else return 1;
+    }
 }
