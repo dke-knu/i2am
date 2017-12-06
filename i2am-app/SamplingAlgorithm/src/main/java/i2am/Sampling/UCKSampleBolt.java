@@ -98,6 +98,7 @@ public class UCKSampleBolt extends BaseRichBolt{
             for (SampleElement aSample : sample) {
                 collector.emit(new Values(aSample.getElement())); //emit
             }
+            sample.clear();
         }
     }
 
@@ -125,7 +126,6 @@ class SampleElement implements Comparable<SampleElement>{
     String getElement() { return data; }
 
     double getRand() { return rand; }
-
 
     @Override
     public int compareTo(SampleElement o) {
