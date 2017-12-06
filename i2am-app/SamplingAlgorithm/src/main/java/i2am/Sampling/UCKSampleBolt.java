@@ -95,8 +95,11 @@ public class UCKSampleBolt extends BaseRichBolt{
         }
 
         if (wLength==0){
+            sample.clear();
             for (SampleElement aSample : sample) {
+
                 collector.emit(new Values(aSample.getElement())); //emit
+
             }
         }
     }
