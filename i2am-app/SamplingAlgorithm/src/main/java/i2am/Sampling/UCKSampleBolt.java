@@ -65,6 +65,9 @@ public class UCKSampleBolt extends BaseRichBolt{
         samplingRate = Integer.parseInt(jedisCommands.hget(redisKey, srKey));
         ucUnderBound = Double.parseDouble(jedisCommands.hget(redisKey, ucKey));
         windowSize = window_calculator();
+
+        logger.info("##########HJKIM windoeSize: " + windowSize);
+
     }
 
     @Override
@@ -95,7 +98,7 @@ public class UCKSampleBolt extends BaseRichBolt{
         }
 
         if (wLength==0){
-            sample.clear();
+
             for (SampleElement aSample : sample) {
 
                 collector.emit(new Values(aSample.getElement())); //emit
@@ -110,10 +113,71 @@ public class UCKSampleBolt extends BaseRichBolt{
         declarer.declare(new Fields("data"));
     }
 
-    public int window_calculator(){
-        int size=100;
+    public double combi(int n, int r){
+        double result=1;
+        int i;
+        int min_r, max_r;
 
-        return size;
+        if(r>n-r){
+            max_r=r;
+            min_r=n-r;
+        }else{
+            max_r=n-r;
+            min_r=r;
+        }
+
+        for(i=0; i<min_r; i++){
+            result = result * (n-i)/(i+1);
+        }
+        return result;
+    }
+
+    public double uc_calculator(int k){
+        int x, r, m, i;
+        double result1=0;
+        double result2=0;
+        double p = 1/samplingRate;
+
+        r=(int)Math.floor(k*p);
+        m=samplingRate;
+
+        if(0>(r+1)-m) x=0;
+        else x=r+1-m;
+
+        for(i=x; i<=r; i++){
+            result1 = result1 + (combi(k,i)*combi(m,r+1-i));
+        }
+        result2 = result1/combi(k+m,r+1);
+
+        return result2;
+    }
+
+    public int window_calculator(){
+        int widowSize=0;
+        int k=samplingRate;
+        double uc=100;
+        double b_uc=0;
+
+        uc = uc_calculator(k);
+        b_uc = uc;
+        windowSize=k;
+
+        while(true){
+            if(uc<ucUnderBound){
+                break;
+            }
+            if(Double.isNaN(uc)) break;     // Nan Exception
+            if(Double.isFinite(uc)) break;  // Infinite Exception
+
+            b_uc=uc;
+            windowSize=k;
+
+            k+=samplingRate;
+            uc = uc_calculator(k);
+
+        }
+
+        return windowSize;
     }
 }
 
