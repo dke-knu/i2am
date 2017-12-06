@@ -37,7 +37,7 @@ public class DBSource extends Source {
 
 		// JDBC driver name and Database URL
 		String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
-		String DB_URL = "jdbc:mariadb//" + ip + "/" + dbName;
+		String DB_URL = "jdbc:mariadb://" + ip + "/" + dbName;
 
 		// Kafka Config. (Producer)
 		// Producer
@@ -86,22 +86,23 @@ public class DBSource extends Source {
 				ResultSetMetaData rsmd = result.getMetaData();
 
 				int columns = rsmd.getColumnCount();
-
-				if(result.next()) {
-
+				
+				
+				while(result.next()) {
+					
 					String message = "";
 
 					for (int i = 1; i <= columns; i++) {
 
 						String columnValue = result.getString(i);											
 						message = message + columnValue + ",";
-
-
 					}
+					
 					message = message.substring(0, message.length()-1);
 					producer.send(new ProducerRecord<String, String>(topic, message));
-					System.out.println(message);					
-				}
+					// System.out.println(message);			
+					
+				}				
 				
 				Thread.sleep(3000);
 			}

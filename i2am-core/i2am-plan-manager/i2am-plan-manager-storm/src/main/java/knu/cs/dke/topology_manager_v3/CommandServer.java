@@ -88,7 +88,7 @@ public class CommandServer implements Runnable {
 		System.out.println("     / $$   |$$       |$$ |  $$ |$$ | $/  $$ |");
 		System.out.println("     $$$$$$/ $$$$$$$$/ $$/   $$/ $$/      $$/ ");				
 		System.out.println("     =========================================");
-		System.out.println("             Plan Manager v.0.3.12.04       ");
+		System.out.println("             Plan Manager v.0.3.12.06       ");
 		System.out.println("     =========================================");
 		System.out.println(" ");
 		

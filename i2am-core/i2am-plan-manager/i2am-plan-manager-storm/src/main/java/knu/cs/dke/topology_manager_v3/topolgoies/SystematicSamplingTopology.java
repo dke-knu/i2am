@@ -10,7 +10,8 @@ import org.apache.storm.thrift.transport.TTransportException;
 
 public class SystematicSamplingTopology extends ASamplingFilteringTopology {
 
-	private int interval;	
+	private int interval;
+	
 	private RemoteStormController storm;
 	
 	public SystematicSamplingTopology(String createdTime, String plan, int index, String topologyType, int interval) throws TTransportException {

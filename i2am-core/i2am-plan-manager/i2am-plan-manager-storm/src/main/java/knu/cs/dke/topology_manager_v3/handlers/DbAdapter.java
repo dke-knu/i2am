@@ -20,9 +20,12 @@ import knu.cs.dke.topology_manager_v3.topolgoies.BloomFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.KSamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.KalmanFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.NRKalmanFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.PrioritySamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.QueryFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.ReservoirSamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.SystematicSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.UCKSamplingTopology;
 
 
 public class DbAdapter {  
@@ -341,8 +344,8 @@ public class DbAdapter {
 							+ "'" + topologyNumber + "',"							
 							+ "'" + hss.getSampleSize() + "',"
 							+ "'" + hss.getWindowSize() + "',"
-							+ "'" + "DEFAULT" + "'," // Hash Function							
-							+ "'" + hss.getBucketSize() + "'"
+							+ "'" + "DEFAULT" + "'" // Hash Function							
+							// + "'" + hss.getBucketSize() + "'"
 							+ ")";
 					ResultSet hash_paramsResult = stmt.executeQuery(hash_Query);
 					break;
@@ -353,7 +356,9 @@ public class DbAdapter {
 					String kalman_query = "INSERT INTO tbl_params_kalman_filtering "
 							+ "VALUES ("
 							+ "'0',"
-							+ "'" + topologyNumber + "'"
+							+ "'" + topologyNumber + "',"
+							+ "'" + kft.getQ_val() + "',"
+							+ "'" + kft.getR_val() + "'"
 							+ ")";
 					ResultSet kalman_paramsResult = stmt.executeQuery(kalman_query);
 					break;
@@ -370,6 +375,7 @@ public class DbAdapter {
 					break;
 
 				case "SYSTEMATIC_SAMPLING":					
+					
 					SystematicSamplingTopology sft = (SystematicSamplingTopology) topology;
 
 					String systematic_Query = "INSERT INTO tbl_params_systematic_sampling "
@@ -382,6 +388,7 @@ public class DbAdapter {
 					break;
 
 				case "QUERY_FILTERING":
+					
 					QueryFilteringTopology qft = (QueryFilteringTopology) topology;
 
 					String query_Query = "INSERT INTO tbl_params_query_filtering "
@@ -394,6 +401,7 @@ public class DbAdapter {
 					break;					
 
 				case "PRIORITY_SAMPLING":					
+					
 					PrioritySamplingTopology pst = (PrioritySamplingTopology) topology; 
 
 					String priority_Query ="INSERT INTO tbl_params_priority_sampling "
@@ -407,7 +415,8 @@ public class DbAdapter {
 					break;
 
 				case "RESERVOIR_SAMPLING":					
-					PrioritySamplingTopology rvs = (PrioritySamplingTopology) topology; 
+					
+					ReservoirSamplingTopology rvs = (ReservoirSamplingTopology) topology; 
 
 					String reservoir_Query ="INSERT INTO tbl_params_reservoir_sampling "
 							+ "VALUES ("
@@ -420,8 +429,9 @@ public class DbAdapter {
 					break;
 
 				case "BLOOM_FILTERING":
-					BloomFilteringTopology blf = (BloomFilteringTopology) topology;
 					
+					BloomFilteringTopology blf = (BloomFilteringTopology) topology;
+
 					String bloom_Query = "INSERT INTO tbl_params_bloom_filtering "
 							+ "VALUES ("
 							+ "'0',"
@@ -431,7 +441,34 @@ public class DbAdapter {
 							+ ")";
 					ResultSet bloom_paramsResult = stmt.executeQuery(bloom_Query);					
 					break;					
+
+				case "NR_KALMAN_FILTERING":
 					
+					NRKalmanFilteringTopology nrkf = (NRKalmanFilteringTopology) topology;
+
+					String nr_kalman_query = "INSERT INTO tbl_params_noise_recommend_kalman_filtering "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"							
+							+ "'" + nrkf.getQ_val() + "'"
+							+ ")";
+					ResultSet nr_kalman_paramsResult = stmt.executeQuery(nr_kalman_query);
+					break;
+
+				case "UC_K_SAMPLING":
+					
+					UCKSamplingTopology uckst = (UCKSamplingTopology) topology;
+					
+					String uc_k_query = "INSERT INTO tbl_params_uc_k_sampling "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "',"							
+							+ "'" + uckst.getSamplingRate() + "',"
+							+ "'" + uckst.getUcUnderBound() + "'"
+							+ ")";
+					ResultSet uc_k_paramsResult = stmt.executeQuery(uc_k_query);
+					break;			
+
 				default:					
 					System.out.println("[DBAdapter] Topology Type Error.");
 					break;

@@ -12,10 +12,13 @@ import knu.cs.dke.topology_manager_v3.topolgoies.BinaryBernoulliSamplingTopology
 import knu.cs.dke.topology_manager_v3.topolgoies.BloomFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.KSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.KalmanFilteringTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.NRKalmanFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.PrioritySamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.QueryFilteringTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.ReservoirSamplingTopology;
 import knu.cs.dke.topology_manager_v3.topolgoies.SystematicSamplingTopology;
+import knu.cs.dke.topology_manager_v3.topolgoies.UCKSamplingTopology;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 
@@ -161,13 +164,13 @@ public class RedisAdapter {
 				String hash_sampleSize = String.valueOf(hash_topology.getSampleSize());
 				String hash_windowSize = String.valueOf(hash_topology.getWindowSize());
 				String hash_function = hash_topology.getHashFunction();
-				String hash_bucketSize = String.valueOf(hash_topology.getBucketSize());
+				// String hash_bucketSize = String.valueOf(hash_topology.getBucketSize());
 
 				jedisCn.hset(hash_redisKey, "SampleKey", hash_sampleKey);
 				jedisCn.hset(hash_redisKey, "SampleSize", hash_sampleSize);
 				jedisCn.hset(hash_redisKey,  "WindowSize", hash_windowSize);
 				jedisCn.hset(hash_redisKey,  "HashFunction", hash_function);
-				jedisCn.hset(hash_redisKey, "BucketSize", hash_bucketSize);
+				// jedisCn.hset(hash_redisKey, "BucketSize", hash_bucketSize);
 
 				break;
 
@@ -228,6 +231,43 @@ public class RedisAdapter {
 				break;				
 				
 			case "KALMAN_FILTERING":
+				
+				KalmanFilteringTopology kalman = (KalmanFilteringTopology) topology;
+				
+				String kalman_redisKey = kalman.getRedisKey();
+				
+				String qValue = String.valueOf(kalman.getQ_val());
+				String rValue = String.valueOf(kalman.getR_val());
+				
+				jedisCn.hset(kalman_redisKey, "Q_val", qValue);
+				jedisCn.hset(kalman_redisKey, "R_val", rValue);				
+				
+				break;
+				
+			case "NR_KALMAN_FILTERING":
+				
+				NRKalmanFilteringTopology nr_kalman = (NRKalmanFilteringTopology) topology;
+				
+				String nr_kalman_redisKey = nr_kalman.getRedisKey();
+				
+				String nr_qValue = String.valueOf(nr_kalman.getQ_val());
+				
+				jedisCn.hset(nr_kalman_redisKey, "Q_val", nr_qValue);
+				
+				break;
+				
+			case "UC_K_SAMPLING":
+				
+				UCKSamplingTopology uc = (UCKSamplingTopology) topology;
+				
+				String uc_redisKey = uc.getRedisKey();
+				
+				String uc_samplingRate = String.valueOf(uc.getSamplingRate());
+				String uc_uc = String.valueOf(uc.getUcUnderBound());
+				
+				jedisCn.hset(uc_redisKey, "SamplingRate", uc_samplingRate);
+				jedisCn.hset(uc_redisKey, "UCUnderBound", uc_uc);
+				
 				break;
 
 			default :

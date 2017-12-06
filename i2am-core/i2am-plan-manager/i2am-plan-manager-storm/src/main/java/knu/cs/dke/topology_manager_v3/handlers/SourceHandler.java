@@ -105,7 +105,7 @@ public class SourceHandler {
 			String dbPort = (String) database.get("databasePort");
 			String dbId = (String) database.get("databaseId");
 			String dbPw = (String) database.get("databasePw");
-			String dbName = (String) database.get("databaseName");
+			String dbName = (String) database.get("database");
 			String dbQuery = (String) database.get("query");
 
 			source = new DBSource(srcName, createdTime, owner, intelliEngine, testData, sourceType, "N", dbIp, dbPort, dbId, dbPw, dbName, dbQuery);

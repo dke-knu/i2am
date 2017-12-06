@@ -110,12 +110,12 @@ public class SamplingTopology {
                         .shuffleGrouping("KAFKA_SPOUT")
                         .setNumTasks(4);
                 break;
-            case "K_SAMPLE":
+            case "K_SAMPLING":
                 topologyBuilder.setBolt(algorithmName + "_BOLT", new KSampleBolt(redisKey, jedisClusterConfig), 4)
                         .shuffleGrouping("KAFKA_SPOUT")
                         .setNumTasks(4);
                 break;
-            case "UC_K_SAMPLE":
+            case "UC_K_SAMPLING":
                 topologyBuilder.setBolt(algorithmName + "_BOLT", new UCKSampleBolt(redisKey, jedisClusterConfig), 4)
                         .shuffleGrouping("KAFKA_SPOUT")
                         .setNumTasks(4);

@@ -12,19 +12,19 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 		
 	private int sampleSize;
 	private int windowSize;
-	private int bucketSize;	
+	// private int bucketSize;	
 	private String hashFunction; // Enum
 	
 	private RemoteStormController storm;
 	
 	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize,
-			String HashFunction, int bucketSize) throws TTransportException {
+			String HashFunction) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
 		
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;	
-		this.bucketSize = bucketSize;
+		// this.bucketSize = bucketSize;
 		this.hashFunction = HashFunction;
 		
 		storm = new RemoteStormController();
@@ -61,14 +61,6 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 
 	public void setHashFunction(String hashFunction) {
 		this.hashFunction = hashFunction;
-	}
-
-	public int getBucketSize() {
-		return bucketSize;
-	}
-
-	public void setBucketSize(int bucketSize) {
-		this.bucketSize = bucketSize;
 	}
 
 	public int getSampleSize() {
