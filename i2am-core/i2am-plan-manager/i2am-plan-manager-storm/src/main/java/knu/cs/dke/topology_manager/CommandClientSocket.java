@@ -9,7 +9,6 @@ import java.net.Socket;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
 import org.json.simple.parser.ParseException;
 
 public class CommandClientSocket implements Runnable {
