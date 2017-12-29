@@ -185,15 +185,13 @@
 			  after: after
 			}),
 			success : function(response) {
-				  /*
+				  //alert(response.trim());
+				  console.log(response.trim());
 				  if (response.trim() == "true") {
 					  window.open("./list.jsp", "_self");
 				  } else {
 					  window.location.reload();
 				  }
-				  */
-				  alert(response.trim());
-				  console.log(response.trim());
 			} 
 		});
 	  }	

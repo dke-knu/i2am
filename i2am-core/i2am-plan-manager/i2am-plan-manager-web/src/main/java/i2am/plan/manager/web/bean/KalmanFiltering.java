@@ -1,20 +1,26 @@
 package i2am.plan.manager.web.bean;
 
 import org.json.simple.JSONObject;
-
 import i2am.plan.manager.web.CommandSubmitter.ALGORITHM_TYPE;
 
-public class SystematicSampling extends Algorithm {
-	private int interval;
+public class KalmanFiltering extends Algorithm {
+	private double qVal;
+	private double rVal;
 	
-	public SystematicSampling(int idx, int interval) {
+	public KalmanFiltering(int idx, double qVal, double rVal) {
 		super(idx);
-		super.type = ALGORITHM_TYPE.SYSTEMATIC_SAMPLING;
-		this.interval = interval;
+		super.type = ALGORITHM_TYPE.KALMAN_FILTERING;
+		
+		this.qVal = qVal;
+		this.rVal = rVal;
 	}
-	
-	public int getInterval() {
-		return interval;
+
+	public double getqVal() {
+		return qVal;
+	}
+
+	public double getrVal() {
+		return rVal;
 	}
 
 	@Override
@@ -24,9 +30,10 @@ public class SystematicSampling extends Algorithm {
 		obj.put("algorithmType", getType().name());
 		
 		JSONObject params = new JSONObject();
-		params.put("interval", getInterval());
 		
 		obj.put("algorithmParams", params);
+		params.put("qVal", getqVal());
+		params.put("rVal", getrVal());
 		
 		return obj;
 	}

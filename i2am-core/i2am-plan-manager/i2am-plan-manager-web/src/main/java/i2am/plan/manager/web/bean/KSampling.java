@@ -4,17 +4,17 @@ import org.json.simple.JSONObject;
 
 import i2am.plan.manager.web.CommandSubmitter.ALGORITHM_TYPE;
 
-public class SystematicSampling extends Algorithm {
-	private int interval;
+public class KSampling extends Algorithm {
+	private int samplingRate;
 	
-	public SystematicSampling(int idx, int interval) {
+	public KSampling(int idx, int samplingRate) {
 		super(idx);
-		super.type = ALGORITHM_TYPE.SYSTEMATIC_SAMPLING;
-		this.interval = interval;
+		super.type = ALGORITHM_TYPE.K_SAMPLING;
+		this.samplingRate = samplingRate;
 	}
-	
-	public int getInterval() {
-		return interval;
+
+	public int getSamplingRate() {
+		return samplingRate;
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class SystematicSampling extends Algorithm {
 		obj.put("algorithmType", getType().name());
 		
 		JSONObject params = new JSONObject();
-		params.put("interval", getInterval());
+		params.put("samplingRate", getSamplingRate());
 		
 		obj.put("algorithmParams", params);
 		

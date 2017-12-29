@@ -23,7 +23,7 @@ public class DbAdapter {
 			synchronized(DbAdapter.class) {
 				if(instance == null) {
 					instance = new DbAdapter();
-				}
+				} 
 			} 
 		} 
 		return instance;

@@ -140,6 +140,9 @@
 			var hashFunction;
 			var bucketSize;
 			var keywords;
+			var ucUnderBound;
+			var qVal;
+			var rVal;
 			if ( $("#bbs").hasClass('active') ) {
 				algorithmType = "BINARY_BERNOULLI_SAMPLING";
 				sampleSize = $("#sample-size-for-BBS").val();
@@ -147,10 +150,9 @@
 			}
 			else if ( $("#hs").hasClass('active') ) {
 				algorithmType = "HASH_SAMPLING";
-				sampleSize = $("#sample-size-for-HS").val();
+				sampleRatio = $("#sample-ratio-for-HS").val();
 				windowSize = $("#window-size-for-HS").val();
 				hashFunction = $("#hash-function-for-HS").val();
-				bucketSize = $("#bucket-size-for-HS").val();
 			}
 			else if ( $("#ps").hasClass('active') ) {
 				algorithmType = "PRIORITY_SAMPLING";
@@ -169,12 +171,34 @@
 			}
 			else if ( $("#sys").hasClass('active') ) {
 				algorithmType = "SYSTEMATIC_SAMPLING";
-				sampleSize = $("#sample-size-for-SyS").val();
-				windowSize = $("#window-size-for-SyS").val();
+				sampleRatio = $("#interval-for-SyS").val();
+			}
+			else if ( $("#ks").hasClass('active') ) {
+				algorithmType = "K_SAMPLING";
+				sampleRatio = $("#sample-ratio-for-KS").val();
+			}
+			else if ( $("#ucks").hasClass('active') ) {
+				algorithmType = "UC_K_SAMPLING";
+				sampleRatio = $("#sample-ratio-for-UCKS").val();
+				ucUnderBound = $("#uc-under-bound-for-UCKS").val();
 			}
 			else if ( $("#qf").hasClass('active') ) {
 				algorithmType = "QUERY_FILTERING";
 				keywords = $("#keywords-for-QF").val();
+			}
+			else if ( $("#blf").hasClass('active') ) {
+				algorithmType = "BLOOM_FILTERING";
+				bucketSize = $("#bucket-size-for-BlF").val();
+				keywords = $("#keywords-for-BlF").val();
+			}
+			else if ( $("#kf").hasClass('active') ) {
+				algorithmType = "KALMAN_FILTERING";
+				qVal = $("#q-val-for-KF").val();
+				rVal = $("#r-val-for-KF").val();
+			}
+			else if ( $("#nrkf").hasClass('active') ) {
+				algorithmType = "NOISE_RECOMMEND_KALMAN_FILTERING"; 
+				qVal = $("#q-val-for-NRKF").val();
 			} else {
 				alert("Please select a algorithm first.");
 				return false;
@@ -190,7 +214,10 @@
 			  window_size: windowSize,
 			  hash_function: hashFunction,
 			  bucket_size: bucketSize,
-			  keywords: keywords
+			  keywords: keywords,
+			  uc_under_bound: ucUnderBound,
+			  q_val: qVal,
+			  r_val: rVal
 			};
 			
 			$.ajax({
@@ -200,15 +227,9 @@
 			  async: false,
 			  cache: false,
 			  success: function(response) {
-				  /*
-			    if (response.trim() == "true") {
-				  window.open("./list.jsp", "_self");
-			    } else {
-				  window.location.reload();
-			    } 
-				  */
-				  alert(response.trim());
+				  //alert(response.trim());
 				  console.log(response.trim());
+				  window.open("./list.jsp", "_self");
 			  },
 			  error: function() {
 			    alert("ERROR");	
@@ -232,12 +253,14 @@
 		  var algorithm = $('#recommend-sampling-modal').val();
 		  var acronym;
 		  switch (algorithm) {
-		  case 'RESERVOIR_SAMPING'			: acronym='rs'; break;
-		  case 'PRIORITY_SAMPLING' 			: acronym='ps'; break;
-		  case 'STRATIFIED_SAMPLING'		: acronym='sts'; break;
-		  case 'BINARY_BERNOULLI_SAMPLING'	: acronym='bbs'; break;
-		  case 'SYSTEMATIC_SAMPLING'		: acronym='sys'; break;
-		  case 'HASH_SAMPLING'				: acronym='hs'; break;
+		  case 'RESERVOIR_SAMPING'						: acronym='rs'; break;
+		  case 'PRIORITY_SAMPLING' 						: acronym='ps'; break;
+		  case 'STRATIFIED_SAMPLING'					: acronym='sts'; break;
+		  case 'BINARY_BERNOULLI_SAMPLING'				: acronym='bbs'; break;
+		  case 'SYSTEMATIC_SAMPLING'					: acronym='sys'; break;
+		  case 'HASH_SAMPLING'							: acronym='hs'; break;
+		  case 'K_SAMPLING'								: acronym='ks'; break;
+		  case 'UC_K_SAMPLING'							: acronym='ucks'; break;
 		  }
 		  $('#'+acronym).addClass('active').siblings().removeClass('active');
 		  $('#tab-for-'+acronym).removeClass('fade').addClass('active').siblings().removeClass('active');
@@ -325,8 +348,18 @@
                 <li id="sts"><a href="#tab-for-sts" data-toggle="tab">Stratified Sampling</a></li>
                 <li id="sys"><a href="#tab-for-sys" data-toggle="tab">Systematic Sampling</a></li>
                 
+                <li id="ks"><a href="#tab-for-ks" data-toggle="tab">KSample</a></li>
+                <li id="ucks"><a href="#tab-for-ucks" data-toggle="tab">UC KSample</a></li>
+                
+                <li style="width: -webkit-fill-available;"></li>
+                
                 <li id="qf"><a href="#tab-for-qf" data-toggle="tab">Query Filtering</a></li>
-              </ul>
+                                
+                <li id="baf"><a href="#tab-for-baf" data-toggle="tab">Bayesian Filtering</a></li>
+                <li id="blf"><a href="#tab-for-blf" data-toggle="tab">Bloom Filtering</a></li>
+                <li id="kf"><a href="#tab-for-kf" data-toggle="tab">Kalman Filtering</a></li>
+                <li id="nrkf"><a href="#tab-for-nrkf" data-toggle="tab">Noise Recommend Kalman Filtering</a></li>
+              </ul> 
 
               <div id="tab-src-content" class="tab-content">
                 <div class="tab-pane fade" id="tab-for-bbs">
@@ -349,7 +382,7 @@
                 <div class="tab-pane fade" id="tab-for-hs">
                   <div class="form-horizontal">
 				    <div class="control-group">
-				      <label class="control-label" for="sample-ratio-for-HS">Sample Size</label>
+				      <label class="control-label" for="sample-ratio-for-HS">Sample Ratio</label>
 				      <div class="controls">
   				       <input type="text" id="sample-ratio-for-HS">
 				      </div>
@@ -366,12 +399,6 @@
 				        <input type="text" id="hash-function-for-HS">
 				      </div>
 				    </div>
-				    <div class="control-group">
-  				      <label class="control-label" for="bucket-size-for-HS">Bucket Size</label>
-				      <div class="controls">
-				        <input type="text" id="bucket-size-for-HS">
-				      </div>
-				    </div>
 				  </div>
                 </div>
                 
@@ -380,13 +407,13 @@
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-PS">Sample Size</label>
 				      <div class="controls">
-  				       <input type="text" id="sample-size-for-RS">
+  				       <input type="text" id="sample-size-for-PS">
 				      </div>
 				    </div>
 				    <div class="control-group">
   				      <label class="control-label" for="window-size-for-PS">Window Size</label>
 				      <div class="controls">
-				        <input type="text" id="window-size-for-RS">
+				        <input type="text" id="window-size-for-PS">
 				      </div>
 				    </div>
 				  </div>
@@ -411,6 +438,8 @@
                 
                 <div class="tab-pane fade" id="tab-for-sts">
                   <div class="form-horizontal">
+                  TO BE IMPLEMENTED
+                  <!-- 
 				    <div class="control-group">
 				      <label class="control-label" for="sample-size-for-StS">Sample Size</label>
 				      <div class="controls">
@@ -423,26 +452,49 @@
 				        <input type="text" id="window-size-for-StS">
 				      </div>
 				    </div>
+				  -->
 				  </div>
                 </div>
                 
                 <div class="tab-pane fade" id="tab-for-sys">
                   <div class="form-horizontal">
 				    <div class="control-group">
-				      <label class="control-label" for="sample-size-for-SyS">Sample Size</label>
+  				      <label class="control-label" for="interval-for-SyS">Interval</label>
 				      <div class="controls">
-  				       <input type="text" id="sample-size-for-SyS">
-				      </div>
-				    </div>
-				    <div class="control-group">
-  				      <label class="control-label" for="window-size-for-SyS">Window Size</label>
-				      <div class="controls">
-				        <input type="text" id="window-size-for-SyS">
+				        <input type="text" id="interval-for-SyS">
 				      </div>
 				    </div>
 				  </div>
                 </div>
                 
+                <div class="tab-pane fade" id="tab-for-ks">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="sample-ratio-for-KS">Sampling Rate</label>
+				      <div class="controls">
+  				       <input type="text" id="sample-ratio-for-KS">
+				      </div>
+				    </div>
+				  </div>
+                </div>
+                
+                <div class="tab-pane fade" id="tab-for-ucks">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="sample-ratio-for-UCKS">Sampling Rate</label>
+				      <div class="controls">
+  				       <input type="text" id="sample-ratio-for-UCKS">
+				      </div>
+				    </div>
+				    <div class="control-group">
+				      <label class="control-label" for="uc-under-bound-for-UCKS">UC Under Bound</label>
+				      <div class="controls">
+  				       <input type="text" id="uc-under-bound-for-UCKS">
+				      </div>
+				    </div>
+				  </div> 
+                </div>
+
                 <div class="tab-pane fade" id="tab-for-qf">
                   <div class="form-horizontal">
 				    <div class="control-group">
@@ -452,6 +504,57 @@
 				      </div>
 				    </div>
 				  </div>
+                </div>
+                
+                <div class="tab-pane fade" id="tab-for-baf">
+                  <div class="form-horizontal">
+                  TO BE IMPLEMENTED
+				  </div> 
+                </div>
+                
+                <div class="tab-pane fade" id="tab-for-blf">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="bucket-size-for-BlF">Bucket Size</label>
+				      <div class="controls">
+  				       <input type="text" id="bucket-size-for-BlF">
+				      </div>
+				    </div>
+				    <div class="control-group">
+				      <label class="control-label" for="keywords-for-BlF">Keywords</label>
+				      <div class="controls">
+  				       <input type="text" id="keywords-for-BlF">
+				      </div>
+				    </div>
+				  </div>
+                </div>
+                
+                <div class="tab-pane fade" id="tab-for-kf">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="q-val-for-KF">Process Noise(Q)</label>
+				      <div class="controls">
+  				       <input type="text" id="q-val-for-KF">
+				      </div>
+				    </div>
+				    <div class="control-group">
+				      <label class="control-label" for="r-val-for-KF">Measurement Noise(R)</label>
+				      <div class="controls">
+  				       <input type="text" id="r-val-for-KF">
+				      </div>
+				    </div>
+				  </div> 
+                </div> 
+                
+                <div class="tab-pane fade" id="tab-for-nrkf">
+                  <div class="form-horizontal">
+				    <div class="control-group">
+				      <label class="control-label" for="q-val-for-NRKF">Process Noise(Q)</label>
+				      <div class="controls">
+  				       <input type="text" id="q-val-for-NRKF">
+				      </div>
+				    </div>
+				  </div> 
                 </div>
                 
               </div>                            

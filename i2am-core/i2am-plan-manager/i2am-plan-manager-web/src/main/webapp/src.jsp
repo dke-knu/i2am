@@ -210,6 +210,7 @@
 					  database_port: $("#database-port").val(),
 					  database_id: $("#database-id").val(),
 					  database_pw: $("#database-pw").val(),
+					  database_name: $("#database-name").val(),
 					  database_query: $("#database-query").val()
 			  };
 			  
@@ -220,16 +221,10 @@
 				  async: false,
 				  cache: false,
 				  success: function(response) {
-					  /*
-					  if (response.trim() == "true") {
-						  window.open("./list.jsp", "_self");
-					  } else {
-						  window.location.reload();
-					  }
-					  */
-					  alert(response.trim());
+					  //alert(response.trim());
 					  console.log(response.trim());
-				  },
+					  window.open("./list.jsp", "_self");
+				  }, 
 				  error: function() {
 				      alert("ERROR");	
 					  //window.location.reload();
@@ -360,6 +355,12 @@
 				          </div>
 				        </div>
 				        <div class="control-group">
+  				          <label class="control-label" for="database-name">Database Name</label>
+				          <div class="controls">
+				            <input type="text" id="database-name">
+				          </div>
+				        </div>
+				        <div class="control-group">
   				          <label class="control-label" for="database-query">Query</label>
 				          <div class="controls">
 				            <input type="text" id="database-query" class="input-xxlarge">
@@ -371,7 +372,7 @@
                 </div>
                 <div class="tab-pane fade" id="tab1-2">
                   <ul class="nav nav-pills">                
-		            <li><a href="resources/CustomConsumer.java" class="nav nav-pills">Download java interface</a></li> 
+		            <li><a href="resources/I2AM.jar" class="nav nav-pills">Download java interface</a></li> 
 		          </ul>
                 </div>
               </div>

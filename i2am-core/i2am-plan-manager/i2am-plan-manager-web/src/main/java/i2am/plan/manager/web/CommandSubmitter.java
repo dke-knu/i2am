@@ -28,8 +28,9 @@ public class CommandSubmitter {
 	public enum ALGORITHM_TYPE {
 		BINARY_BERNOULLI_SAMPLING, HASH_SAMPLING, PRIORITY_SAMPLING,
 		RESERVOIR_SAMPLING, STRATIFIED_SAMPLING, SYSTEMATIC_SAMPLING,
+		K_SAMPLING, UC_K_SAMPLING, DISTRIBUTED_BINARY_BERNOULLI_SAMPLING,
 		
-		QUERY_FILTERING
+		QUERY_FILTERING, BLOOM_FILTERING, KALMAN_FILTERING, NOISE_RECOMMEND_KALMAN_FILTERING
 	};
 	public enum STATUS {ACTIVE, DEACTIVE};
 	
@@ -154,7 +155,7 @@ public class CommandSubmitter {
 
 		private final String serverIp = "114.70.235.43";
 		private final int serverPort = 11111;
-		
+		 
 		private JSONObject obj = null;
 		
 		private Submitter(JSONObject obj) {

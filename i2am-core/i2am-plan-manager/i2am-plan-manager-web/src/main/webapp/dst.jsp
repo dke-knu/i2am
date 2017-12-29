@@ -122,15 +122,9 @@
 				  async: false,
 				  cache: false,
 				  success: function(response) {
-					  /*
-					  if (response.trim() == "true") {
-						  window.open("./list.jsp", "_self");
-					  } else {
-						  window.location.reload();
-					  }
-					  */
-					  alert(response.trim());
+					  //alert(response.trim());
 					  console.log(response.trim());
+					  window.open("./list.jsp", "_self");
 				  },
 				  error: function() {
 				      alert("ERROR");	

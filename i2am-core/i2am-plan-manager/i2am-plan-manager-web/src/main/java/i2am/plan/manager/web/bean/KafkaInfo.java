@@ -2,7 +2,7 @@ package i2am.plan.manager.web.bean;
 
 import org.json.simple.JSONObject;
 
-public class KafkaInfo {
+public class KafkaInfo { 
 	private String zkIp;
 	private String zkPort;
 	private String topic;
