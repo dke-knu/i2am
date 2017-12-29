@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3;
+package knu.cs.dke.topology_manager;
 
 import java.io.IOException;
 import java.util.List;
@@ -8,7 +8,7 @@ import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
 
-import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 
 public class Plan {
 

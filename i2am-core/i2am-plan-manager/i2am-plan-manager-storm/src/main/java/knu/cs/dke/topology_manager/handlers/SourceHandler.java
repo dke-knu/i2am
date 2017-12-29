@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3.handlers;
+package knu.cs.dke.topology_manager.handlers;
 
 import java.io.BufferedWriter;
 import java.io.OutputStream;
@@ -9,11 +9,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import knu.cs.dke.topology_manager_v3.SourceList;
-import knu.cs.dke.topology_manager_v3.sources.CustomSource;
-import knu.cs.dke.topology_manager_v3.sources.DBSource;
-import knu.cs.dke.topology_manager_v3.sources.KafkaSource;
-import knu.cs.dke.topology_manager_v3.sources.Source;
+import knu.cs.dke.topology_manager.SourceList;
+import knu.cs.dke.topology_manager.sources.CustomSource;
+import knu.cs.dke.topology_manager.sources.DBSource;
+import knu.cs.dke.topology_manager.sources.KafkaSource;
+import knu.cs.dke.topology_manager.sources.Source;
 
 public class SourceHandler {
 

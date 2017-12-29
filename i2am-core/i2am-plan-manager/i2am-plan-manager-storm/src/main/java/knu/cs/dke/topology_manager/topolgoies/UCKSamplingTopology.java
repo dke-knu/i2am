@@ -8,39 +8,23 @@ import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.thrift.transport.TTransportException;
 
-public class PrioritySamplingTopology extends ASamplingFilteringTopology {
+public class UCKSamplingTopology extends ASamplingFilteringTopology {
 
-	private int sampleSize;
-	private int windowSize;
+	private int samplingRate;
+	private double ucUnderBound;	
 	
 	private RemoteStormController storm;
 	
-	public PrioritySamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
+	public UCKSamplingTopology(String createdTime, String plan, int index, String topologyType, int samplingRate, double uc) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
-		this.sampleSize = sampleSize;
-		this.windowSize = windowSize;	
+
+		this.samplingRate = samplingRate;
+		this.ucUnderBound = uc;
 		
 		storm = new RemoteStormController();
 	}
-	
-	public int getSampleSize() {
-		return sampleSize;
-	}
 
-	public void setSampleSize(int sampleSize) {
-		this.sampleSize = sampleSize;
-	}
-
-	public int getWindowSize() {
-		return windowSize;
-	}
-
-	public void setWindowSize(int windowSize) {
-		this.windowSize = windowSize;
-	}
-	
-	@Override
 	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
 		storm.killTopology(super.getTopologyName());
@@ -64,4 +48,21 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 		// TODO Auto-generated method stub
 		storm.runTopology(this);		
 	}
+
+	public int getSamplingRate() {
+		return samplingRate;
+	}
+
+	public void setSamplingRate(int samplingRate) {
+		this.samplingRate = samplingRate;
+	}
+
+	public double getUcUnderBound() {
+		return ucUnderBound;
+	}
+
+	public void setUcUnderBound(double ucUnderBound) {
+		this.ucUnderBound = ucUnderBound;
+	}
+
 }

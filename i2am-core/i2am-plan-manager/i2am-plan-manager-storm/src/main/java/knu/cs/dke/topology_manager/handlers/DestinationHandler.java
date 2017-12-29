@@ -1,15 +1,15 @@
-package knu.cs.dke.topology_manager_v3.handlers;
+package knu.cs.dke.topology_manager.handlers;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import knu.cs.dke.topology_manager_v3.DestinationList;
-import knu.cs.dke.topology_manager_v3.destinations.CustomDestination;
-import knu.cs.dke.topology_manager_v3.destinations.DBDestination;
-import knu.cs.dke.topology_manager_v3.destinations.Destination;
-import knu.cs.dke.topology_manager_v3.destinations.KafkaDestination;
-import knu.cs.dke.topology_manager_v3.sources.Source;
+import knu.cs.dke.topology_manager.DestinationList;
+import knu.cs.dke.topology_manager.destinations.CustomDestination;
+import knu.cs.dke.topology_manager.destinations.DBDestination;
+import knu.cs.dke.topology_manager.destinations.Destination;
+import knu.cs.dke.topology_manager.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager.sources.Source;
 
 public class DestinationHandler {
 

@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3.sources;
+package knu.cs.dke.topology_manager.sources;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,13 +7,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-import knu.cs.dke.topology_manager_v3.Plan;
-import knu.cs.dke.topology_manager_v3.destinations.Destination;
-import knu.cs.dke.topology_manager_v3.destinations.KafkaDestination;
-import knu.cs.dke.topology_manager_v3.sources.KafkaSource;
-import knu.cs.dke.topology_manager_v3.sources.Source;
-import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.BinaryBernoulliSamplingTopology;
+import knu.cs.dke.topology_manager.Plan;
+import knu.cs.dke.topology_manager.destinations.Destination;
+import knu.cs.dke.topology_manager.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager.sources.KafkaSource;
+import knu.cs.dke.topology_manager.sources.Source;
+import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
 
 
 public class DbAdapter {  

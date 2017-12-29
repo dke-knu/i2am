@@ -6,7 +6,7 @@ public class RandomTimeSeries {
 	final static double initial = 1;
 
 	public static void main(String[] args) throws InterruptedException {
-		I2AMProducer producer = new I2AMProducer("0KUK@naver.com", "test-topic");
+		I2AMProducer producer = new I2AMProducer("alice@gmail.com", "TimeSeriesSource");
 		
 		double current = initial;
 		while (true) {

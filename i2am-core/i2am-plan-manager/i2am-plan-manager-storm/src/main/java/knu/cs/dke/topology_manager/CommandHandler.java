@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3;
+package knu.cs.dke.topology_manager;
 
 import java.io.IOException;
 
@@ -10,9 +10,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import knu.cs.dke.topology_manager_v3.handlers.DestinationHandler;
-import knu.cs.dke.topology_manager_v3.handlers.SourceHandler;
-import knu.cs.dke.topology_manager_v3.handlers.TopologyHandler;
+import knu.cs.dke.topology_manager.handlers.DestinationHandler;
+import knu.cs.dke.topology_manager.handlers.SourceHandler;
+import knu.cs.dke.topology_manager.handlers.TopologyHandler;
 
 public class CommandHandler {
 

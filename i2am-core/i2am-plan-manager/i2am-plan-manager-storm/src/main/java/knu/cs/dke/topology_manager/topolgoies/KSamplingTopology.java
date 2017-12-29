@@ -8,36 +8,18 @@ import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.thrift.transport.TTransportException;
 
-public class PrioritySamplingTopology extends ASamplingFilteringTopology {
+public class KSamplingTopology extends ASamplingFilteringTopology {
 
-	private int sampleSize;
-	private int windowSize;
+	private int samplingRate;
 	
 	private RemoteStormController storm;
 	
-	public PrioritySamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
+	public KSamplingTopology(String createdTime, String plan, int index, String topologyType, int samplingRate) throws TTransportException {
 
-		super(createdTime, plan, index, topologyType);
-		this.sampleSize = sampleSize;
-		this.windowSize = windowSize;	
+		super(createdTime, plan, index, topologyType);		
+		this.samplingRate = samplingRate;
 		
 		storm = new RemoteStormController();
-	}
-	
-	public int getSampleSize() {
-		return sampleSize;
-	}
-
-	public void setSampleSize(int sampleSize) {
-		this.sampleSize = sampleSize;
-	}
-
-	public int getWindowSize() {
-		return windowSize;
-	}
-
-	public void setWindowSize(int windowSize) {
-		this.windowSize = windowSize;
 	}
 	
 	@Override
@@ -63,5 +45,13 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
 		storm.runTopology(this);		
+	}
+
+	public int getSamplingRate() {
+		return samplingRate;
+	}
+
+	public void setSamplingRate(int samplingRate) {
+		this.samplingRate = samplingRate;
 	}
 }

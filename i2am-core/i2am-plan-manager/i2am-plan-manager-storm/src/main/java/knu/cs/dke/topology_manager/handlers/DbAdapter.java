@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3.handlers;
+package knu.cs.dke.topology_manager.handlers;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,25 +7,25 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
-import knu.cs.dke.topology_manager_v3.Plan;
-import knu.cs.dke.topology_manager_v3.destinations.DBDestination;
-import knu.cs.dke.topology_manager_v3.destinations.Destination;
-import knu.cs.dke.topology_manager_v3.destinations.KafkaDestination;
-import knu.cs.dke.topology_manager_v3.sources.DBSource;
-import knu.cs.dke.topology_manager_v3.sources.KafkaSource;
-import knu.cs.dke.topology_manager_v3.sources.Source;
-import knu.cs.dke.topology_manager_v3.topolgoies.ASamplingFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.BinaryBernoulliSamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.BloomFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.HashSamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.KSamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.KalmanFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.NRKalmanFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.PrioritySamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.QueryFilteringTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.ReservoirSamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.SystematicSamplingTopology;
-import knu.cs.dke.topology_manager_v3.topolgoies.UCKSamplingTopology;
+import knu.cs.dke.topology_manager.Plan;
+import knu.cs.dke.topology_manager.destinations.DBDestination;
+import knu.cs.dke.topology_manager.destinations.Destination;
+import knu.cs.dke.topology_manager.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager.sources.DBSource;
+import knu.cs.dke.topology_manager.sources.KafkaSource;
+import knu.cs.dke.topology_manager.sources.Source;
+import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.BloomFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.HashSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.KSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.KalmanFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.NRKalmanFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.PrioritySamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.QueryFilteringTopology;
+import knu.cs.dke.topology_manager.topolgoies.ReservoirSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.SystematicSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.UCKSamplingTopology;
 
 
 public class DbAdapter {  

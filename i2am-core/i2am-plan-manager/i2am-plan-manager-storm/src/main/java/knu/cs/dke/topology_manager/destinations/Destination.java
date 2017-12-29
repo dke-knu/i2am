@@ -1,4 +1,4 @@
-package knu.cs.dke.topology_manager_v3.destinations;
+package knu.cs.dke.topology_manager.destinations;
 
 public abstract class Destination implements Runnable {
 	

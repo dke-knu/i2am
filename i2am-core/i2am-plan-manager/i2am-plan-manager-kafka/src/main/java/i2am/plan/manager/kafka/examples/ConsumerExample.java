@@ -11,7 +11,7 @@ public class ConsumerExample {
 		
 		Queue<String> q = new LinkedBlockingQueue<String>(100);
 		
-		new I2AMConsumer("0KUK@naver.com", "test-dst").receive(q);
+		new I2AMConsumer("alice@gmail.com", "TimeSeriesDestination").receive(q);
 
 		while (true) {
 			String message;

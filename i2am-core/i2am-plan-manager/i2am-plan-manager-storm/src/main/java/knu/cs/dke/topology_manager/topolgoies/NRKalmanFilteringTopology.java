@@ -8,38 +8,19 @@ import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.thrift.transport.TTransportException;
 
-public class PrioritySamplingTopology extends ASamplingFilteringTopology {
-
-	private int sampleSize;
-	private int windowSize;
+public class NRKalmanFilteringTopology extends ASamplingFilteringTopology {
 	
+	private double q_val;	
+
 	private RemoteStormController storm;
-	
-	public PrioritySamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
 
+	public NRKalmanFilteringTopology(String createdTime, String plan, int index, String topologyType, Double q_val) throws TTransportException {
 		super(createdTime, plan, index, topologyType);
-		this.sampleSize = sampleSize;
-		this.windowSize = windowSize;	
-		
+
+		this.q_val = q_val;		
 		storm = new RemoteStormController();
 	}
-	
-	public int getSampleSize() {
-		return sampleSize;
-	}
 
-	public void setSampleSize(int sampleSize) {
-		this.sampleSize = sampleSize;
-	}
-
-	public int getWindowSize() {
-		return windowSize;
-	}
-
-	public void setWindowSize(int windowSize) {
-		this.windowSize = windowSize;
-	}
-	
 	@Override
 	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
@@ -50,7 +31,7 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub
 		storm.activateTopology(super.getTopologyName());
-		
+
 	}
 
 	@Override
@@ -63,5 +44,13 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
 		storm.runTopology(this);		
+	}
+
+	public double getQ_val() {
+		return q_val;
+	}
+
+	public void setQ_val(double q_val) {
+		this.q_val = q_val;
 	}
 }

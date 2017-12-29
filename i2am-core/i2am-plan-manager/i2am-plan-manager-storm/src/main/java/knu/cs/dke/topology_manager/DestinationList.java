@@ -1,10 +1,10 @@
-package knu.cs.dke.topology_manager_v3;
+package knu.cs.dke.topology_manager;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import knu.cs.dke.topology_manager_v3.destinations.Destination;
-import knu.cs.dke.topology_manager_v3.sources.Source;
+import knu.cs.dke.topology_manager.destinations.Destination;
+import knu.cs.dke.topology_manager.sources.Source;
 
 public class DestinationList {
 	
