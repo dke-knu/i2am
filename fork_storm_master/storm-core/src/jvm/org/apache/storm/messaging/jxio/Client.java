@@ -406,6 +406,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         msgPool.deleteMsgPool();
         LOG.info("Client releaseResources");
 //        eqhThread.shutdown();
+        eqh.stop();
     }
 
     private String getLocalServerIp() {
