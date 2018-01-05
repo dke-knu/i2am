@@ -42,7 +42,7 @@ public class ServerSessionHandler {
         private Server server;
         //        private List<TaskMessage> messages = new ArrayList<TaskMessage>();
         private AtomicInteger failure_count;
-        private char succMsg = 's';
+//        private char succMsg = 's';
 
         public ServerSessionCallbacks(Server server) {
             this.server = server;
@@ -58,49 +58,38 @@ public class ServerSessionHandler {
             short code = bb.getShort();
 
             if (code == LOAD_METRICS_REQ) {
-                LOG.debug("[seokwoo-error-checkpoint] LoadMetrics message = {}", code);
-                MessageBatch mb = new MessageBatch(1);
+                LOG.debug("[seokwoo-error-checkpoint] LOAD METRICS REQ = {} from {}", code, srcIp);
+
                 try {
-                    mb.add(new TaskMessage(-1, server._ser.serialize(Arrays.asList((Object) server.taskToLoad))));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    LOG.debug("server msg out size = " + msg.getOut().capacity());
-                    LOG.debug("load metrics buffer size = " + mb.buffer().array().length);
-                    msg.getOut().put(mb.buffer().array());
+                    msg.getOut().putShort(LOAD_METRICS_REQ);
+                    msg.getOut().put(server.mb.buffer().array());
+                    LOG.debug("[seokwoo-error-checkpoint] server msg size = {}, Metrics size = {}", msg.toString(), server.mb.buffer().array().length + 2);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-            else if(code == LOAD_METRICS_NO) {
-                try {
-                    ControlMessage.LOADMETRICS_NO.write(msg.getOut());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                LOG.debug("[seokwoo-error-checkpoint] LOAD_METRICS_NO");
+
+            } else if (code == LOAD_METRICS_NO) {
+                msg.getOut().putShort(LOAD_METRICS_NO);
+
+                LOG.debug("[seokwoo-error-checkpoint] LOAD_METRICS_NO = {}, from {}", code, srcIp);
             }
 
             //batch TaskMessage
             Object msgs = decoder(bb);
+
             if (msgs != null) {
                 try {
                     server.received(msgs, srcIp);
                 } catch (InterruptedException e) {
-                    LOG.info("failed to enqueue a request message", e);
+                    LOG.error("failed to enqueue a request message", e);
                     failure_count.incrementAndGet();
                     e.printStackTrace();
                 }
-
-                /*if (msgs instanceof ByteBuffer) {
-                    msg.getOut().put(((ByteBuffer) msgs).array());
-                }*/
             }
 
             try {
                 session.sendResponse(msg);
-                LOG.debug("[seokwoo-error-checkpoint]send response to ip = " + srcIp);
+                LOG.debug("[seokwoo-error-checkpoint]send response to ip = " + srcIp + " code = " + code);
             } catch (JxioGeneralException e) {
                 e.printStackTrace();
             } catch (JxioSessionClosedException e) {

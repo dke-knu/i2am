@@ -57,7 +57,7 @@ public class Context implements IContext {
     * workerState.mqContext.term();
     * */
     @Override
-    public void term() {
+    public synchronized void term() {
         clientScheduleService.shutdown();
 
         for (IConnection conn : connections.values()) {
@@ -82,7 +82,7 @@ public class Context implements IContext {
     * -> bind는 여기서 Server 객체를 생성함으로써 수행한다.
     * */
     @Override
-    public IConnection bind(String storm_id, int port) {
+    public synchronized IConnection bind(String storm_id, int port) {
         IConnection server = null;
         if(!isEnablePortal) {
             server = new ServerNoPortal(storm_conf, port);
@@ -104,7 +104,7 @@ public class Context implements IContext {
     * -> connection은 여기서 Client 객체를 생성함으로써 수행한다.
     * */
     @Override
-    public IConnection connect(String storm_id, String host, int port) {
+    public synchronized IConnection connect(String storm_id, String host, int port) {
         //서버 객체의 ip, port와 겹칠 경우 서버 객체를 리턴??
         IConnection connection = connections.get(key(host,port));
         if(connection != null)

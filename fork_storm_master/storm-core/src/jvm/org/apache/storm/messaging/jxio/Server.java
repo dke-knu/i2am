@@ -14,6 +14,7 @@ import org.apache.storm.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +51,8 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     private static ConcurrentLinkedQueue<ServerPortalHandler> SPWorkers;
     private ExecutorService executor;
 
-    public volatile Map<Integer, Double> taskToLoad;
+//    public volatile Map<Integer, Double> taskToLoad = null;
+    MessageBatch mb;
 
     private final Map<String, Integer> jxioConfig = new HashMap<String, Integer>();
 
@@ -153,7 +155,12 @@ public class Server extends ConnectionWithStatus implements IStatefulObject, Wor
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
 //        LOG.info("[server] set taskToLoad");
-        this.taskToLoad = taskToLoad;
+        mb = new MessageBatch(1);
+        try {
+            mb.add(new TaskMessage(-1, _ser.serialize(Arrays.asList((Object) taskToLoad))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

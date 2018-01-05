@@ -59,14 +59,15 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
     private final MessageBuffer batcher;
 
     private int numMessages;
-    private boolean loadMetricsFlag = false;
-    private Msg msg = null;
+    private volatile boolean loadMetricsFlag = false;
+    private final Object writeLock = new Object();
 
     private final short LOAD_METRICS_NO = -900;
     private final short LOAD_METRICS_REQ = -901;
 
     //JXIO's
-    private final MsgPool msgPool;
+    private MsgPool msgPool;
+    private Msg msg;
     private final EventQueueHandler eqh;
     private final AtomicReference<ClientSession> sessionRef = new AtomicReference<>();
     private ClientSession cs;
@@ -179,26 +180,30 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             LOG.error("Drop {} messages because of ClientSession null...", iteratorSize(msgs));
             return;
         }
-        while (msgs.hasNext()) {
-            //use batch
-            TaskMessage message = msgs.next();
+//        synchronized (writeLock) {
+            while (msgs.hasNext()) {
+                //use batch
+                TaskMessage message = msgs.next();
 
-            MessageBatch full2 = batcher.checkAdd(message);
-            if (full2 != null) {
-                flushMessages(full2);
-            }
+                MessageBatch full2 = batcher.checkAdd(message);
+                if (full2 != null) {
+                    flushMessages(full2);
+                }
 
             /*MessageBatch full = batcher.add(message);
             if (full != null) {
                 //Need to make Msg each time.
                 flushMessages(full);
             }*/
-        }
+            }
+//        }
 
-        MessageBatch batch = batcher.drain();
-        if (batch != null) {
-            flushMessages(batch);
-        }
+//        synchronized (writeLock) {
+            MessageBatch batch = batcher.drain();
+            if (batch != null) {
+                flushMessages(batch);
+            }
+//        }
     }
 
     private void flushMessages(final MessageBatch batch) {
@@ -212,33 +217,28 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         pendingMessages.addAndGet(numMessages);
         do {
-            if (!msgPool.isEmpty()) {
-                LOG.debug("msgPool was not empty");
-                msg = msgPool.getMsg();
-            }
-        } while (msg == null);
+            msg = msgPool.getMsg();
+        } while(msgPool.isEmpty());
 
-
+        LOG.debug("[seokwoo-error-checkpoint] before eqh send to " + uri.getHost() + " : " + uri.getPort()
+                + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
         ByteBuffer bb = null;
         try {
             //maximum batch size is 262144B (256KB)
             //so, Msg size must be upper than 256KB
             bb = batch.buffer();
-
-            if (loadMetricsFlag) {
-                LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag true => false");
-                msg.getOut().putShort(LOAD_METRICS_REQ);
+            if(loadMetricsFlag) {
                 loadMetricsFlag = false;
+                msg.getOut().putShort(LOAD_METRICS_REQ);
             } else {
-                LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag false");
                 msg.getOut().putShort(LOAD_METRICS_NO);
             }
-
+//            msg.getOut().putShort(LOAD_METRICS_NO);
             msg.getOut().put(bb.array());
         } catch (Exception e) {
-            LOG.debug("[seokwoo-error-checkpoint] send fail to " + uri.getHost() + " : " + uri.getPort() + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
-            LOG.debug("[seokwoo-error-checkpoint] bb.array().length = " + bb.array().length);
-            LOG.debug("[seokwoo-error-checkpoint] loadMetricsFlag = " + loadMetricsFlag);
+            LOG.error("[seokwoo-error-checkpoint] send fail to " + uri.getHost() + " : " + uri.getPort() + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
+            LOG.error("[seokwoo-error-checkpoint] bb.array().length = " + bb.array().length);
+            LOG.error("[seokwoo-error-checkpoint] loadMetricsFlag = " + loadMetricsFlag);
             LOG.error("writing {}:{} to {}:{}", numMessages, bb.array().length, uri.getHost(), uri.getPort());
             messagesLost.getAndAdd(numMessages);
         }
@@ -258,8 +258,45 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             msgPool.releaseMsg(msg);
             e.printStackTrace();
         }
-        msg = null;
-        eqh.runEventLoop(1, -1);
+//        eqh.runEventLoop(1, -1);
+        LOG.debug("[seokwoo-error-checkpoint] after eqh send to " + uri.getHost() + " : " + uri.getPort()
+                + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
+    }
+
+    @Override
+    public void requestLoadMectrics() {
+        loadMetricsFlag = true;
+        /*
+        ClientSession cs = sessionRef.get();
+        Msg msg = msgPool.getMsg();
+        msg.getOut().putShort(LOAD_METRICS_REQ);
+        LOG.debug("[seokwoo-error-checkpoint] request loadmetrics before eqh send to " + uri.getHost() + " : " + uri.getPort()
+                + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count() + ", metrics = " + serverLoad);
+        if (cs != null) {
+            synchronized (writeLock) {
+                try {
+                    cs.sendRequest(msg);
+                } catch (JxioGeneralException e) {
+                    LOG.error("sendRequest error, JxioGeneralException to {}", uri.toString());
+                    msgPool.releaseMsg(msg);
+                    e.printStackTrace();
+                } catch (JxioSessionClosedException e) {
+                    LOG.error("sendRequest error, JxioSessionClosedException to {}", uri.toString());
+                    msgPool.releaseMsg(msg);
+                    e.printStackTrace();
+                } catch (JxioQueueOverflowException e) {
+                    LOG.error("sendRequest error, JxioQueueOverflowException to {}", uri.toString());
+                    msgPool.releaseMsg(msg);
+                    e.printStackTrace();
+                }
+                eqh.runEventLoop(1, -1);
+//                LOG.info("[seokwoo-error-checkpoint] metrics = {}", serverLoad);
+                LOG.debug("[seokwoo-error-checkpoint] request loadmetrics after eqh send to " + uri.getHost() + " : " + uri.getPort()
+                        + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count() + ", metrics = " + serverLoad);
+            }
+        } else {
+            LOG.warn("Not exist ClientSession");
+        }*/
     }
 
     private void dropMessages(Iterator<TaskMessage> msgs) {
@@ -413,36 +450,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         return ret;
     }
 
-    @Override
-    public void requestLoadMectrics() {
-        LOG.debug("requestLoadMetrics true");
-        loadMetricsFlag = true;
-
-        /*LOG.info("[Client] Request load");
-        if (sessionRef.get() == null) {
-            LOG.warn("[Client] Connection not available...");
-            return;
-        }
-        Msg loadMsg = msgPool.getMsg();
-        short loadShort = -111;
-        loadMsg.getOut().putShort(loadShort);
-        loadMsg.getOut().flip();
-        LOG.info("[Client] LoadMetrics message = {}", loadMsg.getOut().getShort());
-        try {
-            cs.sendRequest(loadMsg);
-            LOG.info("[Client] request load metrics");
-        } catch (JxioGeneralException e) {
-            e.printStackTrace();
-        } catch (JxioSessionClosedException e) {
-            e.printStackTrace();
-        } catch (JxioQueueOverflowException e) {
-            e.printStackTrace();
-        }
-        LOG.info("[Client] run event loop");
-        eqh.runEventLoop(1, -1);
-        LOG.info("[Client] complete event loop");*/
-    }
-
     private void waitForPendingMessagesToBeSent() {
         LOG.info("waiting up to {} ms to send {} pending messages to {}",
                 PENDING_MESSAGES_FLUSH_TIMEOUT_MS, pendingMessages.get(), uri.toString());
@@ -477,80 +484,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
         messagesLost.getAndAdd(numMessages);
     }
 
-    private Object decoder(ByteBuffer buf) {
-        long available = buf.remaining();
-        if (available < 2) {
-            //need more data
-            if ('s' == (char) buf.get())
-                return null;
-        }
-        List<Object> ret = new ArrayList<>();
-
-        //Use while loop, try to decode as more messages as possible in single call
-        while (available >= 2) {
-
-            // Mark the current buffer position before reading task/len field
-            // because the whole frame might not be in the buffer yet.
-            // We will reset the buffer position to the marked position if
-            // there's not enough bytes in the buffer.
-            buf.mark();
-
-            short code = buf.getShort();
-            available -= 2;
-
-            //case 1: Control message
-            //who send controlmessage?
-            ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
-            if (ctrl_msg != null) {
-                if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
-                    continue;
-                } else {
-                    return ctrl_msg;
-                }
-            }
-            //case 2: SaslTokenMeesageRequest
-            //skip
-
-            //case 3: TaskMessage
-            //Make sure that we have received at least an integer (length)
-            if (available < 4) {
-                //need more data
-                buf.reset();
-                break;
-            }
-            //Read the length field.
-            int length = buf.getInt();
-            available -= 4;
-
-            if (length <= 0) {
-                ret.add(new TaskMessage(code, null));
-                break;
-            }
-
-            //Make sure if there's enough bytes in the buffer.
-            if (available < length) {
-                //The whole bytes were not received yet - return null.
-                buf.reset();
-                break;
-            }
-            available -= length;
-
-            //There's enough bytes in the buffer. Read it.
-            byte[] payload = new byte[length];
-            buf.get(payload);
-
-            //Successfully decoded a frame.
-            //Return a TaskMessage object
-            ret.add(new TaskMessage(code, payload));
-        }
-
-        if (ret.size() == 0) {
-            return null;
-        } else {
-            return ret;
-        }
-    }
-
     private class Connect extends TimerTask {
         private final URI uri;
         private Client client;
@@ -570,7 +503,11 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 cs = new ClientSession(eqh, uri, new ClientSessionCallbacks(client, storm_conf));
 
                 //netty's add listener
-                eqh.runEventLoop(1, -1); //listen session established
+//                eqh.runEventLoop(1, -1); //listen session established
+
+                EventLoop eqhLoop = new EventLoop();
+                eqhLoop.run();
+
 
 /*                if (sessionRef.get() != null) {
                     LOG.info("ClientSession started so, start eqh thread, already running => {}", eqh.getInRunEventLoop());
@@ -598,97 +535,74 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
 
         @Override
         public void onResponse(Msg msg) {
-            Object obj = decoder(msg.getIn());
-            if (obj instanceof ControlMessage) {
-                ControlMessage ctrl_msg = (ControlMessage) obj;
-                if (ctrl_msg == ControlMessage.FAILURE_RESPONSE) {
-                    LOG.info("failure response:{}", msg);
-                } else if (ctrl_msg == ControlMessage.LOADMETRICS_NO) {
-                    LOG.debug("[seokwoo-error-checkpoint]sent {} messages to {}:{}", numMessages, uri.getHost(), uri.getPort());
+            LOG.debug("[seokwoo-error-checkpoint]11 count = {}, to {} : {},", msgPool.count(), uri.getHost(), uri.getPort());
+            ByteBuffer bb = msg.getIn();
+            short code = bb.getShort();
+
+            if (code == LOAD_METRICS_REQ) {
+                LOG.debug("[seokwoo-error-checkpoint]22 LOAD_METRICS_REQ count = {}, to {} : {}, metrics = {}"
+                        , msgPool.count(), uri.getHost(), uri.getPort(), client.serverLoad);
+                Object obj = decoder(bb);
+                if (obj instanceof ControlMessage) {
+                    ControlMessage ctrl_msg = (ControlMessage) obj;
+                    if (ctrl_msg == ControlMessage.FAILURE_RESPONSE) {
+                        LOG.info("failure response:{}", msg);
+                    }
+                } else if (obj instanceof List) {
+                    try {
+                        List<TaskMessage> list = (List<TaskMessage>) obj;
+
+                        if (list.size() < 1) {
+                            LOG.error("Didn't see enough load metrics (" + client.getDstAddress() + ") " + list);
+                            client.setServerLoad(null);
+                            msgPool.releaseMsg(msg);
+                            return;
+                        }
+
+                        TaskMessage tm = ((List<TaskMessage>) obj).get(list.size() - 1);
+                        if (tm.task() != -1) {
+                            LOG.error("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + tm);
+                            client.setServerLoad(null);
+                            msgPool.releaseMsg(msg);
+                            return;
+                        }
+
+                        List metrics = _des.deserialize(tm.message());
+                        if (metrics.size() < 1) {
+                            LOG.error("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
+                            client.setServerLoad(null);
+                            msgPool.releaseMsg(msg);
+                            return;
+                        }
+
+                        if (!(metrics.get(0) instanceof Map)) {
+                            LOG.error("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") ");
+                            client.setServerLoad(null);
+                            msgPool.releaseMsg(msg);
+                            return;
+                        }
+
+                        client.setServerLoad((Map<Integer, Double>) metrics.get(0));
+                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+                        LOG.error(e.getMessage());
+                    }
+//                    LOG.debug("[seokwoo-error-checkpoint]Load Metrics success");
+                } else {
+                    LOG.error("Don't know how to handle a message of type "
+                            + obj + " (" + client.getDstAddress() + ")");
                 }
-            } else if (obj instanceof List) {
-                try {
-                    List<TaskMessage> list = (List<TaskMessage>) obj;
-
-                    if (list.size() < 1)
-                        throw new RuntimeException("Didn't see enough load metrics (" + client.getDstAddress() + ") " + list);
-
-                    TaskMessage tm = ((List<TaskMessage>) obj).get(list.size() - 1);
-                    if (tm.task() != -1)
-                        throw new RuntimeException("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + tm);
-
-                    List metrics = _des.deserialize(tm.message());
-                    if (metrics.size() < 1)
-                        throw new RuntimeException("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
-
-                    if (!(metrics.get(0) instanceof Map))
-                        throw new RuntimeException("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") " + metrics);
-
-                    client.setServerLoad((Map<Integer, Double>) metrics.get(0));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                LOG.debug("[seokwoo-error-checkpoint]Load Metrics success");
-            } else {
-                throw new RuntimeException("Don't know how to handle a message of type "
-                        + obj + " (" + client.getDstAddress() + ")");
+            } else if (code == LOAD_METRICS_NO) {
+                LOG.debug("[seokwoo-error-checkpoint]22 LOAD_METRICS_NO count = {}, to {} : {},", msgPool.count(), uri.getHost(), uri.getPort());
+                LOG.debug("[seokwoo-error-checkpoint] sent {} messages to {}:{}", numMessages, uri.getHost(), uri.getPort());
             }
 
 
-/*
-            ByteBuffer inputBuffer = msg.getIn();
-            if (inputBuffer.remaining() >= 2) {
-                LOG.info("[Client] load metrics response");
-                int taskId = inputBuffer.getShort();
-                byte[] message = new byte[inputBuffer.limit() - 2];
-                inputBuffer.get(message);
-                TaskMessage taskMessage = new TaskMessage(taskId, message);
-                LOG.info("[Client] load metrics response2");
-                try {
-                    if (taskMessage.task() != -1) {
-                        throw new RuntimeException("Metrics messages are sent to the system task (" + client.getDstAddress() + ") " + taskMessage);
-                    }
-                    LOG.info("[Client] load metrics response3");
-                    List metrics = _des.deserialize(taskMessage.message());
-                    LOG.info("[Client] load metrics response4");
-                    if (metrics.size() < 1) {
-                        throw new RuntimeException("No metrics data in the metrics message (" + client.getDstAddress() + ") " + metrics);
-                    }
-                    if (!(metrics.get(0) instanceof Map)) {
-                        throw new RuntimeException("The metrics did not have a map in the first slot (" + client.getDstAddress() + ") " + metrics);
-                    }
-                    LOG.info("[Client] load metrics response5");
-                    client.setServerLoad((Map<Integer, Double>) metrics.get(0));
-                    LOG.info("[Client] load metrics response6");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                LOG.info("Metrics message received7");
-                msg.returnToParentPool();
-                return;
-            } else {
-                byte message = inputBuffer.get();
-                if ((char) message == 's') {
-                    LOG.info("[Client-onResponse] success");
-                    pendingMessages.addAndGet(0 - numMessages);
-                    messagesSent.getAndSet(numMessages);
-                    msg.returnToParentPool();
-                    return;
-                } else if ((char) message == 'n') {
-                    LOG.error("send empty message");
-                    LOG.error("failed to send {} messages to {}: {}", numMessages, uri.getHost(),
-                            uri.getPort());
-                    messagesLost.getAndSet(numMessages);
-                    msg.returnToParentPool();
-                    closeSessionAndReconnect(sessionRef.get());
-                }
-            }
-            LOG.warn("No load metrics also no success message");
-
-            */
             pendingMessages.addAndGet(0 - numMessages);
             messagesSent.getAndSet(numMessages);
-            msg.returnToParentPool();
+            msgPool.releaseMsg(msg);
+
+            LOG.debug("[seokwoo-error-checkpoint]aa count = {}, to {} : {}, serverLoad = {}", msgPool.count(), uri.getHost(), uri.getPort(), client.serverLoad);
         }
 
         @Override
@@ -747,6 +661,86 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 messagesLost.getAndAdd(numMessages);
                 msg.returnToParentPool();
             }
+        }
+
+        private Object decoder(ByteBuffer buf) {
+            long available = buf.remaining();
+            if (available < 2) {
+                //need more data
+                return null;
+            }
+            List<Object> ret = new ArrayList<>();
+
+            //Use while loop, try to decode as more messages as possible in single call
+            while (available >= 2) {
+
+                // Mark the current buffer position before reading task/len field
+                // because the whole frame might not be in the buffer yet.
+                // We will reset the buffer position to the marked position if
+                // there's not enough bytes in the buffer.
+                buf.mark();
+
+                short code = buf.getShort();
+                available -= 2;
+
+                //case 1: Control message
+                //who send controlmessage?
+                ControlMessage ctrl_msg = ControlMessage.mkMessage(code);
+                if (ctrl_msg != null) {
+                    if (ctrl_msg == ControlMessage.EOB_MESSAGE) {
+                        continue;
+                    } else {
+                        return ctrl_msg;
+                    }
+                }
+                //case 2: SaslTokenMeesageRequest
+                //skip
+
+                //case 3: TaskMessage
+                //Make sure that we have received at least an integer (length)
+                if (available < 4) {
+                    //need more data
+                    buf.reset();
+                    break;
+                }
+                //Read the length field.
+                int length = buf.getInt();
+                available -= 4;
+
+                if (length <= 0) {
+                    ret.add(new TaskMessage(code, null));
+                    break;
+                }
+
+                //Make sure if there's enough bytes in the buffer.
+                if (available < length) {
+                    //The whole bytes were not received yet - return null.
+                    buf.reset();
+                    break;
+                }
+                available -= length;
+
+                //There's enough bytes in the buffer. Read it.
+                byte[] payload = new byte[length];
+                buf.get(payload);
+
+                //Successfully decoded a frame.
+                //Return a TaskMessage object
+                ret.add(new TaskMessage(code, payload));
+            }
+
+            if (ret.size() == 0) {
+                return null;
+            } else {
+                return ret;
+            }
+        }
+    }
+
+    private class EventLoop extends Thread {
+        EventLoop(){}
+        public void run() {
+            eqh.run();
         }
     }
 }
