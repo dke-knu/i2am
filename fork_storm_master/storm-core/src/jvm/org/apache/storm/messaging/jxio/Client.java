@@ -504,11 +504,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
                 cs = new ClientSession(eqh, uri, new ClientSessionCallbacks(client, storm_conf));
 
                 //netty's add listener
-//                eqh.runEventLoop(1, -1); //listen session established
-
-                EventLoop eqhLoop = new EventLoop();
-                eqhLoop.run();
-
+                eqh.runEventLoop(1, EventQueueHandler.INFINITE_DURATION); //listen session established
 
 /*                if (sessionRef.get() != null) {
                     LOG.info("ClientSession started so, start eqh thread, already running => {}", eqh.getInRunEventLoop());
@@ -735,13 +731,6 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             } else {
                 return ret;
             }
-        }
-    }
-
-    private class EventLoop extends Thread {
-        EventLoop(){}
-        public void run() {
-            eqh.run();
         }
     }
 }
