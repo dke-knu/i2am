@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

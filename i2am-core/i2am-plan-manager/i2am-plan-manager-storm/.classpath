@@ -22,23 +22,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/0KUK/.m2/repository/org/apache/storm/storm-core/1.1.1/storm-core-1.1.1.jar" sourcepath="C:/Users/0KUK/.m2/repository/org/apache/storm/storm-core/1.1.1/storm-core-1.1.1-sources.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="maven.groupId" value="org.apache.storm"/>
-			<attribute name="maven.artifactId" value="storm-core"/>
-			<attribute name="maven.version" value="1.1.1"/>
-			<attribute name="maven.scope" value="provided"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/0KUK/.m2/repository/org/apache/kafka/kafka-clients/0.11.0.0/kafka-clients-0.11.0.0.jar">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-			<attribute name="maven.groupId" value="org.apache.kafka"/>
-			<attribute name="maven.artifactId" value="kafka-clients"/>
-			<attribute name="maven.version" value="0.11.0.0"/>
-			<attribute name="maven.scope" value="compile"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
