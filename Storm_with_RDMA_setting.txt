@@ -12,8 +12,10 @@
 
 	3.2 복제한 Storm을 압축 해제 후 실행
 		tar xzf apache-storm-2.0.0-SNAPSHOT.tar.gz
-		RDMA를 위한 Storm의 환경설정은 default.yaml 참조
-				
+
+		storm.messaging.transfer.mode: "Netty" or "RDMA"
+		이외 RDMA를 위한 Storm의 환경설정은 default.yaml 참조
+
 	(설정시 IP는 InfiniBand의 IP로 설정)(주키퍼와 Storm 모두)
 
 ...
