@@ -22,9 +22,9 @@
 
 참고(JXIO 수정시)
 	2.1 다음 쉘 스크립트를 실행 시켜 JXIO를 빌드한다.(IB 환경이 아니라면 빌드시 에러 발생)
-		i2am/mdJXIO/build.sh(i2am is default project name)
+		i2am/JXIO/build.sh(i2am is default project name)
 
 	2.2 위 빌드 명령어로 생성된 라이브러리를 메이븐 저장소에 추가
-		mvn install:install-file -Dfile={path_to_mdJXIO}/bin/jxio.jar -DgroupId=org.accelio -DartifactId=jxio -Dversion=1.3 -Dpackaging=jar
+		mvn install:install-file -Dfile={path_to_JXIO}/bin/jxio.jar -DgroupId=org.accelio -DartifactId=jxio -Dversion=1.3 -Dpackaging=jar
 
-	(만약 mdJXIO 내의 소스코드를 수정하였다면 재빌드 필요)
+	(만약 JXIO 내의 소스코드를 수정하였다면 재빌드 필요)

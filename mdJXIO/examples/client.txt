@@ -1,7 +1,0 @@
-2017-04-13 19:09:39,145 main INFO  StreamClient:127 arguments = MN.ib 4611 10000000000 1 1
-2017-04-13 19:09:39,160 pool-1-thread-1 INFO  JxioConnection:54 [jxioConnection[Thread[pool-1-thread-1,5,main]]] MN.ib port 4611
-2017-04-13 19:09:39,160 pool-1-thread-2 INFO  JxioConnection:54 [jxioConnection[Thread[pool-1-thread-2,5,main]]] MN.ib port 4611
-2017-04-13 19:09:39,160 pool-1-thread-1 INFO  StreamClient:85 [input StreamClient_0] going to read 10000000000
-2017-04-13 19:09:39,161 pool-1-thread-2 INFO  StreamClient:99 [output StreamClient_0] going to write 10000000000
-2017-04-13 19:09:39,199 pool-1-thread-2 INFO  SimpleConnection:78 null onSessionEvent SESSION_CLOSED
-2017-04-13 19:09:39,199 pool-1-thread-1 INFO  SimpleConnection:78 null onSessionEvent SESSION_CLOSED
