@@ -1,0 +1,1118 @@
+Script started on 2017년 07월 08일 (토) 오후 03시 32분 14초
+]0;admin@localhost:~/i2am-low/fork_storm_master]7;file://localhost.localdomain/home/admin/i2am-low/fork_storm_master[?1034h[admin@localhost fork_storm_master]$ d[Kscript -h
+
+Usage:
+ script [options] [file]
+
+Options:
+ -a, --append            append the output
+ -c, --command <command> run command rather than interactive shell
+ -e, --return            return exit code of the child process
+ -f, --flush             run flush after each write
+     --force             use output file even when it is a link
+ -q, --quiet             be quiet
+ -t, --timing[=<file>]   output timing data to stderr (or to FILE)
+ -V, --version           output version information and exit
+ -h, --help              display this help and exit
+
+]0;admin@localhost:~/i2am-low/fork_storm_master]7;file://localhost.localdomain/home/admin/i2am-low/fork_storm_master[admin@localhost fork_storm_master]$ sc[K[Kman
+What manual page do you want?
+]0;admin@localhost:~/i2am-low/fork_storm_master]7;file://localhost.localdomain/home/admin/i2am-low/fork_storm_master[admin@localhost fork_storm_master]$ man script
+[?1049h[?1h=SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[Hmands Manual                                                  SCRIPT(1)[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+  작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+ 파일에 기록한다.[m
+[m
+[m
+[m
+ 에 내용을 덧붙힌다.[m
+[m
+^D)[m
+[m
+. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+[m
+[m
+[m
+[m
+[m
+, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+ 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[Hmands Manual                                                  SCRIPT(1)[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+  작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+ 파일에 기록한다.[m
+[m
+[m
+[m
+ 에 내용을 덧붙힌다.[m
+[m
+^D)[m
+[m
+. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+[m
+[m
+[m
+[m
+[m
+, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+ 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[?1l>[?1049l]0;admin@localhost:~/i2am-low/fork_storm_master]7;file://localhost.localdomain/home/admin/i2am-low/fork_storm_master[admin@localhost fork_storm_master]$ man script
+[?1049h[?1h=SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[Hmands Manual                                                  SCRIPT(1)[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+  작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+ 파일에 기록한다.[m
+[m
+[m
+[m
+ 에 내용을 덧붙힌다.[m
+[m
+^D)[m
+[m
+. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+[m
+[m
+[m
+[m
+[m
+, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+ 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[H[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[H[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[H[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[H[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[H[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[Hmands Manual                                                  SCRIPT(1)[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+  작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+ 파일에 기록한다.[m
+[m
+[m
+[m
+ 에 내용을 덧붙힌다.[m
+[m
+^D)[m
+[m
+. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+[m
+[m
+[m
+[m
+[m
+, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+ 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KCC[H[2J[H[H[2J[Hmands Manual                                                  SCRIPT(1)[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+  작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+ 파일에 기록한다.[m
+[m
+[m
+[m
+ 에 내용을 덧붙힌다.[m
+[m
+^D)[m
+[m
+. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+[m
+[m
+[m
+[m
+[m
+, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+[m
+ 에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+ 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K/[K[K[7mNo previous regular expression  (press RETURN)[27m[40;1H[K[K/[K[K[7mNo previous regular expression  (press RETURN)[27m[40;1H[K[K...skipping...
+[m
+                   [1mSUMMARY[0m [1mOF[0m [1mLESS[0m [1mCOMMANDS[0m[m
+[m
+      Commands marked with * may be preceded by a number, [4mN[24m.[m
+      Notes in parentheses indicate the behavior if [4mN[24m is given.[m
+      A key preceded by a caret indicates the Ctrl key; thus ^K is ctrl-K.[m
+[m
+  h  H                 Display this help.[m
+  q  :q  Q  :Q  ZZ     Exit.[m
+ ---------------------------------------------------------------------------[m
+[m
+                           [1mMOVING[0m[m
+[m
+  e  ^E  j  ^N  CR  *  Forward  one line   (or [4mN[24m lines).[m
+  y  ^Y  k  ^K  ^P  *  Backward one line   (or [4mN[24m lines).[m
+  f  ^F  ^V  SPACE  *  Forward  one window (or [4mN[24m lines).[m
+  b  ^B  ESC-v      *  Backward one window (or [4mN[24m lines).[m
+  z                 *  Forward  one window (and set window to [4mN[24m).[m
+  w                 *  Backward one window (and set window to [4mN[24m).[m
+  ESC-SPACE         *  Forward  one window, but don't stop at end-of-file.[m
+  d  ^D             *  Forward  one half-window (and set half-window to [4mN[24m).[m
+  u  ^U             *  Backward one half-window (and set half-window to [4mN[24m).[m
+  ESC-)  RightArrow *  Left  one half screen width (or [4mN[24m positions).[m
+  ESC-(  LeftArrow  *  Right one half screen width (or [4mN[24m positions).[m
+  F                    Forward forever; like "tail -f".[m
+  r  ^R  ^L            Repaint screen.[m
+  R                    Repaint screen, discarding buffered input.[m
+        ---------------------------------------------------[m
+        Default "window" is the screen height.[m
+        Default "half-window" is half of the screen height.[m
+ ---------------------------------------------------------------------------[m
+[m
+                          [1mSEARCHING[0m[m
+[m
+  /[4mpattern[24m          *  Search forward for ([4mN[24m-th) matching line.[m
+  ?[4mpattern[24m          *  Search backward for ([4mN[24m-th) matching line.[m
+  n                 *  Repeat previous search (for [4mN[24m-th occurrence).[m
+  N                 *  Repeat previous search in reverse direction.[m
+  ESC-n             *  Repeat previous search, spanning files.[m
+[7mHELP -- Press RETURN for more, or q when done[27m[K[K[7mHELP -- Press RETURN for more, or q when done[27m[K...skipping...
+SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KDD[H[2J[H[H[2J[HSCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KBB[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[K[[[K66[K~~[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[K[[[K66[K~~[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[K[[[K66[K~~[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[K[[[K55[K~~[K[K[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KFF[K...skipping...
+[1m~[0m
+SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KHH[K[1m~[0m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KFF[K...skipping...
+[1m~[0m
+SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KFF[K...skipping...
+[1m~[0m
+SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          July 27, 1991                                         4th Berkeley Distribution[m
+[7m Manual page script(1) line 1/38 (END) (press h for help or q to quit)[27m[K[K [KESCESC[KOO[KFF[K...skipping...
+[1m~[0m
+SCRIPT(1)                                                   BSD General Commands Manual                                                  SCRIPT(1)[m
+[m
+[1mNAME[0m[m
+     [1mscript[0m — 터미날에서 발생하는 모든 세션을 기록한다.[m
+[m
+[1m사용법[0m[m
+     [1mscript[0m [[1m-a[0m] [[4m파일[24m][m
+[m
+[1m설명[0m[m
+     [1mScript[0m 명령은 터미날에서 보여지는 모든 내용을 파일에 기록한다.  이것은 쉘에서의 사용자와 컴과의 작업 상태를 기록하고, 그것을 다시 살펴[m
+     보아야할 경우에 아주 유용하게 쓰인다.  또한 파이프 기능을 이용하여 다른 작업을 하고 있으면서 이 기록 내용을 인쇄할 수도 있다.[m
+[m
+     [4m파일[24m 인자가 있으면, 그 파일에 모든 내용을 기록하고, 없으면, [4mtypescript[24m 파일에 기록한다.[m
+[m
+     옵션:[m
+[m
+     [1m-a[0m      새로 기록하는 것이 아니라, 이미 있는 [4mfile[24m 에나, [4mtypescript[24m 파일에 내용을 덧붙힌다.[m
+[m
+     [1mscript[0m를 마치기 위해서는 쉘 종료를 호출하면 된다. (대게 exit, logout, ^D)[m
+[m
+     vi(1) 와 같은 터미날의 출력을 사용하는 풀그림의 사용도 그대로 기록된다. 이때는 조금 지저분하게 보일 것이다.  [1mscript[0m 명령은 현재 창, 화면에[m
+     대한 내용만 기록한다.  즉, 한 터미날의 모든 출력을 그대로 기록한다.[m
+[m
+[1m환경변수[0m[m
+     다음은 [1mscript[0m에서 사용되는 환경변수들이다:[m
+[m
+     SHELL  이 값이 지정되어 있으면, [1mscript[0m에서 사용할 쉘로 이것을 사용하고, 지정되어 있지 않으면, /bin/sh로 가정한다.[m
+[m
+[1m관련[0m [1m항목[0m[m
+     csh(1) (사용내역(history) 처리 부분을 참조)[m
+[m
+[1m발자취[0m[m
+     [1mscript[0m 명령은 3.0BSD 시스템에서 처음 나타났다.[m
+[m
+[1m벌레[0m[m
+     [1mscript[0m 명령은 앞에서 말했듯이 터미날로 출력되는 모든 것을 기록하기 때문에, 각종 특수문자(줄바꿈문자, 백스페이스, 안시..)들을 그대로 기록한다.[m
+[m
+4th Berkeley Distribution                                          Jul
