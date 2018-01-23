@@ -259,6 +259,7 @@ public class WorkerState {
     private final TransferDrainer drainer;
 
     private static final long LOAD_REFRESH_INTERVAL_MS = 5000L;
+    private boolean firstCalledFlag = true;
 
     public WorkerState(Map conf, IContext mqContext, String topologyId, String assignmentId, int port, String workerId,
         Map topologyConf, IStateStorage stateStorage, IStormClusterState stormClusterState)
@@ -454,10 +455,17 @@ public class WorkerState {
         loadMapping.setRemote(remoteLoad);
 
         if (now > nextUpdate.get()) {
-            receiver.sendLoadMetrics(localLoad);
-            for(IConnection client : cachedNodeToPortSocket.get().values()) {
-                LOG.info("[WorkerState-client] sendLoadMetrics");
-                client.requestLoadMectrics();
+            LOG.info("seokwoo-error-checkpoint] load metrcis called");
+            if(firstCalledFlag) {
+                firstCalledFlag = false;
+                receiver.sendLoadMetrics(localLoad);
+//                LOG.info("first Called Flag");
+            } else {
+//                LOG.info("not first Called");
+                receiver.sendLoadMetrics(localLoad);
+                for(IConnection client : cachedNodeToPortSocket.get().values()) {
+                    client.requestLoadMectrics();
+                }
             }
             nextUpdate.set(now + LOAD_REFRESH_INTERVAL_MS);
         }
