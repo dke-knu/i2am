@@ -1,0 +1,5 @@
+2017-04-13 19:09:28,564 main INFO  ServerWorker:91 [ServerWorker 1 ] is up and waiting for requests
+2017-04-13 19:09:28,579 main INFO  ServerWorker:91 [ServerWorker 2 ] is up and waiting for requests
+2017-04-13 19:09:28,580 main INFO  JxioConnectionServer:72 [JxioConnectionServer jxio.SP[7ff688228050] ] JxioConnectionServer started, host MN.ib listening on port 4611, numWorkers 2
+2017-04-13 19:09:28,581 Thread-2 INFO  ServerWorker:100 [ServerWorker 2 ] waiting for a new connection
+2017-04-13 19:09:28,581 Thread-1 INFO  ServerWorker:100 [ServerWorker 1 ] waiting for a new connection

@@ -1,0 +1,16 @@
+2017-04-13 19:15:30,352 main INFO  StreamClient:127 arguments = MN.ib 4611 10000000000 1 1
+2017-04-13 19:15:30,366 pool-1-thread-2 INFO  JxioConnection:54 [jxioConnection[Thread[pool-1-thread-2,5,main]]] MN.ib port 4611
+2017-04-13 19:15:30,366 pool-1-thread-1 INFO  JxioConnection:54 [jxioConnection[Thread[pool-1-thread-1,5,main]]] MN.ib port 4611
+2017-04-13 19:15:30,366 pool-1-thread-2 INFO  StreamClient:99 [output StreamClient_0] going to write 10000000000
+2017-04-13 19:15:30,367 pool-1-thread-1 INFO  StreamClient:85 [input StreamClient_0] going to read 10000000000
+2017-04-13 19:15:30,420 pool-1-thread-1 INFO  SimpleConnection:60 jxio.CS[7f9b3004fd30] session established with host MN.ib, time taken to open: 17428733
+2017-04-13 19:15:30,422 pool-1-thread-2 INFO  SimpleConnection:60 jxio.CS[7f9b3402ecc0] session established with host MN.ib, time taken to open: 16259649
+2017-04-13 19:15:32,173 pool-1-thread-2 INFO  StreamClient:113 [output StreamClient_0] Time to transfer data in nano: 1810467522
+2017-04-13 19:15:32,176 pool-1-thread-2 INFO  StreamClient:116 [output StreamClient_0] [----------------  BW[MB/s]: 5523.4355 ----------------]
+2017-04-13 19:15:32,176 pool-1-thread-2 INFO  JxioConnection:90 jxioConnection[Thread[pool-1-thread-2,5,main]] disconnecting
+2017-04-13 19:15:32,182 pool-1-thread-2 INFO  SimpleConnection:78 OSConnection[jxio.CS[7f9b3402ecc0]] onSessionEvent SESSION_CLOSED
+2017-04-13 19:15:32,259 pool-1-thread-1 INFO  StreamClient:113 [input StreamClient_0] Time to transfer data in nano: 1896313676
+2017-04-13 19:15:32,259 pool-1-thread-1 INFO  StreamClient:116 [input StreamClient_0] [----------------  BW[MB/s]: 5273.389 ----------------]
+2017-04-13 19:15:32,259 pool-1-thread-1 INFO  JxioConnection:90 jxioConnection[Thread[pool-1-thread-1,5,main]] disconnecting
+2017-04-13 19:15:32,260 pool-1-thread-1 WARN  ClientSession:217 jxio.CS[7f9b3004fd30]: attempting to close client that is already closed or being closed
+2017-04-13 19:15:32,261 pool-1-thread-1 INFO  SimpleConnection:78 ISConnection[jxio.CS[7f9b3004fd30]] onSessionEvent SESSION_CLOSED
