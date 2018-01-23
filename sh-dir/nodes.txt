@@ -1,0 +1,9 @@
+SN01.eth
+SN02.eth
+SN03.eth
+SN04.eth
+SN05.eth
+SN06.eth
+SN07.eth
+SN08.eth
+
