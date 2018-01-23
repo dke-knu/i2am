@@ -258,7 +258,7 @@ public class Client extends ConnectionWithStatus implements IStatefulObject {
             msgPool.releaseMsg(msg);
             e.printStackTrace();
         }
-//        eqh.runEventLoop(1, -1);
+        eqh.runEventLoop(1, -1);
         LOG.debug("[seokwoo-error-checkpoint] after eqh send to " + uri.getHost() + " : " + uri.getPort()
                 + " msgPool capacity:count = " + msgPool.capacity() + " : " + msgPool.count());
     }
