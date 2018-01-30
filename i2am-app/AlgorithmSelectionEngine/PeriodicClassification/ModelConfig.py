@@ -11,3 +11,6 @@ CHECKPOINT_PATH = "./save_test"
 # CNN
 CNN_SAVED_MODEL_PATH = './saved_model_cnn/cnn_param.ckpt.meta'
 CNN_CHECKPOINT_PATH = './saved_model_cnn'
+
+# check
+SBTEST = ""
