@@ -168,13 +168,13 @@ class Server extends ConnectionWithStatus implements IStatefulObject, ISaslServe
 
     @Override
     public void sendLoadMetrics(Map<Integer, Double> taskToLoad) {
-        /*try {
+        try {
             MessageBatch mb = new MessageBatch(1);
             mb.add(new TaskMessage(-1, _ser.serialize(Arrays.asList((Object)taskToLoad))));
             allChannels.write(mb);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }*/
+        }
     }
 
     @Override
