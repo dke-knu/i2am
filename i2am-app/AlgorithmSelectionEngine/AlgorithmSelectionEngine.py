@@ -1,8 +1,11 @@
 import socket
 import threading
 import pymysql
+import json
 from SamplingAccuracyEvaluation import SamplingAccuracyEvaluation as SAE
-from PeriodicClassification import DeepLearning as DL
+from PeriodicClassification import CNN as DL
+from kafka import KafkaConsumer as KC
+from collections import OrderedDict
 
 print(' _______  ___      _______  _______  ______    ___   _______  __   __  __   __')
 print('|   _   ||   |    |       ||       ||    _ |  |   | |       ||  | |  ||  |_|  |')
@@ -42,14 +45,23 @@ def samplingAlgorithmSelect(clientSocket, address):
 
     data = clientSocket.recv(BUFFERSIZE)
     print("Data Received")
-    data = data.decode()
-    userID = data.split(',')[0]
-    name = data.split(',')[1]
-    print("User ID: " + str(userID))
-    print("Source Name: "+ str(name))
-    filePath = getFilePath(name, userID)
+    jsonData = json.load(data)
+    if jsonData['message'] == 'new-source':
+        userID = jsonData['user-id']
+        sourceName = jsonData['src-name']
+        print("User ID: " + str(userID))
+        print("Source Name: " + str(sourceName))
+        filePath = getFilePath(sourceName, userID)
 
-    flag = DL._DNN_main(filePath)
+    elif jsonData['message'] == 'concept-drift':
+        sourceName = jsonData['src-name']
+        userID = jsonData['user-id']
+        partition = jsonData['partition']
+        offset = jsonData['offset']
+        topic = getTopicName(sourceName, userID)
+        filePath = getStreamDataFromKafka(topic, partition, offset)
+
+    flag = DL._CNN_main(filePath)
 
     if flag:
         selectedAlgorithm = SAE.run(1000, 200, filePath)
@@ -80,28 +92,89 @@ def samplingAlgorithmSelect(clientSocket, address):
         print('#                                                        #')
         print('##########################################################')
 
-    putSelectedAlgorithm(name, userID, selectedAlgorithm)
+    if jsonData['message'] == 'new-source':
+        putSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
+    elif jsonData['message'] == 'concept-drift':
+        sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
 
-def getFilePath(name, userID):
-    print("Get File Path from DB")
-    db = pymysql.connect(host = '114.70.235.43', port = 3306, user = 'plan-manager', passwd = 'dke214', db = 'i2am', charset = 'utf8', autocommit = True) # Connect MariaDB
+def connectToDB():
+    print("Connect To MariaDB")
+    db = pymysql.connect(host='114.70.235.43', port=3306, user='plan-manager', passwd='dke214', db='i2am', charset='utf8', autocommit=True)  # Connect MariaDB
     cursor = db.cursor()
-    print("DB Connected")
+    print("Connected Succeeded")
+    return cursor
+
+def getFilePath(sourceName, userID):
+    print("Get File Path from DB")
+    cursor = connectToDB()
     getFilePathSQL = "SELECT FILE_PATH FROM tbl_src_test_data WHERE IDX = ( SELECT F_TEST_DATA FROM tbl_src WHERE NAME = %s AND F_OWNER = ( SELECT IDX FROM tbl_user WHERE ID = %s))"
-    cursor.execute(getFilePathSQL, (name, userID))
+    cursor.execute(getFilePathSQL, (sourceName, userID))
     filePath = cursor.fetchone()
     print("File Path: " + str(filePath).split("'")[1])
     cursor.close()
     return str(filePath).split("'")[1]
 
-def putSelectedAlgorithm(name, userID, selectedAlgorithm):
+def getTopicName(sourceName, userID):
+    print("Get Topic Name from DB")
+    cursor = connectToDB()
+    getTopicNameSQL = "SELECT TOPIC_NAME FROM topic_list WHERE (NAME = %s) AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
+    cursor.execute(getTopicNameSQL, (sourceName, userID))
+    topicName = cursor.fetchone()
+    print("Topic Name: ", topicName)
+    cursor.close()
+    return topicName
+
+def putSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
     print("Put Selected Algorithm")
     db = pymysql.connect(host='114.70.235.43', port=3306, user='plan-manager', passwd='dke214', db='i2am', charset='utf8', autocommit=True)  # Connect MariaDB
     cursor = db.cursor()
-    putSelectedAlgorithmSQL = "UPDATE tbl_src SET RECOMMENDED_SAMPLING = %s WHERE NAME = %s AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s )"
-    cursor.execute(putSelectedAlgorithmSQL, (selectedAlgorithm, name, userID))
+    putSelectedAlgorithmSQL = "UPDATE tbl_src SET RECOMMENDED_SAMPLING = %s WHERE NAME = %s AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
+    cursor.execute(putSelectedAlgorithmSQL, (selectedAlgorithm, sourceName, userID))
     print("Put Recommended Algorithm to DB")
     cursor.close()
+
+def getStreamDataFromKafka(topic, partition, offset):
+    consumer = KC(topic, group_id='my-group', bootstrap_servers=['MN:9092'])
+    consumer.seek(partition, offset)
+    testDataArray = []
+    for message in consumer:
+        testDataArray.append(message.value)
+        filePath = '/data/', topic, '_', offset, '.csv'
+        if len(testDataArray) == 1024:
+            file = open(filePath, 'w')
+            for data in testDataArray:
+                file.write(data, '\n')
+            break
+
+    return filePath
+
+def sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
+    HOST = 'MN'
+    PORT = '1234'
+    ADDRESS = (HOST, PORT)
+    clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        clientSocket.connect(ADDRESS)
+        print("Connected by", ADDRESS)
+    except Exception as e:
+        print("Connection Failed ", ADDRESS)
+        return False
+
+    print("Connection Succeeded ", ADDRESS)
+    message = OrderedDict()
+    message['message'] = 'new-algorithm'
+    message['src-name'] = sourceName
+    message['user-id'] = userID
+    message['recommendation'] = selectedAlgorithm
+    jsonMessage = json.dump(message)
+
+    try:
+        clientSocket.send(jsonMessage)
+        print("Send Json Message to ", ADDRESS)
+    except Exception as e:
+        print("Send Failed")
+        return False
 
 while True:
     clientSocket, address = serverSocket.accept() # Connect
