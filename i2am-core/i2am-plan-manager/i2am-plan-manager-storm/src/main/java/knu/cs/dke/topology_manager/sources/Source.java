@@ -1,42 +1,69 @@
 package knu.cs.dke.topology_manager.sources;
 
-public abstract class Source implements Runnable {
+import java.util.UUID;
+
+public abstract class Source extends Thread {
 	
 	// Basic Info.
 	private String owner;
 	private String sourceName;
 	private String createdTime;	
-	private String modifiedTime;
-	
-	// Source Info.
+	private String modifiedTime;	
+	private String srcType;
 	private String status;
-	private String useIntelliEngine;
-	private String useLoadShedding;	
 	
-	private String testData;
-	private String srcType;	
-	private String switchMessaging;
-	
-	// System topic;	
+	// System topic	
 	private String transTopic;	
-
-	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String useLoadShedding, String testData,
-			String srcType, String switchMessaging) {
 	
+	// Option 1: Intelligent Engine.	
+	private String useIntelliEngine;
+	private String testData;
+	
+	// Option 2: LoadShedding.
+	private String useLoadShedding;	
+	private String switchMessaging;	
+	
+	public Source(String sourceName, String createdTime, String owner, String srcType, String switchMessaging) {
+		
+		// Required
 		this.sourceName = sourceName;
 		this.createdTime = createdTime;
 		this.modifiedTime = createdTime;
 		this.owner = owner;
+		this.srcType = srcType;		
+		this.status = "DEACTIVE"; // 초기값
 		
+		this.transTopic = UUID.randomUUID().toString();
+		
+		// Option 1: Intelligent Engine.
+		this.useIntelliEngine = "N";
+		this.testData = "N";
+		
+		// Option 2: LoadShedding.
+		this.useLoadShedding = "N";		
+		this.switchMessaging = "N";
+	}	
+	
+	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String useLoadShedding, String testData,
+			String srcType, String switchMessaging) {
+	
+		// Required
+		this.sourceName = sourceName;
+		this.createdTime = createdTime;
+		this.modifiedTime = createdTime;
+		this.owner = owner;
+		this.srcType = srcType;
 		this.status = "DEACTIVE"; // 초기값은 DEACTIVE
-		this.useIntelliEngine = useIntelliEngine;
-		this.useLoadShedding = "N"; // 미구현
+		
+		this.transTopic = UUID.randomUUID().toString();
+		
+		// Option 1: Intelligent Engine.		
+		this.useIntelliEngine = useIntelliEngine;		
 		this.testData = testData; // UseLoadShedding이 Yes일 경우
 		
-		this.srcType = srcType;
-		this.switchMessaging = switchMessaging;		
-		
-		this.transTopic = sourceName + "transtopic";
+		// Option 2: LoadShedding.
+		this.useLoadShedding = "N"; // 미구현
+		this.switchMessaging = switchMessaging;				
 	}
 	
 	public String getOwner() {

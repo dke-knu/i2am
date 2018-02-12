@@ -1,18 +1,19 @@
 package knu.cs.dke.topology_manager.destinations;
 
-public abstract class Destination implements Runnable {
+import java.util.UUID;
+
+public abstract class Destination extends Thread {
 	
 	// Destination Info.
 	private String destinationName;
 	private String createdTime;
 	private String modifiedTime;
-	private String status;
+	private String status;	
+	private String owner;	
+	private String destinationType;
 	
-	private String owner;
-	
-	private String destinationType;	
-	private String transTopic;
-	
+	// System topic
+	private String transTopic;	
 	
 	public Destination(String destinationName, String createdTime, String owner, String dstType) {
 				
@@ -22,7 +23,8 @@ public abstract class Destination implements Runnable {
 		this.status = "DEACTIVE";
 		this.owner = owner;
 		this.destinationType = dstType;
-		this.transTopic = destinationName + "transtopic";
+		
+		this.transTopic = UUID.randomUUID().toString();
 	}
 
 	public String getDestinationName() {
