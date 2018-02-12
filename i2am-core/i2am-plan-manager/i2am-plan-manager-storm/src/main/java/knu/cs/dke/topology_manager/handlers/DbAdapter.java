@@ -700,6 +700,32 @@ public class DbAdapter {
 
 		return false;
 	}
+
+	// To-Do
+	public boolean removeSource(Source source) {
+		return false;
+	}
+
+	public boolean removePlan(Plan plan) {
+		return false;
+	}
+	
+	public boolean removeDestination(Destination destination) {
+		return false;
+	}
+
+	// Edit Source
+	
+	// Edit Plan
+	
+	// Edit Destination
+	
+	// Update Recommendation
+	public boolean updateRecommendationn(Source source) {
+		
+		
+		return true;
+	}
 }
 
 

@@ -38,7 +38,7 @@ public class TopologyHandler {
 	private PlanList plans;
 	private SourceList sources;
 	private DestinationList destinations;	
-	
+
 	public TopologyHandler(String command, PlanList plans, SourceList sources, DestinationList destinations) throws ParseException {		
 
 		JSONParser parser = new JSONParser();
@@ -111,7 +111,7 @@ public class TopologyHandler {
 				int bb_windowSize = ((Number) bb_params.get("windowSize")).intValue();
 				temp = new BinaryBernoulliSamplingTopology(createdTime, planName, i, "BINARY_BERNOULLI_SAMPLING", bb_sampleSize, bb_windowSize);				
 				break;
-				
+
 			case "HASH_SAMPLING":
 				JSONObject hash_params = (JSONObject) algorithm.get("algorithmParams");
 				int hash_sampleSize = ((Number) hash_params.get("sampleRatio")).intValue();
@@ -120,7 +120,7 @@ public class TopologyHandler {
 				// int bucket_size = ((Number) hash_params.get("bucketsize")).intValue();
 				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, hash_function);
 				break;				
-				
+
 			case "PRIORITY_SAMPLING":
 				JSONObject priority_params = (JSONObject) algorithm.get("algorithmParams");
 				int priority_sampleSize = ((Number) priority_params.get("sampleSize")).intValue();
@@ -146,20 +146,20 @@ public class TopologyHandler {
 				int k_sampling_rate = ((Number) k_params.get("samplingRate")).intValue();
 				temp = new KSamplingTopology(createdTime, planName, i, "K_SAMPLING", k_sampling_rate);
 				break;
-				
+
 			case "QUERY_FILTERING":
 				JSONObject query_params = (JSONObject) algorithm.get("algorithmParams");
 				String query_keywords = (String) query_params.get("keywords");
 				temp = new QueryFilteringTopology(createdTime, planName, i, "QUERY_FILTERING", query_keywords);								
 				break;
-				
+
 			case "BLOOM_FILTERING":
 				JSONObject bloom_params = (JSONObject) algorithm.get("algorithmParams");
 				int bloom_size = ((Number) bloom_params.get("bucketSize")).intValue();
 				String bloom_keywords = (String) bloom_params.get("keywords");
 				temp = new BloomFilteringTopology(createdTime, planName, i, "BLOOM_FILTERING", bloom_size, bloom_keywords);
 				break;
-				
+
 			case "KALMAN_FILTERING":				
 				JSONObject kalman_params = (JSONObject) algorithm.get("algorithmParams");
 				double qValue = ((Number) kalman_params.get("qVal")).doubleValue();
@@ -172,14 +172,14 @@ public class TopologyHandler {
 				double nr_qValue = ((Number) nr_kalman_params.get("qVal")).doubleValue();								
 				temp = new NRKalmanFilteringTopology(createdTime, planName, i, "NR_KALMAN_FILTERING", nr_qValue);
 				break;			
-				
+
 			case "UC_K_SAMPLING":
 				JSONObject uc_k_params = (JSONObject) algorithm.get("algorithmParams");
 				int uc_k_sampleRate = ((Number) uc_k_params.get("samplingRate")).intValue();
 				double uc = ((Number) uc_k_params.get("ucUnderBound")).doubleValue();
 				temp = new UCKSamplingTopology(createdTime, planName, i, "UC_K_SAMPLING", uc_k_sampleRate, uc);
 				break;			
-				
+
 			default:
 				System.out.println("[Topology Hander] Algoritm Type Error");
 				break;			
@@ -216,11 +216,13 @@ public class TopologyHandler {
 		// Topology Params to Redis ...
 		RedisAdapter redis = new RedisAdapter();
 		redis.addPlanParams(plan);	
-		
+
 	}
 
 	private void destroyPlan() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 
+		// Parse Content!
+	
 		/*
 		Plan temp = plans.get();
 		temp.killTopologies();		
@@ -253,12 +255,12 @@ public class TopologyHandler {
 
 		// Plan Update
 		plans.set(temp);
-		
+
 		System.out.println("[Topology Handler] Change Status...");
 		System.out.println(temp.getPlanName());
 		System.out.println(temp.getStatus());
 		System.out.print("Ignore?");
-		
+
 		// DB에서도 해당 플랜의 상태와 ModifiedTime 변경
 		DbAdapter db = new DbAdapter();
 		db.changePlanStatus(temp);
@@ -278,6 +280,6 @@ public class TopologyHandler {
 		else
 			System.out.println("[Topology Handler] Status Type Error.");		
 	}
-	
-	
+
+
 }

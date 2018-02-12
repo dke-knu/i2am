@@ -30,7 +30,7 @@ public abstract class ASamplingFilteringTopology {
 	public abstract void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;	
 	
 	public ASamplingFilteringTopology(String createdTime, String plan, int index, String topologyType) {
-	
+			
 		this.createdTime = createdTime;
 		this.modifiedTime = createdTime;
 		this.status = "DEACTIVE";
@@ -39,8 +39,8 @@ public abstract class ASamplingFilteringTopology {
 		this.plan = plan;
 		
 		this.topologyName = plan + "-" + UUID.randomUUID().toString();		
-		this.inputTopic = topologyName + "-input";
-		this.outputTopic = topologyName + "-output";		
+		this.inputTopic = UUID.randomUUID().toString();
+		this.outputTopic = UUID.randomUUID().toString();		
 		this.redisKey = topologyName + "-redis";
 		
 	}	

@@ -54,4 +54,18 @@ public class SourceList {
 		return mSources.size();
 	}
 	
+	public synchronized void printSummary() {
+					
+		System.out.println("[Source List Summary]");
+		System.out.println("Map Size: " + mSources.size());
+				
+		int i = 0;
+		for(String key: mSources.keySet()) {			
+			System.out.println("[Source. " + i);
+			System.out.println("Source Name: " + key);
+			System.out.println("Status: " + mSources.get(key).getStatus());
+			System.out.println("Thread Name: " + mSources.get(key).getName());
+			System.out.println("Thread Status: " + mSources.get(key).isAlive());
+		}
+	}
 }

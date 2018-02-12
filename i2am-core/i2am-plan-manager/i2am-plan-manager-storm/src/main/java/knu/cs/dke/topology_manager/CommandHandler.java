@@ -40,16 +40,18 @@ public class CommandHandler {
 		
 		// Command for Call Topology Handler !
 		case "CREATE_PLAN":
-		case "DESTROY_PLAN":
-		case "CHANGE_STATUS_OF_PLAN":		
+		case "DESTROY_PLAN": // To-Do
+		case "CHANGE_STATUS_OF_PLAN":
+		case "EDIT_PLAN": // To-Do
 			TopologyHandler th = new TopologyHandler(input_command, plans, sources, destinations);
 			th.excute();
 			break;	
 	
 		// Command for Call Source Handler !!	
 		case "CREATE_SRC":			
-		case "DESTROY_SRC":			
+		case "DESTROY_SRC": // To-Do	
 		case "CHANGE_STATUS_OF_SRC":
+		case "EDIT_SOURCE": // To-Do			
 			SourceHandler sh = new SourceHandler(sources, input_command);
 			sh.excute();			
 			break;
@@ -58,11 +60,18 @@ public class CommandHandler {
 		case "CREATE_DST":			
 		case "DESTROY_DST":
 		case "CHANGE_STATUS_OF_DST":
+		case "EDIT_DESTINATION":
 			DestinationHandler dh = new DestinationHandler(destinations, input_command);
 			dh.excute();			
 			break;
 			
-		// Command is not identified !!!!
+		// Command for Intelligent Engine !!!!
+		case "new-algorithm":
+			SourceHandler na = new SourceHandler(sources, input_command);
+			na.updateRecommendation();
+			break;
+			
+		// Command is not identified !!!!!
 		default:
 			System.out.println("[Command Handler] Command type does not exist.");
 			break;			

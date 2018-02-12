@@ -133,14 +133,15 @@ public class DestinationHandler {
 		Destination destination = destinations.get(name);
 		destination.setStatus("ACTIVE");
 
-		destinations.set(destination);
-
 		DbAdapter db = new DbAdapter();
 		db.changeDestinationStatus(destination);
 
+		destinations.set(destination);
+		
 		// Thread Start.
-		Thread dstThread = new Thread(destination);
-		dstThread.start();		
+		destination.start();
+		System.out.println("[Destination Handler] " + destination.getName() + " is Started!");
+				
 	}
 
 	public void deactiveDestination() {
@@ -152,14 +153,12 @@ public class DestinationHandler {
 		Destination destination = destinations.get(name);
 		destination.setStatus("DEACTIVE");
 
-		destinations.set(destination);
-
 		DbAdapter db = new DbAdapter();
 		db.changeDestinationStatus(destination);
-
-		// Thread Stop.
-		Thread dstThread = new Thread(destination);
-		if(dstThread.isAlive()) dstThread.stop();
+		
+		// Thread Stop.		
+		if(destination.isAlive()) destination.stop();
+		destinations.set(destination);
 	}
 
 }
