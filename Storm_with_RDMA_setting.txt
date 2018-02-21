@@ -1,10 +1,10 @@
-1. git 명령어를 통해 i2am 프로젝트 복제
+﻿1. git 명령어를 통해 i2am 프로젝트 복제
 	git clone https://github.com/dke-knu/i2am.git {local directory name} (if want to specific project name)
 
 2. Storm 프로젝트 생성
-	cd forked_storm_master
+	cd rdma-based-storm
 	mvn clean; mvn isntall -Pdist -DskipTests=true -Dgpg.skip=true
-	빌드에 성공하면 fork_storm_master/storm-dist/binary/final-package/target/에서 apache-storm-2.0.0-SNAPSHOT.tar.gz를 원하는 장소로 복제
+	빌드에 성공하면 rdma-based-storm/storm-dist/binary/final-package/target/에서 apache-storm-2.0.0-SNAPSHOT.tar.gz를 원하는 장소로 복제
 
 3. 클러스터 환경설정 및 실행
 	3.1 주키퍼 설정 후 실행
