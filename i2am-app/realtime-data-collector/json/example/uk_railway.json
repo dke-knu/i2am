@@ -1,0 +1,9 @@
+{
+	"filename":"uk_railway",
+	"timeInterval":"1",
+	"dir":"/home/hadoop/data/uk/",
+	"URL":"https://apis.opendatani.gov.uk/translink/3045D5.xml",
+	"format":"xml"
+}
+
+

@@ -1,0 +1,12 @@
+{
+	"URL": "http://www.khnp.co.kr/environ/service/realtime/radiorate",
+	"serviceKey":"cndzU1obrwtlWuIIyDHWTYnttMJXVuUO%2BbHughlsqDXfSNDKaQGxamIP4Zuuryz7bLOrrLpd3GHVydDvAdAPIg%3D%3D",
+	"parameter":
+	{
+		"genName":"WS"
+	},
+	"timeInterval":"1",
+	"dir":"/home/hadoop/data/nuclear/",
+	"filename":"kr_nuclear_power_plant",
+	"format":"xml"
+}
