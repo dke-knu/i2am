@@ -1,5 +1,3 @@
-package i2am.plan.manager.kafka;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -53,7 +51,7 @@ public class DbAdapter {
 		Connection con = null;
 		Statement stmt = null;
 		String sql = null;
-		
+
 		String topic = null;
 		try {
 			con = this.getConnection();
@@ -86,7 +84,7 @@ public class DbAdapter {
 		Connection con = null;
 		Statement stmt = null;
 		String sql = null;
-		
+
 		String topic = null;
 		try {
 			con = this.getConnection();
@@ -113,5 +111,40 @@ public class DbAdapter {
 			}
 		}
 		return topic;
+	}
+
+	public boolean getSwtichValue(final String topic){
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+
+		boolean switchValue = false; 
+
+		try {
+			con = this.getConnection();
+			stmt = con.createStatement();
+
+			sql = "SELECT IF (SWITCH_MESSAGING = 'Y', 'true', 'false') "
+					+ "AS result from " + "tbl_src" + " WHERE NAME = '" + topic + "'"; //topic Ãß°¡
+			ResultSet rs = stmt.executeQuery(sql);
+
+			if(rs.next())
+				return Boolean.valueOf(rs.getString("result")).booleanValue();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return switchValue;
 	}
 }
