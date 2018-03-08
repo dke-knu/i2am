@@ -1,3 +1,5 @@
+package i2am.plan.manager.kafka;
+
 import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
