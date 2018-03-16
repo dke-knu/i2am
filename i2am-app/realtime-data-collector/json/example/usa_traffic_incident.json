@@ -1,0 +1,8 @@
+{
+	"filename":"usa_traffic_incident",
+	"timeInterval":"5",
+	"dir":"/home/hadoop/data/usa/",
+	"URL":"https://data.austintexas.gov/api/views/dx9v-zd7x/rows.json",
+	"serviceKey": {"accessType":"DOWNLOAD"},
+	"format":"json"
+}
