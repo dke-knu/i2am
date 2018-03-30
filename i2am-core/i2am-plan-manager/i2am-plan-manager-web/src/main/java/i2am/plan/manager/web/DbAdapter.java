@@ -11,7 +11,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 
-public class DbAdapter {  
+public class DbAdapter {
+	
 	private static final Class<?> klass = (new Object() {
 	}).getClass().getEnclosingClass();
 	//	private static final Log logger = LogFactory.getLog(klass);

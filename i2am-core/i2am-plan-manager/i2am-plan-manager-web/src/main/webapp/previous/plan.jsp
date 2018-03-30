@@ -8,7 +8,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-
 	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script src="./js/bootstrap.js"></script>
 	<script src="./js/my.js"></script>

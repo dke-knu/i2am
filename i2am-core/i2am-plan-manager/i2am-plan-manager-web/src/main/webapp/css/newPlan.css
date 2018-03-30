@@ -1,0 +1,217 @@
+@charset "EUC-KR";
+
+* {	
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+	background-color: #186d89;
+}
+
+
+.row {
+	padding: 20px;
+	background-color: #186d89;
+}
+
+.header {		
+	padding: 40px;
+	font-size: 17px;
+	background-color: white;
+}
+
+input {	
+	font-size: 17px;
+	padding: 4px;
+	font-family: Raleway;
+	border: 1px solid #aaaaaa;
+}
+
+button {
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+  padding: 5px 20px;
+  margin: 0px;  
+  font-size: 17px;
+  font-family: Raleway;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+
+
+.column {
+    float: left;
+    padding: 10px;
+    height: 300px; /* Should be removed. Only for demonstration */
+}
+
+.left {	
+	padding: 0px;
+	width: 20%;
+	height: 100%;
+	background-color: white; 	
+	min-height: 580px;
+	text-align: center;	
+}
+
+.left .title {	
+	padding: 10px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.left .list {	
+	width: 95%;
+	margin-left: 10px;
+	margin-top: 5px;
+	margin-bottom: 20px;
+	min-height: 580px;	
+	/* border: 1px solid #eee; */
+	/* border-radius: 2px; */
+	box-shadow: 2px 5px 5px #bebebe;
+	
+	background-color: #eee;	
+    background: linear-gradient(#eee, white); /* Standard syntax (must be last) */	    	    
+}
+
+.right {
+  width: 80%;
+  height: 100%;  
+  padding: 5px 10px 0px 5px;
+  background-color: white;
+  min-height: 580px;
+}
+
+.right .panel {
+	width: 100%;	
+	min-height: 580px;	
+	background-color: #bebebe;
+	overflow: auto;	
+	margin-bottom: 20px;
+	box-shadow: 2px 5px 5px #999999 inset;	
+}
+
+.right .title {
+	margin-top: 0px;
+	margin-bottom: 5px;	
+	padding: 15px 10px 15px 30px;		
+}
+
+.right .comment {
+	margin-top: 15%;
+	font-size: 72px;
+	text-align: center;	
+	color: #9b9b9b;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.item {		
+	text-align: left;
+	width: 95%;	
+	max-width: 400px;			
+	margin: auto;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	border: 1px solid #333;
+	border-radius: 3px;
+	padding: 0px;	
+	
+	background-color: #97cd7c;	
+    background: linear-gradient(#97cd7c, #4CAF50);
+}
+
+.item:hover {
+	opacity: 0.9;
+}
+
+.item .type {	
+	margin-left: 10px;
+	padding: 10px;
+	display: inline-block;
+	width: 5%;
+}
+
+.item .name {
+	padding: 10px;
+	display: inline-block;
+	width: 50%;
+	font-size: 15px;
+	padding-left: 10px;	
+}
+
+.item .control {		
+		
+	position: relative;	
+	float: right;	
+	display: inline-block;			
+	
+	text-align: center;
+	font-size: 15px;
+	
+	padding: 10px;
+	margin-right: 10px;	
+}
+
+.params {	
+	text-align: left;
+	display: none;
+	position:relative;
+	width: 98%;
+	max-width: 400px;
+	background-color: white;
+	margin: auto;
+	margin-top: 4px;
+	margin-bottom: 4px;	
+	padding: 10px 30px 10px 30px;
+	border: 1px solid gray;
+}
+
+.tooltip .tooltiptext {
+	float: right;
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+.trash {
+	
+}
