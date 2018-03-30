@@ -1,0 +1,44 @@
+@charset "EUC-KR";
+
+
+.titleline {	
+	padding: 0px 30px 0px 0px;
+}
+
+.title {	
+	
+	display: inline-block;
+	float: left;
+	vertical-align: middle;	
+}
+
+.newbutton {
+	
+	margin: 10px 0px 0px 0px;
+	padding: 10px 15px;
+	font-size: 24px;
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	color: black;
+	background-color: orange;
+	border: solid black;
+	border-radius: 15px;
+	box-shadow: 0 9px black;
+	
+	display: inline-block;
+	float: right;
+	
+}
+
+.newbutton:hover {background-color: yellow}
+
+.newbutton:active {
+  background-color: yellow;
+  box-shadow: 0 5px black;
+  transform: translateY(4px);
+}
+
+.clear {
+	clear: both;
+}

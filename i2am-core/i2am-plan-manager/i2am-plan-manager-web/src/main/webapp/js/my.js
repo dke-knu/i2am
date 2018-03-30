@@ -9,7 +9,7 @@ function checkLogin() {
 			data = data.replace(/(^\s*)|(\s*$)/gi, "");
 			if (data == "null") {
 				alert("Please login first.");
-				window.open("./index.jsp", "_self");
+				window.open("./sign-in.jsp", "_self");
 			}
 		}
 	});

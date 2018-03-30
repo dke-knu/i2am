@@ -1,0 +1,12 @@
+{
+	"URL":"https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/buses?debug=true",
+	"urlHeader": { 
+			"Authorization": "apikey 3vqsb1YlWLYdXeo7Z4vcSPGNr49uCGpydA4b",
+		        "Accept":"text/plain"
+		     },
+	"timeInterval":"1",
+	"dir":"/home/hadoop/data/au/",
+	"filename":"au_bus",
+	"format":"txt"
+}
+	
