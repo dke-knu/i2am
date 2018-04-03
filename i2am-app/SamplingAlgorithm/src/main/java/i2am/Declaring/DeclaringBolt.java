@@ -36,7 +36,7 @@ public class DeclaringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(DeclaringBolt.class);
 
-    public DeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
+    public DeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;

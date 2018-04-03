@@ -42,6 +42,6 @@ public class DbAdapter {
         int targetIndex = resultSet.getInt("COLUMN_INDEX");
         preparedStatement.close();
         resultSet.close();
-        return targetIndex;
+        return targetIndex-1; // MariDB's target index start from 1
     }
 }

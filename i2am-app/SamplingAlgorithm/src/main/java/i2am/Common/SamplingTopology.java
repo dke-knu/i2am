@@ -93,7 +93,7 @@ public class SamplingTopology {
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("PRIORITY_SAMPLING")){
-            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new PriorityDeclaringBolt(redisKey, jedisClusterConfig), 1)
+            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new PriorityDeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
