@@ -1,5 +1,6 @@
 package i2am.Declaring;
 
+import i2am.Common.DbAdapter;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
 import org.apache.storm.redis.common.container.JedisCommandsInstanceContainer;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 public class DeclaringBolt extends BaseRichBolt {
@@ -34,7 +36,7 @@ public class DeclaringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(DeclaringBolt.class);
 
-    public DeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public DeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
