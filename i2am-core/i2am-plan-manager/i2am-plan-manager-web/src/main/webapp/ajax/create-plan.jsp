@@ -1,4 +1,4 @@
-<%@page import="i2am.plan.manager.web.CommandSubmitter.ALGORITHM_TYPE"%>
+<%@ page import="i2am.plan.manager.web.CommandSubmitter.ALGORITHM_TYPE"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" 
 	pageEncoding="EUC-KR" import="java.util.*" import="i2am.plan.manager.web.*" import="i2am.plan.manager.web.bean.*"%>
 <%

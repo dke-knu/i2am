@@ -1,0 +1,15 @@
+{
+	"URL":"url",
+	"serviceKey":"Key",
+	"urlHeader": { 
+			"key": "value"
+		     },
+	"parameter": {
+			"key1": "value1",
+			"key2": "value2"
+			},
+	"timeInterval":"1",	
+	"dir":"/home/hadoop/data/",
+	"filename":"file_name",
+	"format":"xml | json | txt"
+}
