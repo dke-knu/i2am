@@ -2,9 +2,11 @@ import socket
 import threading
 import pymysql
 import json
+import sys
 from SamplingAccuracyEvaluation import SamplingAccuracyEvaluation as SAE
 from PeriodicClassification import CNN as DL
 from kafka import KafkaConsumer as KC
+from kafka import TopicPartition as TP
 from collections import OrderedDict
 
 print(' _______  ___      _______  _______  ______    ___   _______  __   __  __   __')
@@ -29,7 +31,7 @@ print('             |    ___||  _    ||   ||  ||   | |  _    ||    ___|         
 print('             |   |___ | | |   ||   |_| ||   | | | |   ||   |___                ')
 print('             |_______||_|  |__||_______||___| |_|  |__||_______|               ')
 
-HOST = 'MN'
+HOST = ''
 PORT = 7979
 BUFFERSIZE = 1024
 ADDRESS = (HOST, PORT)
@@ -42,11 +44,11 @@ serverSocket.listen(1) #Listening
 
 def samplingAlgorithmSelect(clientSocket, address):
     print("Start Sampling Algorithm Selection Engine for", address, "!!!")
-
     data = clientSocket.recv(BUFFERSIZE)
     print("Data Received")
-    jsonData = json.load(data)
-    if jsonData['message'] == 'new-source':
+    data = data.decode()
+    jsonData = json.loads(data)
+    if jsonData['message'] == 'new-src':
         userID = jsonData['user-id']
         sourceName = jsonData['src-name']
         print("User ID: " + str(userID))
@@ -58,6 +60,7 @@ def samplingAlgorithmSelect(clientSocket, address):
         userID = jsonData['user-id']
         partition = jsonData['partition']
         offset = jsonData['offset']
+        print("src-name:", sourceName, "user-id:", userID, "partition:", partition, "offset:", offset)
         topic = getTopicName(sourceName, userID)
         filePath = getStreamDataFromKafka(topic, partition, offset)
 
@@ -92,7 +95,7 @@ def samplingAlgorithmSelect(clientSocket, address):
         print('#                                                        #')
         print('##########################################################')
 
-    if jsonData['message'] == 'new-source':
+    if jsonData['message'] == 'new-src':
         putSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
     elif jsonData['message'] == 'concept-drift':
         sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
@@ -117,12 +120,12 @@ def getFilePath(sourceName, userID):
 def getTopicName(sourceName, userID):
     print("Get Topic Name from DB")
     cursor = connectToDB()
-    getTopicNameSQL = "SELECT TOPIC_NAME FROM topic_list WHERE (NAME = %s) AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
+    getTopicNameSQL = "SELECT TRANS_TOPIC FROM tbl_src WHERE (NAME = %s) AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
     cursor.execute(getTopicNameSQL, (sourceName, userID))
     topicName = cursor.fetchone()
-    print("Topic Name: ", topicName)
+    print("Topic Name:", topicName[0])
     cursor.close()
-    return topicName
+    return topicName[0]
 
 def putSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
     print("Put Selected Algorithm")
@@ -134,16 +137,20 @@ def putSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
     cursor.close()
 
 def getStreamDataFromKafka(topic, partition, offset):
-    consumer = KC(topic, group_id='my-group', bootstrap_servers=['MN:9092'])
-    consumer.seek(partition, offset)
+    consumer = KC(bootstrap_servers=['MN:9092'])
+    print('topic:', topic, 'partition:', partition, 'offset', offset)
+    topicPartition = TP(topic, partition)
+    consumer.assign([topicPartition])
+    consumer.seek(topicPartition, offset)
     testDataArray = []
     for message in consumer:
-        testDataArray.append(message.value)
-        filePath = '/data/', topic, '_', offset, '.csv'
-        if len(testDataArray) == 1024:
+        testDataArray.append(message.value.decode('utf-8'))
+        filePath = '/data/'+str(topic)+'_'+str(offset)+'.csv'
+        if len(testDataArray) == 10240:
             file = open(filePath, 'w')
             for data in testDataArray:
-                file.write(data, '\n')
+                file.write(data+'\n')
+            file.close()
             break
 
     return filePath
@@ -167,7 +174,7 @@ def sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
     message['src-name'] = sourceName
     message['user-id'] = userID
     message['recommendation'] = selectedAlgorithm
-    jsonMessage = json.dump(message)
+    jsonMessage = json.dumps(message)
 
     try:
         clientSocket.send(jsonMessage)
@@ -181,3 +188,9 @@ while True:
     print("Connected by", address)
     thread = threading.Thread(target=samplingAlgorithmSelect, args=(clientSocket, address)) # Regist Thread
     thread.start()
+
+# Test Mode
+testWindowSize = sys.argv[1]
+testSampleSize = sys.argv[2]
+testFilePath = sys.argv[3]
+SAE.run(testWindowSize, testSampleSize, testFilePath)
