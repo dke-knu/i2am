@@ -24,5 +24,6 @@
   </dependencies>
   <modules>
     <module>i2am-plan-manager</module>
+    <module>i2am-query-parser</module>
   </modules>
 </project>
