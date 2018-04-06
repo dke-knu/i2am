@@ -9,9 +9,19 @@
 		<servlet-name>FileUploader</servlet-name>
 		<servlet-class>i2am.plan.manager.web.FileUploader</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>FileDownloader</servlet-name>
+		<servlet-class>i2am.plan.manager.web.FileDownloader</servlet-class>
+	</servlet>
 
 	<servlet-mapping>
 		<servlet-name>FileUploader</servlet-name>
 		<url-pattern>/FileUploader</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>FileDownloader</servlet-name>
+		<url-pattern>/FileDownloader</url-pattern>
 	</servlet-mapping>
 </web-app>

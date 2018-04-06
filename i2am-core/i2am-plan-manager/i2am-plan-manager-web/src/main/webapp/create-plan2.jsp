@@ -11,12 +11,21 @@
 
 <script src="./js/jquery-3.3.1.min.js"></script>
 <script src="./js/jquery-ui.js"></script>
-<script src="./js/jsplumb.js"></script>
+<script src="./js/jsplumb.js"></script>  
+
+<!-- for QueryBuilder -->
+<link href="./css/bootstrap.min.css" rel="stylesheet">
+<script src="./js/bootstrap.min.js"></script> 
+<script src="./js/bootbox.min.js"></script> 
+<script src="./js/moment.min.js"></script>
+<script src="./js/query-builder.standalone.min.js"></script>
+<link href="./css/query-builder.default.min.css" rel="stylesheet">   
+<!-- ---------------- -->
 
 <title>Create Plan</title>
 
 <script>
-$(document).ready(function() {
+$(document).ready(function() { 
 		
 	// jsPlumb init.
 	var plumb = jsPlumb.getInstance();
@@ -94,6 +103,23 @@ $(document).ready(function() {
 		var item = $(this).parent();			
 		plumb.remove(item);		
 	});
+
+	$(document).on("click", "#btn-get-rules", function() {
+	  var result = $('#builder-basic').queryBuilder('getRules');
+	  
+	  if ($.isEmptyObject(result)) {
+		alert("Query is empty!");
+		$('#queryBuilderModal').modal('show');
+	  }
+	  else {
+	    console.log(JSON.stringify(result, null, 2));
+	    alert(JSON.stringify(result, null, 2));
+	  }
+	});
+
+	$(document).on("click", "#btn-reset", function() {
+	  $('#builder-basic').queryBuilder('reset');
+	});
 });
 </script>
 
@@ -143,10 +169,12 @@ $(document).ready(function() {
 				<i class='fa fa-cog type'></i>
 				<div class="name">Query Filtering</div>				
 				<div class="control tooltip">?<span class="tooltiptext">¼³¶ò</span></div>												
-				
+				 
 				<div class="params">
-    				Query Builder Here!
-  				</div>				
+				  <button class="btn btn-large btn-primary" href="#queryBuilderModal" data-toggle="modal">Set rules</button>
+				  <button class="btn btn-large btn-success" id="btn-get-rules" data-target="basic">Get rules</button>
+				  <!-- <button class="btn btn-success" id="btn-get-i2am-query" data-target="basic">I2AM query</button> -->
+  				</div>	
 								
 			</div>	
 
@@ -174,14 +202,29 @@ $(document).ready(function() {
 				
 				<div class="comment">
 					<i class="fa fa-hand-paper-o"></i><br>
-					Drag & Drop Here!
+					Drag & Drop Here! 
 				</div>
 				
 			</div>					
 		
 		</div>	
 	</div>
-
+		
+	<!-- Modal -->
+	<div id="queryBuilderModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="queryBuilderModalLabel" aria-hidden="true" style="width: 1000px; margin-left: -500px;">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">¡¿</button>
+	    <h3 id="queryBuilderModalLabel">Modal header</h3>
+	  </div>
+	  <div class="modal-body">
+	      <div id="builder-basic" class="query-builder"></div>
+	  </div>
+	  <div class="modal-footer">
+		<button class="btn btn-warning" id="btn-reset" data-target="basic">Reset</button>
+	    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Save changes</button>
+	  </div>
+	</div>
 </body>
+  <script src="./js/query-builder.i2am.js"></script>
 
 </html>
