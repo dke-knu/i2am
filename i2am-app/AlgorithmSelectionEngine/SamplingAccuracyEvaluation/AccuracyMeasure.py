@@ -24,7 +24,7 @@ def startPAA(pieceCount, dataList):
     remainderCount = 1
     sum = 0.0
     i = 0
-    interval = len(dataList) / pieceCount
+    interval = int(len(dataList) / pieceCount)
     remainder = len(dataList) % pieceCount
     paaList = [0 for _ in range(pieceCount)]
 
