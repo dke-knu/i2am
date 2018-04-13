@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -14,6 +15,7 @@ import knu.cs.dke.topology_manager.sources.CustomSource;
 import knu.cs.dke.topology_manager.sources.DBSource;
 import knu.cs.dke.topology_manager.sources.KafkaSource;
 import knu.cs.dke.topology_manager.sources.Source;
+import knu.cs.dke.topology_manager.sources.SourceSchema;
 
 public class SourceHandler {
 
@@ -66,7 +68,7 @@ public class SourceHandler {
 	}
 
 	public void createSource() {
-
+		
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
 
@@ -75,12 +77,30 @@ public class SourceHandler {
 		String srcName = (String) content.get("srcName");
 		String createdTime = (String) content.get("createdTime");
 
+		String conceptDrift = (String) content.get("usesConceptDriftEngine");
+		String loadShedding = (String) content.get("usesLoadShedding");
 		String intelliEngine = (String) content.get("usesIntelligentEngine");
-		String testData = null;
+		String testData = "";
+		String target = "";
 
 		if(intelliEngine.equals("Y")) {
 			testData = (String) content.get("testDataName");
+			target = (String) content.get("target");
 		}				
+		
+		// Data Schema!!
+		JSONArray columns = (JSONArray) content.get("dataScheme");
+		SourceSchema[] data = new SourceSchema[columns.size()]; 
+		
+		for(int i=0; i<columns.size(); i++) {
+			
+			JSONObject column = (JSONObject) columns.get(i);
+			System.out.println("Schema :" + column);
+			
+			SourceSchema temp = new SourceSchema(Integer.parseInt((String) column.get("column_index")), (String) column.get("column_name"), (String) column.get("column_type"));
+			
+			data[i] = temp;
+		}
 
 		// Source Type.
 		String sourceType = (String) content.get("srcType");
@@ -94,7 +114,12 @@ public class SourceHandler {
 			String port = (String) kafka.get("zookeeperPort");
 			String topic = (String) kafka.get("topic");			
 
-			source = new KafkaSource(srcName, createdTime, owner, intelliEngine, testData, sourceType, "N", ip, port, topic);
+			if(intelliEngine.equals("Y")) {
+				source = new KafkaSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine, testData, target, ip, port, topic);
+			}
+			else {
+				source = new KafkaSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine, ip, port, topic);
+			}
 
 			// List에 저장☆
 			sources.add(source);
@@ -112,7 +137,14 @@ public class SourceHandler {
 			String dbName = (String) database.get("database");
 			String dbQuery = (String) database.get("query");
 
-			source = new DBSource(srcName, createdTime, owner, intelliEngine, testData, sourceType, "N", dbIp, dbPort, dbId, dbPw, dbName, dbQuery);
+			if(intelliEngine.equals("Y")) {
+				source = new DBSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine, testData, target,
+						dbIp, dbPort, dbId, dbPw, dbName, dbQuery);
+			}
+			else {
+				source = new DBSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine,
+						dbIp, dbPort, dbId, dbPw, dbName, dbQuery);
+			}
 
 			// List에 저장☆
 			sources.add(source);
@@ -123,7 +155,15 @@ public class SourceHandler {
 			break;
 
 		case "CUSTOM":			
-			source = new CustomSource(srcName, createdTime, owner, intelliEngine, "N", testData, sourceType, "N");
+			
+			if(intelliEngine.equals("Y")) {
+				source = new CustomSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine, testData, target);
+			}
+			else {
+				source = new CustomSource(srcName, createdTime, owner, sourceType, data, conceptDrift, loadShedding, intelliEngine);
+			}
+
+			
 
 			sources.add(source);
 			// DB Adapter로 DB에 저장★

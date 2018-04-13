@@ -4,16 +4,19 @@
     box-sizing: border-box;
     margin: 0px;
     padding: 0px;
+    
 }
 
 body {
-	background-color: #186d89;
+	background-color: #186d89;	
 }
 
 
-.row {
+.myRow {
 	padding: 20px;
-	background-color: #186d89;
+	margin-top: 10px
+	margin: auto;
+	background-color: #186d89;	
 }
 
 .header {		
@@ -22,11 +25,12 @@ body {
 	background-color: white;
 }
 
-input {	
+.myinput {	
 	font-size: 17px;
 	padding: 4px;
 	font-family: Raleway;
-	border: 1px solid #aaaaaa;
+	border: 3px solid #aaaaaa;
+	background-color: red;
 }
 
 button {
@@ -45,11 +49,10 @@ button:hover {
 }
 
 
-
 .column {
     float: left;
     padding: 10px;
-    height: 300px; /* Should be removed. Only for demonstration */
+            
 }
 
 .left {	
@@ -58,7 +61,7 @@ button:hover {
 	height: 100%;
 	background-color: white; 	
 	min-height: 580px;
-	text-align: center;	
+	text-align: center;
 }
 
 .left .title {	
@@ -86,7 +89,7 @@ button:hover {
   height: 100%;  
   padding: 5px 10px 0px 5px;
   background-color: white;
-  min-height: 580px;
+  min-height: 580px;  
 }
 
 .right .panel {
@@ -105,13 +108,13 @@ button:hover {
 }
 
 .right .comment {
-	margin-top: 15%;
+	margin-top: 10%;
 	font-size: 72px;
 	text-align: center;	
 	color: #9b9b9b;
 }
 
-.row:after {
+.myRow:after {
     content: "";
     display: table;
     clear: both;

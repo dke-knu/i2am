@@ -15,15 +15,23 @@ public abstract class Source extends Thread {
 	// System topic	
 	private String transTopic;	
 	
+	// Data Scheme
+	private SourceSchema[] data;
+	
 	// Option 1: Intelligent Engine.	
 	private String useIntelliEngine;
 	private String testData;
+	private String target;
 	
 	// Option 2: LoadShedding.
 	private String useLoadShedding;	
 	private String switchMessaging;	
 	
-	public Source(String sourceName, String createdTime, String owner, String srcType, String switchMessaging) {
+	// Option 3: ConceptDrift
+	private String useConceptDrift;
+	
+	public Source(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine) {
 		
 		// Required
 		this.sourceName = sourceName;
@@ -35,35 +43,47 @@ public abstract class Source extends Thread {
 		
 		this.transTopic = UUID.randomUUID().toString();
 		
-		// Option 1: Intelligent Engine.
+		this.data = data;
+		
+		// Option 1: Intelligent Engine. --> No!!
 		this.useIntelliEngine = "N";
-		this.testData = "N";
+		this.testData = null;
+		this.target = null;
 		
 		// Option 2: LoadShedding.
-		this.useLoadShedding = "N";		
+		this.useLoadShedding = useLoadShedding;		
 		this.switchMessaging = "N";
+		
+		// Option 3: Concept Drift
+		this.useConceptDrift = useConceptDrift;
 	}	
 	
-	public Source(String sourceName, String createdTime, String owner, String useIntelliEngine, String useLoadShedding, String testData,
-			String srcType, String switchMessaging) {
-	
+	public Source(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target) {
+		
 		// Required
 		this.sourceName = sourceName;
 		this.createdTime = createdTime;
 		this.modifiedTime = createdTime;
 		this.owner = owner;
-		this.srcType = srcType;
-		this.status = "DEACTIVE"; // 초기값은 DEACTIVE
+		this.srcType = srcType;		
+		this.status = "DEACTIVE"; // 초기값
 		
 		this.transTopic = UUID.randomUUID().toString();
 		
-		// Option 1: Intelligent Engine.		
-		this.useIntelliEngine = useIntelliEngine;		
-		this.testData = testData; // UseLoadShedding이 Yes일 경우
+		this.data = data;
+		
+		// Option 1: Intelligent Engine. --> No!!
+		this.useIntelliEngine = useIntelliEngine;
+		this.testData = testData;
+		this.target = target;
 		
 		// Option 2: LoadShedding.
-		this.useLoadShedding = "N"; // 미구현
-		this.switchMessaging = switchMessaging;				
+		this.useLoadShedding = useLoadShedding;		
+		this.switchMessaging = "N";
+		
+		// Option 3: Concept Drift
+		this.useConceptDrift = useConceptDrift;
 	}
 	
 	public String getOwner() {
@@ -152,5 +172,35 @@ public abstract class Source extends Thread {
 
 	public void setTransTopic(String outTopic) {
 		this.transTopic = outTopic;
+	}
+
+
+	public SourceSchema[] getData() {
+		return data;
+	}
+
+
+	public void setData(SourceSchema[] data) {
+		this.data = data;
+	}
+
+
+	public String getTarget() {
+		return target;
+	}
+
+
+	public void setTarget(String target) {
+		this.target = target;
+	}
+
+
+	public String getUseConceptDrift() {
+		return useConceptDrift;
+	}
+
+
+	public void setUseConceptDrift(String useConceptDrift) {
+		this.useConceptDrift = useConceptDrift;
 	}		
 }

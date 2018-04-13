@@ -1,18 +1,22 @@
 package knu.cs.dke.topology_manager.sources;
 
 public class CustomSource extends Source{
-		
-	public CustomSource(String sourceName, String createdTime, String owner, String useIntelliEngine,
-			String useLoadShedding, String testData, String srcType, String switchMessaging) {
-		
-		super(sourceName, createdTime, owner, useIntelliEngine, "N", testData, srcType, switchMessaging);
-
+	
+	public CustomSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine);
+	}
+	
+	public CustomSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine, testData, target);
 	}
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub		
 	}
 
 }

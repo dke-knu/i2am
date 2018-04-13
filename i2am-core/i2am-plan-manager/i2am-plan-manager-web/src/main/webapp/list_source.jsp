@@ -8,9 +8,9 @@
 <link rel="stylesheet" type="text/css" href="css/list.css">
 
 <script>
-$(document).ready(function() {
+$(document).on("click", ".newbutton", function(){
 
-	
+	window.open("./create-source.jsp", "_self");	
 	
 });
 </script>
@@ -19,15 +19,12 @@ $(document).ready(function() {
 </head>
 
 <body>
-
 	<div class="titleline">
 		<h1 class="title"> Source </h1>
-		<button class="newbutton" > New Source</button>
+		<button class="newbutton"> New Source</button>
 		<div class="clear"></div>			
-	</div>	
-		
-	<hr><br>
-	
+	</div>		
+	<hr><br>	
 	Your Sources
 
 </body>

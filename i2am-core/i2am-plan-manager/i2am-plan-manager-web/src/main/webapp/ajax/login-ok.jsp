@@ -5,6 +5,6 @@
 	String pw = request.getParameter("user_pw");
 	
 	boolean result = DbAdapter.getInstance().login(id, pw);
-	session.setAttribute("user_id", id);
+	session.setAttribute("user_id", id);	
 %>
 <%=result %>

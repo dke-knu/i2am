@@ -1,4 +1,7 @@
 function checkLogin() {
+	
+	var user;
+	
 	$.ajax({
 		type : 'post',
 		url : './ajax/get-user-id.jsp',
@@ -9,8 +12,11 @@ function checkLogin() {
 			data = data.replace(/(^\s*)|(\s*$)/gi, "");
 			if (data == "null") {
 				alert("Please login first.");
-				window.open("./sign-in.jsp", "_self");
+				window.open("./index.jsp", "_self");
 			}
+			user = data;
 		}
-	});
+	});	
+	
+	return user;
 }

@@ -14,6 +14,7 @@ import knu.cs.dke.topology_manager.destinations.KafkaDestination;
 import knu.cs.dke.topology_manager.sources.DBSource;
 import knu.cs.dke.topology_manager.sources.KafkaSource;
 import knu.cs.dke.topology_manager.sources.Source;
+import knu.cs.dke.topology_manager.sources.SourceSchema;
 import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.BloomFilteringTopology;
@@ -148,8 +149,9 @@ public class DbAdapter {
 					+ "'" + source.getUseIntelliEngine() + "',"
 					+ "'" + source.getUseLoadShedding() + "',";
 
-			if(testData != null)  
+			if(testData != null) {			
 				insertSource = insertSource + "'" + fileNumber + "',";
+			}
 			else
 				insertSource = insertSource + "null" + ",";
 
@@ -157,7 +159,7 @@ public class DbAdapter {
 					+ "'" + source.getSrcType() + "',"
 					+ "'" + source.getSwitchMessaging() + "',"
 					+ "'" + source.getTransTopic() + "',"
-					+ "null"
+					+ "'" + source.getUseConceptDrift() + "'"					
 					+ ")";			
 
 			ResultSet insert = stmt.executeQuery(insertSource);			
@@ -207,6 +209,46 @@ public class DbAdapter {
 				System.out.println("[DBAdapter] Source Type Error.");
 				break;			
 			}
+
+			// src_csv_schema 추가 + target 정보 가져오기			
+			SourceSchema[] data = source.getData();
+			
+			for(int i=0; i<data.length; i++) {
+				
+				String insertScheme ="INSERT INTO tbl_src_csv_schema "
+									+ "VALUES ("
+									+ "'0',"
+									+ "'" + data[i].getColumnIndex() + "',"
+									+ "'" + data[i].getColumnName() + "',"
+									+ "'" + data[i].getColumnType() + "',"
+									+ "'" + sourceNumber + "'"
+									+ ")";
+				
+				ResultSet schema = stmt.executeQuery(insertScheme);				
+			}
+			
+			// tbl_intelligent_engine 추가
+			// user 테이블에서 [이름]으로 [IDX]가져오기
+			if(source.getUseIntelliEngine()=="Y") {
+				
+				System.out.println("?");
+				
+				String target = source.getTarget();
+				String targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE COLUMN_NAME = '" + target + "'";
+				ResultSet targetIdx = stmt.executeQuery(targetQuery);
+				targetIdx.next();
+				int targetNumber = ((Number) targetIdx.getRow()).intValue();
+				
+				String intelli_params = "INSERT INTO tbl_intelligent_engine "
+										+ "VALUES ("
+										+ "'0',"
+										+ "'" + sourceNumber + "',"
+										+ "'" + targetNumber + "',"
+										+ "null"
+										+ ")";
+				
+				ResultSet intelliResult = stmt.executeQuery(intelli_params);	
+			}			
 
 			System.out.println("[DBAdapter] Source Added.");
 
@@ -529,7 +571,7 @@ public class DbAdapter {
 
 			ResultSet insert = stmt.executeQuery(insertDestination);			
 
-			// Source에서 Index 가져오기 [이름으로]
+			// Destination에서 Index 가져오기 [이름으로]
 			String last = "SELECT IDX FROM tbl_dst WHERE NAME = " + "'" + destination.getDestinationName() +"'";
 			ResultSet idx = stmt.executeQuery(last);
 			idx.next();

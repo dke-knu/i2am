@@ -31,7 +31,7 @@
 		<br><br><br>			
 		<br><br><br>
 				
-		<a href="sign-in.jsp"><button>Start now!</button></a>	
+		<a href="index.jsp"><button>Start now!</button></a>	
 		
 	</div>
 	

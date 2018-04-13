@@ -8,8 +8,9 @@
 <link rel="stylesheet" type="text/css" href="css/list.css">
 
 <script>
-$(document).ready(function() {
-	
+$(document).on("click", ".newbutton", function(){
+
+	window.open("./create-destination.jsp", "_self");	
 	
 });
 </script>

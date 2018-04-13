@@ -17,8 +17,8 @@ import org.apache.tomcat.util.http.fileupload.servlet.ServletRequestContext;
 
 @SuppressWarnings("serial") 
 public class FileUploader extends HttpServlet {
-//	private final String UPLOAD_DIRECTORY = "D:/test_files/";
-	private final String UPLOAD_DIRECTORY = "/data/test_files/";
+	private final String UPLOAD_DIRECTORY = "D://test_files/";
+	//private final String UPLOAD_DIRECTORY = "/data/test_files/";
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
