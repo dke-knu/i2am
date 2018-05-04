@@ -13,7 +13,7 @@
 <script>
 $(document).on("click", ".newbutton", function(){
 
-	window.open("./create-plan2.jsp", "_self");	
+	window.open("./create-plan.jsp", "_self");	
 	
 });
 </script>
@@ -32,6 +32,7 @@ $(document).on("click", ".newbutton", function(){
 	<hr><br>
 	
 	Your Plans
+	
 
 </body>
 </html>

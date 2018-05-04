@@ -1,6 +1,5 @@
 @charset "EUC-KR";
 
-
 .titleline {	
 	padding: 0px 30px 0px 0px;
 }
@@ -20,25 +19,118 @@
 	text-align: center;
 	cursor: pointer;
 	outline: none;
-	color: black;
-	background-color: orange;
-	border: solid black;
-	border-radius: 15px;
-	box-shadow: 0 9px black;
-	
+	color: white;
+	background-color: #ff623f;
+	border: solid #ff623f;
+	border-radius: 3px;
+	box-shadow: 0 5px #be4727;	
 	display: inline-block;
 	float: right;
 	
 }
 
-.newbutton:hover {background-color: yellow}
+.newbutton:hover {
+	opacity: 0.8;			
+}
 
 .newbutton:active {
-  background-color: yellow;
-  box-shadow: 0 5px black;
-  transform: translateY(4px);
+	opacity: 1;
+	box-shadow: 0 2px #be4727;
+	transform: translateY(3px);
 }
 
 .clear {
 	clear: both;
+}
+
+.tableDiv {
+	text-align: center;
+	width: 90%;
+	margin: auto;
+		
+}
+
+#myTable {    
+	text-align: center;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#myTable td, #myTable th {	
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 5px 15px 5px;    
+}
+
+#myTable tr:nth-child(even){background-color: #f2f2f2;}
+
+#myTable tr:hover {background-color: #ddd;}
+
+#myTable th {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    text-align: center;
+    background-color: #c2e8b5;
+    font-weight:normal;
+    font-size: 15px;
+    color: black;    
+}
+
+
+.controlButton {	
+	border-radius: 3px;
+	width: 100px;
+	display: inline;
+	font-size: 15px;
+	color: white;
+	margin: 10px 5px 10px 5px;
+	padding: 3px 10px 3px 10px;
+	
+}
+
+.edit {	
+	background-color: #2894aa;
+}
+
+.delete {	
+	background-color: #dd514e;
+}
+
+
+.status {
+    position: relative;
+    display: inline-block;
+    
+    padding: 3px 0px 3px 0px;
+    border-radius: 3px;
+	width: 120px;	
+	font-size: 15px;	
+	background-color: orange;	
+}
+
+.status-content {
+    display: none;
+    position: absolute;    
+    background-color: orange;
+    margin: 0px;
+    min-width: 120px;
+    border-radius: 3px;
+    padding: 3px 0px 3px 0px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.status-content a {
+    color: black;
+    
+    text-decoration: none;
+    display: block;
+}
+
+.status:hover .status-content {
+	display: block;
+}
+
+.status:hover {
+	background-color: gray;
 }

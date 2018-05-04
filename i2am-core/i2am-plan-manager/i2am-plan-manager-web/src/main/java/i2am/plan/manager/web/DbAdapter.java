@@ -192,7 +192,7 @@ public class DbAdapter {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT NAME, CREATED_TIME, IS_RECOMMENDATION, USES_LOAD_SHEDDING, STATUS, RECOMMENDED_SAMPLING "
+			sql = "SELECT NAME, CREATED_TIME, IS_RECOMMENDATION, USES_LOAD_SHEDDING, STATUS "
 					+ "FROM tbl_src WHERE F_OWNER = "
 					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
 			return getJSONArray(stmt.executeQuery(sql));
@@ -329,5 +329,36 @@ public class DbAdapter {
 			}
 		}
 		return false;
+	}
+	
+	public JSONArray getSrcScheme(String owner) {
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+		try {
+			con = this.getConnection();
+			stmt = con.createStatement();
+
+			sql = "SELECT * "
+					+ "FROM tbl_csv_schema WHERE F_SRC = "
+					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";			
+			
+			return getJSONArray(stmt.executeQuery(sql));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally { 
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					close(con);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 }

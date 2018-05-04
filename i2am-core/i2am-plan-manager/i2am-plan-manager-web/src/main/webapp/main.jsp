@@ -46,25 +46,25 @@ $(document).ready(function() {
 	
 	$("#home").click(function() {
         
-    	$(".main").load("home.jsp");
+    	$(".main").load("home.jsp").trigger("create");
 		return false;
 	});
 
 	$("#plan").click(function() {
 		
-		$(".main").load("list_plan.jsp");
+		$(".main").load("list_plan.jsp").trigger("create");
 		return false;
 	});		
 	
 	$("#source").click(function() {
 		
-		$(".main").load("list_source.jsp");
+		$(".main").load("list_source.jsp").trigger("create");
 		return false;
 	});
 	
 	$("#destination").click(function() {
 		
-		$(".main").load("list_destination.jsp");
+		$(".main").load("list_destination.jsp").trigger("create");
 		return false;
 	});	
 });
@@ -115,11 +115,11 @@ $(document).ready(function() {
 	
 	</div>
 
-
 	<div class="footer">
 		<h3>I2AM</h3>
 		Kangwon Univ.
 	</div>
+
 
 	
 	<script>
