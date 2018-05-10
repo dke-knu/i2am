@@ -25,5 +25,7 @@
   <modules>
     <module>i2am-plan-manager</module>
     <module>i2am-query-parser</module>
+    <module>i2am-algorithm-filtering</module>
+    <module>i2am-algorithm-sampling</module>
   </modules>
 </project>

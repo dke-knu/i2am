@@ -8,9 +8,7 @@
 		<artifactId>i2am-core</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>i2am-query-parser</groupId>
 	<artifactId>i2am-query-parser</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>i2am-query-parser</name>
 	<url>http://maven.apache.org</url>
 	<properties>
