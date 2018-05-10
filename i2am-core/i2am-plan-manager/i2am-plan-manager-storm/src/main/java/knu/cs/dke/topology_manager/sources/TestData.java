@@ -8,11 +8,7 @@ public class TestData {
 	private String filePath;
 	private String fileSize;
 	private String fileType; // CSV, XML, JSON ... 
-		
-	public TestData() {		
-		
-	}
-	
+
 	public TestData(String owner, String fileName, String createdTime, String filePath, String fileSize, String fileType ) {		
 		this.onwer = owner;
 		this.fileName = fileName;

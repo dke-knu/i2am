@@ -22,15 +22,27 @@ public class KafkaSource extends Source {
 	private boolean status;
 	
 	// Create Kafka Source
-	public KafkaSource (String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
-			String srcType, String switchMessaging, String zookeeperIp, String zookeeperPort, String topic) {		
+	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine,
+			String zookeeperIp, String zookeeperPort, String topic)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine);
 		
-		super(sourceName, createdTime, owner, useIntelliEngine, "N", testData, srcType, switchMessaging);
-		
-		this.setZookeeperIp(zookeeperIp);
-		this.setZookeeperPort(zookeeperPort);
+		this.zookeeperIp = zookeeperIp;
+		this.zookeeperPort = zookeeperPort;
 		this.topic = topic;		
 	}
+	
+	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target,
+			String zookeeperIp, String zookeeperPort, String topic)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine, testData, target);
+		
+		this.zookeeperIp = zookeeperIp;
+		this.zookeeperPort = zookeeperPort;
+		this.topic = topic;
+	}	
 
 	@Override
 	public void run() {

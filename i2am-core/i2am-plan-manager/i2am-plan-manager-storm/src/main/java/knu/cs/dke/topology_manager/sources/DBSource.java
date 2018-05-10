@@ -18,11 +18,12 @@ public class DBSource extends Source {
 	private String userPassword;
 	private String dbName;	
 	private String query;	
-
-	public DBSource(String sourceName, String createdTime, String owner, String useIntelliEngine, String testData,
-			String srcType, String switchMessaging, String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery) {
-
-		super(sourceName, createdTime, owner, useIntelliEngine, "N", testData, srcType, switchMessaging);
+	
+	public DBSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine,
+			String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine);
 
 		this.ip = dbIp;
 		this.port = dbPort;
@@ -32,6 +33,20 @@ public class DBSource extends Source {
 		this.query = dbQuery;		
 	}
 
+	public DBSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target,
+			String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery)
+	{
+		super(sourceName, createdTime, owner, srcType, data, useConceptDrift, useLoadShedding, useIntelliEngine, testData, target);
+
+		this.ip = dbIp;
+		this.port = dbPort;
+		this.userId = dbId;
+		this.userPassword = dbPassword;
+		this.dbName = dbName;
+		this.query = dbQuery;		
+	}
+	
 	@Override
 	public void run() {
 

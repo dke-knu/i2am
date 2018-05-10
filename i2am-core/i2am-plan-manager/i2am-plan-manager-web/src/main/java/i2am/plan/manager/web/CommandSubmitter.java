@@ -12,10 +12,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import i2am.plan.manager.web.bean.Algorithm;
+import i2am.plan.manager.web.bean.DataScheme;
 import i2am.plan.manager.web.bean.DatabaseInfo;
 import i2am.plan.manager.web.bean.KafkaInfo;
 
 public class CommandSubmitter {
+	
 	private JSONObject command = new JSONObject();
 	private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -61,7 +63,9 @@ public class CommandSubmitter {
 	
 	// create src. 
 	public void createSrc(String commander, String srcName, SRC_TYPE srcType, 
-			DatabaseInfo database, KafkaInfo kafka, boolean usesIntelli, String testDataName) {
+			KafkaInfo kafka, DatabaseInfo database, String[] data,
+			boolean usesCD, boolean usesLS,	boolean usesIntelli, String testDataName, String target) {
+		
 		String commandId = UUID.randomUUID().toString();
 		String commandTime = format.format(new Date());
 		
@@ -83,15 +87,25 @@ public class CommandSubmitter {
 		} else {
 		}
 		
+		DataScheme schema = new DataScheme(data);
+		commandContent.put("dataScheme", schema.toJSONArray());
+		
+		if (usesCD) commandContent.put("usesConceptDriftEngine", "Y");
+		else commandContent.put("usesConceptDriftEngine", "N");
+		
+		if (usesLS) commandContent.put("usesLoadShedding", "Y");
+		else commandContent.put("usesLoadShedding", "N");
+		
 		if (!usesIntelli) commandContent.put("usesIntelligentEngine", "N"); 
 		else {
 			commandContent.put("usesIntelligentEngine", "Y");
 			commandContent.put("testDataName", testDataName);
+			commandContent.put("target", target);
 		}
 		
 		command.put("commandContent", commandContent);
 	}
-	
+		
 	// create dst. 
 	public void createDst(String commander, String dstName, DST_TYPE dstType, 
 			DatabaseInfo database, KafkaInfo kafka) {
@@ -153,7 +167,8 @@ public class CommandSubmitter {
 	
 	private class Submitter implements Runnable {
 
-		private final String serverIp = "114.70.235.43";
+		//private final String serverIp = "114.70.235.43";
+		private final String serverIp = "114.70.234.191";
 		private final int serverPort = 11111;
 		 
 		private JSONObject obj = null;

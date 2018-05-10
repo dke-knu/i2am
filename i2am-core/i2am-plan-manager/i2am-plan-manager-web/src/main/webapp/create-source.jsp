@@ -13,7 +13,7 @@
 <script src="./js/my.js"></script>
 
 <script>
-$( function() {
+$(function() {
 	$(".sortable").sortable();
 	$(".sortable").disableSelection();
 });
@@ -30,20 +30,6 @@ $(document).on("click", ".del", function(){
 $(document).on("click", ".add", function(){
 	
 	var list = $(".sortable");
-		
-	/*
-	<li>
-		<i class="fa fa-sort fa-lg updown"></i>
-		<input type="text" placeholder=" Input column name">
-		<select>
-			<option selected disabled hidden>Type</option>
-			<option value="string">TEXT</option>
-			<option value="numeric">NUMERIC</option>
-			<option value="date">DATE</option>
-		</select>
-		<i class="fa fa-remove fa-lg del"></i>					
-	</li>			
-	*/	
 	
 	list.append("<li class='data'>" +
 				"<i class='fa fa-sort fa-lg updown'></i>" +
@@ -52,20 +38,118 @@ $(document).on("click", ".add", function(){
 				"<option selected disabled hidden>Type</option>" +
 				"<option value='TEXT'>TEXT</option>" +
 				"<option value='NUMERIC'>NUMERIC</option>" +
-				"<option value='DATE'>DATE</option>" +
+				"<option value='TIMESTAMP'>DATE</option>" +
 				"</select>" +
 				"<i class='fa fa-remove fa-lg del'></i>" +
 				"</li>");
 });
 </script>
 
-<!-- 
+<script>
+function getUserId() {
+	var id = null;
+	$.ajax({
+		type : 'post',
+		url : './ajax/get-user-id.jsp',
+		data : ({}),
+		async: false,
+		cache: false,
+		success : function(data) {
+			data = data.replace(/(^\s*)|(\s*$)/gi, "");
+			id = data;
+		}
+	});
+	return id;
+}
+
+$(document).on("click", "#btn-upload", function(e) { // Add Button
+	var owner = getUserId();
+	var testName = document.getElementById("uploadName").value;
+	var testFile = document.getElementById("uploadFile").files[0];
+    var formdata = new FormData();
+    formdata.append("owner", owner);
+    formdata.append("testName", testName);
+    formdata.append("testFile", testFile);
+    var xhr = new XMLHttpRequest();       
+    xhr.open("POST","/i2am-plan-manager-web/FileUploader", true);
+    xhr.send(formdata);
+    xhr.onload = function(e) {
+      if (this.status == 200) {
+        reloadTblTestData();
+      }
+    };
+    e.preventDefault();	
+});
+
+function reloadTblTestData() {
+	var list = null;
+	var tbl = $('#tbl-test-data').children('tbody');
+	tbl.html("");
+	$.ajax({
+		type : 'post',
+		url : './ajax/get-list-test-data.jsp',
+		data : ({}),
+		async: false,
+		cache: false,
+		success : function(data) {
+			data = data.replace(/(^\s*)|(\s*$)/gi, "");
+			list = data;
+		} 
+	});
+	
+	if (list == null)	{
+		alert("Test data cannot reload.");
+		return ;
+	}
+	
+	var arr = JSON.parse(list);
+	
+	if (arr.length > 0)	
+	while (arr.length > 0) {
+		var obj = arr.pop();
+		tbl.html(tbl.html() +
+			"<tr class='clickable-row'>" +
+			"<td class='td-name'>" + obj.NAME + "</td>" +
+			"<td>" + obj.CREATED_TIME + "</td>" +
+			"<td>" + obj.FILE_NAME + "</td>" +
+			"<td>" + obj.FILE_SIZE + "</td>" +
+			"<td>" + obj.FILE_TYPE + "</td>" +
+			"</tr>"
+		);				
+	}
+}
+
+$(document).on('click', '.clickable-row', function(event) {	// Choose...!
+	  if($(this).hasClass('choosed')){
+	    $(this).removeClass('choosed'); 
+	    $(this).css("border", "");
+	  } else {
+	    $(this).addClass('choosed').siblings().removeClass('choosed');
+	    $(this).css("border", "solid orange").siblings().css("border", "");
+	  }
+});
+
+$(document).on('click', '#btn-choose', function(event) { // Save!
+	
+    if($('.choosed').html() != null) {
+ 	    $('#choosed-test-data').html("Choosed File: " + $('.choosed').children('.td-name').html() );
+ 	    $('#choosed-test-data').val( $('.choosed').children('.td-name').html() );
+    } else {
+  		$('#choosed-test-data').html("Not choosed yet.");
+  		$('#choosed-test-data').val('');
+    }
+    
+    document.getElementById('fileChooser').style.display='none';
+    
+});
+</script>
+
 <script> 
 $(document).ready(function() {
 	checkLogin(); 
 });
 </script>
- -->
+
 
 <title>Create Source</title>
 
@@ -73,7 +157,7 @@ $(document).ready(function() {
 
 <body>
 
-	<form id="sourceForm" action="#">
+	<form id="sourceForm" action="ajax/create-source.jsp" method="post">
 	
 		<h1> New Source </h1> <hr>
 	
@@ -82,11 +166,11 @@ $(document).ready(function() {
 			<h2>Source Info</h2><br>		
 			
 			Source name<br>
-			<input type="text"><button type="button" id="btn-check-redundancy">Check</button><br><br>
+			<input type="text" id="src-name"><button type="button" id="btn-check-redundancy">Check</button><br><br>
 			
 			<div class="type">			
-				<button type="button" class="typelinks" onclick="openSourceType(event,'welldefined')">Well-defined source</button>
-				<button type="button" class="typelinks" onclick="openSourceType(event,'customizing')">Customizing source</button>			
+				<button type="button" id="type-wd" class="typelinks" onclick="openSourceType(event,'welldefined')">Well-defined source</button>
+				<button type="button" id="type-custom" class="typelinks" onclick="openSourceType(event,'customizing')">Customizing source</button>			
 			</div>
 			
 			<div id="welldefined" class="typecontent">
@@ -94,42 +178,42 @@ $(document).ready(function() {
 				<h3>Well-defined source</h3>
 				
 				<div class="type">												
-					<button type="button" class="wdlinks" onclick="openWDType(event,'kafka')">Kafka</button>
-					<button type="button" class="wdlinks" onclick="openWDType(event,'database')">Database</button>
+					<button type="button" id="type-kafka" class="wdlinks" onclick="openWDType(event,'kafka')">Kafka</button>
+					<button type="button" id="type-db" class="wdlinks" onclick="openWDType(event,'database')">Database</button>
 				</div>
 				
 				<div id="kafka" class="wdcontent">				
 				
 					<div class="srcLabel">Zookeeper IP</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="zookeeperIp"></div>
 										
 					<div class="srcLabel">Zookeeper Port</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="zookeeperPort"></div>
 					
 					<div class="srcLabel">Kafka Topic</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="kafkaTopic"></div>
 				
 				</div>
 				
 				<div id="database" class="wdcontent">
 				
 					<div class="srcLabel">Database IP</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="dbIp"></div>
 										
 					<div class="srcLabel">Database Port</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="dbPort"></div>
 					
 					<div class="srcLabel">Database ID</div>
-					<div class="srcInput"><input type="text"></div>				
+					<div class="srcInput"><input type="text" id="dbId"></div>				
 					
 					<div class="srcLabel">Database Password</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="dbPw"></div>
 					
 					<div class="srcLabel">Database Name</div>
-					<div class="srcInput"><input type="text"></div>
+					<div class="srcInput"><input type="text" id="dbName"></div>
 					
 					<div class="srcLabel" >Query</div>
-					<div class="srcInput"><input type="text" style="width: 100%"></div>
+					<div class="srcInput"><input type="text" id="dbQuery" style="width: 100%"></div>
 				
 				</div>
 				
@@ -155,7 +239,7 @@ $(document).ready(function() {
 						<option selected disabled hidden>Type</option>
 						<option value="TEXT">TEXT</option>
 						<option value="NUMERIC">NUMERIC</option>
-						<option value="DATE">DATE</option>
+						<option value="TIMESTAMP">DATE</option>
 					</select>
 					<i class="fa fa-remove fa-lg del"></i>					
 				</li>			
@@ -204,7 +288,8 @@ $(document).ready(function() {
 				</div>
 				<br><br>				
 				
-				<button type="button" onclick="document.getElementById('fileChooser').style.display='block'">Choose File</button>
+				<button type="button" onclick="document.getElementById('fileChooser').style.display='block'; reloadTblTestData()">Choose File</button>
+				<span id="choosed-test-data"> Not Choosed yet.</span>
 							
 				<div id="fileChooser" class="modal">				
 								
@@ -215,8 +300,8 @@ $(document).ready(function() {
 							<h2> Choose your test data </h2>										
 						</div>						
 						<hr>
-						<div class="modal-body-table">
-	        				<table>
+						<div class="modal-body">
+	        				<table id="tbl-test-data">
 	          				<thead>
 	            				<tr> 
 	              				<th>Data name</th>
@@ -233,14 +318,14 @@ $(document).ready(function() {
 	        					
 	        			<hr>        			
 	        			<div class="modal-body-chooser">		        				
-	        				<input type="file" accept=".csv,.json,.xml"/>
-	        				<input type="text" placeholder="Input file name"><button type="button">Add data</button><br>
-	      				</div>  
-	      				
+	        				<input type="file" id="uploadFile" accept=".csv,.json,.xml"/>
+	        				<input type="text" placeholder="Input file name" id="uploadName">
+	        					<button type="button" id="btn-upload">Add data</button><br>
+	      				</div>  	      				
 	      					      				
 	      				<div class="modal-footer">	      						
 								<button type="button" class="cancelbtn" onclick="document.getElementById('fileChooser').style.display='none'">Close</button>
-	        					<button type="button" class="signupbtn">Save changes</button>
+	        					<button type="button" class="signupbtn" id="btn-choose">Save changes</button>
 	        			</div>    				
 					</div>			
 				</div>	
@@ -254,6 +339,7 @@ $(document).ready(function() {
     		<div style="float:right;">
       			<button type="button" id="prevBtn" onclick="nextPrev(-1)">Previous</button>
       			<button type="button" id="nextBtn" onclick="nextPrev(1)">Next</button>
+      			
     		</div>
   		</div>	
 	
@@ -269,19 +355,21 @@ $(document).ready(function() {
 
 	var currentTab = 0; // Current tab is set to be the first tab (0)
 	showTab(currentTab); // Display the crurrent tab
-
+	
 	function showTab(n) {
 	  	// This function will display the specified tab of the form...
   		var x = document.getElementsByClassName("tab");
   		x[n].style.display = "block";
   		//... and fix the Previous/Next buttons:
+  			
   		if (n == 0) {
     		document.getElementById("prevBtn").style.display = "none";
   		} else {
     		document.getElementById("prevBtn").style.display = "inline";
   		}
-  		if (n == (x.length - 1)) {
-    		document.getElementById("nextBtn").innerHTML = "Submit";
+  		
+  		if (n == (x.length - 1)) {    		
+  			document.getElementById("nextBtn").innerHTML = "Submit";    		
   		} else {
     		document.getElementById("nextBtn").innerHTML = "Next";
   		}
@@ -293,7 +381,7 @@ $(document).ready(function() {
   		// This function will figure out which tab to display
   		var x = document.getElementsByClassName("tab");
   		// Exit the function if any field in the current tab is invalid:
-  		//if (n == 1 && !validateForm()) return false;
+  		// if (n == 1 && !validateForm()) return false;
   		// Hide the current tab:
   			
   		x[currentTab].style.display = "none";
@@ -302,7 +390,8 @@ $(document).ready(function() {
   		// if you have reached the end of the form...
   		if (currentTab >= x.length) {
     	// ... the form gets submitted:
-    		document.getElementById("regForm").submit();
+    		//document.getElementById("sourceForm").submit();
+  			submitForm();
     		return false;
   		}
   		// Otherwise, display the correct tab:
@@ -340,6 +429,107 @@ $(document).ready(function() {
   		//... and adds the "active" class on the current step:
   		x[n].className += " active";
 	}	
+	
+	function submitForm() {
+			
+		// Source Type
+		var type = "";		
+		if( $("#type-custom").hasClass("active") )
+			type = "CUSTOM";
+		else {
+			if( $("#type-kafka").hasClass("active") ) {				
+				type = "KAFKA";								
+			}	
+			else if ( $("#type-db").hasClass("active") ) {				
+				type = "DATABASE";
+			} 							
+		}
+		
+		// Data Scheme.
+		var columns = $(".data");
+		var scheme = new Array();		
+		
+		columns.each(function(index) {			  
+			var column = index + "," + $(this).find(".data_name").val() + "," + $(this).find(".data_type option:selected").val();
+			/* var column = {
+				data_index: index,
+				data_name: $(this).find(".data_name").val(),
+				data_type: $(this).find(".data_type option:selected").val()					
+			}; */	
+			scheme.push(column);
+			//scheme[index] = column;
+		});		
+		
+		console.log(scheme);
+		
+		// Intelligent Engine
+		var useIntelligentEngine = $("input[name='chk_ir']").is(":checked");
+		
+		// Intelligent Engine > Test Data
+		var testData = null;	
+		
+		if(useIntelligentEngine) {			
+			if ($('#choosed-test-data').val() == '') {
+				  alert("Please select test data first.");
+				  return false;
+			}
+			testData = $('#choosed-test-data').val();
+		}		
+		
+		// Form
+		var source_data = {			
+			
+				// Source Info.
+			source_name: $("#src-name").val(),
+			source_type: type,
+				
+			// Kafka
+			zookeeperIp: $("#zookeeperIp").val(),		
+			zookeeperPort: $("#zookeeperPort").val(),
+			kafkaTopic: $("#kafkaTopic").val(),
+			
+			// DataBase
+			dbIp: $("#dbIp").val(),
+			dbPort: $("#dbPort").val(),
+			dbId: $("#dbId").val(),
+			dbPw: $("#dbPw").val(),
+			dbName: $("#dbName").val(),
+			dbQuery: $("#dbQuery").val(),
+		
+			// Data Scheme
+			dataScheme: scheme,
+		
+			// Smart Engine
+			useConceptDriftEngine: $("input[name='chk_cd']").is(":checked"),
+			useLoadShedding: $("input[name='chk_ls']").is(":checked"),
+			useIntelligentEngine: useIntelligentEngine,
+		
+			// Test Data
+			testData: testData,
+			target: $("input[name='target']:checked").val()
+		};		
+			
+		console.log(source_data);
+		
+		$.ajaxSettings.traditional = true;		
+		$.ajax({
+			type: "POST",
+			url: "ajax/create-source.jsp",
+			data: source_data,
+			async: false,
+			cache: false,
+			success: function(response) {
+				alert(response.trim());				
+				console.log(response.trim());
+				window.open("./main.jsp", "_self");
+			}, 
+			error: function() {
+				alert("ERROR");	
+				//window.location.reload();
+			}
+		});		
+		return false;
+};	
 </script>
 
 <script>
@@ -366,14 +556,15 @@ function openSourceType(event, sourceType) {
 
 function openWDType(event, sourceType) {
 	
-	var i, typecontent, typelinks;
+	var i, typecontent, typelinks;	
+	
 	typecontent = document.getElementsByClassName("wdcontent");
 	
 	for( i=0; i<typecontent.length; i++ ) {
 		typecontent[i].style.display = "none";
 	}
 		
-	typelinks = document.getElementsByClassName("wdlinks");	
+	typelinks = document.getElementsByClassName("wdlinks");
 	
 	for( i=0; i<typelinks.length; i++ ) {
 		typelinks[i].className = typelinks[i].className.replace(" active", "");		
@@ -436,15 +627,14 @@ $("#intengine").change(function() {
 								
 				var name = $(this).children(".data_name").val();
 				var type = $(this).children(".data_type").val();				
-				
-				
-				
+								
 				if( type == "NUMERIC" ) {
 					
+					// target value를 index로 할까?ㅅ?ㅎㅎ
 					target.append("<label class='radiocontainer'>" + 
 							"<div class='radiolabelleft'>" + name + "</div>" +		
 							// "<div class='radiolabelright'>" + type + "</div>" +																			 
-							"<input type='radio' name='target'>" +
+							"<input type='radio' name='target' value='" + name + "'>" +
 							"<span class='radiocheckmark'></span>" +
 							"</label><br>");
 					

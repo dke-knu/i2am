@@ -10,6 +10,14 @@
 
 <title>Plan Manager - Plan</title>
 
+<script>
+$(document).on("click", ".newbutton", function(){
+
+	window.open("./create-plan.jsp", "_self");	
+	
+});
+</script>
+
 </head>
 
 <body>
@@ -24,6 +32,7 @@
 	<hr><br>
 	
 	Your Plans
+	
 
 </body>
 </html>

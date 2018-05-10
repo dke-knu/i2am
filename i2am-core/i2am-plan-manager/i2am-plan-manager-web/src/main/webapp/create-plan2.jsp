@@ -126,14 +126,15 @@ $(document).ready(function() {
 </head>
 <body>
  
-	<div class="row">
+	<div class="myRow">
 	
 		<div class="header">
 			<h1>New Plan</h1>
 			<hr><br>	
 			Plan name<br>	
-			<input type="text" placeholder=" input plan name"></input><button type="button">Check</button>	
+			<input type="text" placeholder=" input plan name" id="inputlg"><button type="button">Check</button>	
 		</div>		
+		
 		<!-- Source Plan Destination 리스트 표시하는 곳  -->
 		<div class="column left">
 			
@@ -201,7 +202,7 @@ $(document).ready(function() {
 				</div>			
 				
 				<div class="comment">
-					<i class="fa fa-hand-paper-o"></i><br>
+					<i class="fa fa-hand-paper-o"></i><br><br><br>
 					Drag & Drop Here! 
 				</div>
 				
@@ -224,7 +225,9 @@ $(document).ready(function() {
 	    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Save changes</button>
 	  </div>
 	</div>
+	
 </body>
-  <script src="./js/query-builder.i2am.js"></script>
+
+<script src="./js/query-builder.i2am.js"></script>
 
 </html>

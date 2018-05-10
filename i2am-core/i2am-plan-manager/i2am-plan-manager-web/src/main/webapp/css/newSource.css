@@ -319,9 +319,29 @@ li {
 	text-align: left;	
 }
 
-.modal-body-table {
+.modal-body {
+	width: 100%;	
+	padding: 30px 10px 30px 10px;
+	text-align: center;
+}
+
+.modal-body table {
+	width: 99%;
+	border-collapse: collapse;
+	padding: 10px;
+}
+
+.modal-body th {
+	border: 1px solid #ddd;
+	background-color: #ddd;
 	margin: 0px;
-	padding: 10px 10px 30px 10px;	
+	padding: 10px;
+}
+
+.modal-body td {
+	border-bottom: 1px solid #ddd;	
+	margin: 0px;
+	padding: 10px;
 }
 
 .modal-body-chooser {
@@ -332,7 +352,7 @@ li {
 }
 
 .modal-footer {	
-	padding: 20px;	
+	padding: 10px;	
 	text-align: right;
 	background-color: #e1e1e1;
 }
@@ -460,3 +480,8 @@ table {
 	text-align: center;
 	width: 30%;
 }
+
+#choosed-test-data {
+	margin-left: 10px;	
+}
+
