@@ -8,8 +8,8 @@ public class DbAdapter {
     private String userID;
     private String password;
     private Connection connection;
-    PreparedStatement preparedStatement;
-    ResultSet resultSet;
+    private PreparedStatement preparedStatement;
+    private ResultSet resultSet;
 
     private static final String GETTARGETQUERY = "SELECT F_TARGET FROM tbl_intelligent_engine WHERE F_SRC = (SELECT F_SRC FROM tbl_plan WHERE IDX = (SELECT F_PLAN FROM tbl_topology WHERE TOPOLOGY_NAME = ?))";
     private static final String GETTARGETINDEXQUERY = "SELECT COLUMN_INDEX FROM tbl_src_csv_schema WHERE IDX = ?";
