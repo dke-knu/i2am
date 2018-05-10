@@ -1,5 +1,6 @@
 package i2am.Filtering;
 
+import i2am.Common.DbAdapter;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,9 @@ public class BloomFilteringBolt extends BaseRichBolt {
     private String keywords;
     private List<String> wordArray; // Filter List
     private BloomFilter bloomFilter; // Bloom Filter
+    private String topologyName;
+    private String[] hashFunctions;
+    private DbAdapter dbAdapter;
 
     /* RedisKey */
     private String redisKey = null;
@@ -42,10 +47,12 @@ public class BloomFilteringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(BloomFilteringBolt.class);
 
-    public BloomFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public BloomFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig, String topologyName){
         this.wordArray = wordArray;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
+        this.topologyName = topologyName;
+        dbAdapter = new DbAdapter();
     }
 
     @Override
@@ -59,9 +66,16 @@ public class BloomFilteringBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        try {
+            dbAdapter.connect();
+            hashFunctions = dbAdapter.getBloomHashFunction(topologyName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         bucketSize = Integer.parseInt(jedisCommands.hget(redisKey, bucketSizeKey));
         keywords = jedisCommands.hget(redisKey, keywordsKey);
-        bloomFilter = new BloomFilter(bucketSize);
+        bloomFilter = new BloomFilter(bucketSize, hashFunctions);
         for(String word: keywords.split(" ")){
             try {
                 bloomFilter.registData(word);
@@ -99,11 +113,13 @@ public class BloomFilteringBolt extends BaseRichBolt {
 /* Bloom Filter Class */
 class BloomFilter{
     private int bucketSize;
+    private String[] hashFunctions;
     private List<Boolean> buckets;
     private HashFunction hashFunction = new HashFunction();
 
-    BloomFilter(int bucketSize){
+    BloomFilter(int bucketSize, String[] hashFunctions){
         this.bucketSize = bucketSize;
+        this.hashFunctions = hashFunctions;
         buckets = new ArrayList<Boolean>();
 
         for(int i = 0; i < bucketSize; i++){
@@ -121,7 +137,7 @@ class BloomFilter{
         hashCode = hashFunction.xxHash32(data);
         buckets.set(hashCode%bucketSize, true);
 
-        hashCode = hashFunction.JSHash(data);
+        hashCode = hashFunction.jsHash(data);
         buckets.set(hashCode%bucketSize, true);
     }
 
@@ -134,7 +150,7 @@ class BloomFilter{
 
         hashCode1 = hashFunction.javaHashFunction(data);
         hashCode2 = hashFunction.xxHash32(data);
-        hashCode3 = hashFunction.JSHash(data);
+        hashCode3 = hashFunction.jsHash(data);
 
         if(buckets.get(hashCode1%bucketSize) && buckets.get(hashCode2%bucketSize) && buckets.get(hashCode3%bucketSize)){
             flag = true;
@@ -168,7 +184,7 @@ class HashFunction{
         return hashCode;
     }
 
-    int JSHash(String data){
+    int jsHash(String data){
         int hashCode = 1315423911;
 
         for(int i = 0; i < data.length(); i++){
