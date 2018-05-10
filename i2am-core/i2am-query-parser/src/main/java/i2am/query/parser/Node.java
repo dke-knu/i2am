@@ -1,4 +1,4 @@
-package org.i2am.query.parser;
+package i2am.query.parser;
 
 import java.util.Arrays;
 import java.util.Map;
