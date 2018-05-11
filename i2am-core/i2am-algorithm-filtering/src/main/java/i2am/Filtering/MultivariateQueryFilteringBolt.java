@@ -3,7 +3,6 @@ package i2am.Filtering;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;

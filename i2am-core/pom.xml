@@ -27,5 +27,6 @@
     <module>i2am-query-parser</module>
     <module>i2am-algorithm-filtering</module>
     <module>i2am-algorithm-sampling</module>
+    <module>i2am-metadata</module>
   </modules>
 </project>

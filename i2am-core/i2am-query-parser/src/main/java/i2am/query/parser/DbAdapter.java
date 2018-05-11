@@ -7,11 +7,18 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Stack;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import i2am.metadata.DbAdmin;
+
 public class DbAdapter {  
 	private static final Class<?> klass = (new Object() {
 	}).getClass().getEnclosingClass();
-	//	private static final Log logger = LogFactory.getLog(klass);
-
+	private static final Log logger = LogFactory.getLog(klass);
+	 
 	// singleton
 	private volatile static DbAdapter instance;
 	public static DbAdapter getInstance() {
@@ -25,25 +32,12 @@ public class DbAdapter {
 		return instance;
 	}
 
-	protected DbAdapter() {}
+	private final DbAdmin dbAdmin;
+	private final DataSource ds;
 
-	private Connection cn;
-	protected Connection getConnection() throws SQLException {
-		String driverName = "org.mariadb.jdbc.Driver";
-		String url = "";
-		String user = "";
-		String password = "";
-
-		try {
-			Class.forName(driverName);
-			this.cn = DriverManager.getConnection(url, user, password);
-		} catch (ClassNotFoundException e) {
-			System.out.println("Load error: " + e.getStackTrace());
-		} catch (SQLException e) {
-			System.out.println("Connection error: " + e.getStackTrace());
-		}
-
-		return cn;
+	private DbAdapter() {
+		dbAdmin = DbAdmin.getInstance();
+		ds = dbAdmin.getDataSource();
 	}
 
 	protected void close(Connection con) throws SQLException {
@@ -56,7 +50,7 @@ public class DbAdapter {
 		String sql = null;
 		
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT IDX FROM tbl_params_query_filtering "
@@ -118,7 +112,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 			
 			stmt.executeUpdate(insertQuery);
@@ -151,7 +145,7 @@ public class DbAdapter {
 		Node ret = null;
 		
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT q.IDX, q.F_LEFT_EXPR AS LEFT_TARGET, s.COLUMN_NAME, q.OPERATOR, q.F_RIGHT_EXPR, q.RIGHT_VALUE "
@@ -207,7 +201,7 @@ public class DbAdapter {
 		String[] schema = null;
 		
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT COLUMN_NAME FROM tbl_src_csv_schema "
