@@ -1,5 +1,6 @@
 package i2am.Common;
 
+import i2am.Declaring.DeclaringBolt;
 import i2am.Filtering.BloomFilteringBolt;
 import i2am.Filtering.KalmanFilteringBolt;
 import i2am.Filtering.NoiseRecKalmanFilteringBolt;
@@ -87,25 +88,30 @@ public class FilteringTopology {
         topologyBuilder.setSpout("KAFKA_SPOUT", kafkaSpout, 1)
                 .setNumTasks(1);
 
+        /* DeclaringBolt */
+        topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName), 1)
+                .shuffleGrouping("KAFKA_SPOUT")
+                .setNumTasks(1);
+
         /* FilteringBolt */
         if(algorithmName.equals("QUERY_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new QueryFilteringBolt(redisKey, jedisClusterConfig), 4)
-                    .shuffleGrouping("KAFKA_SPOUT")
+                    .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("BLOOM_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new BloomFilteringBolt(redisKey, jedisClusterConfig, topologyName), 4)
-                    .shuffleGrouping("KAFKA_SPOUT")
+                    .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("KALMAN_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
-                    .shuffleGrouping("KAFKA_SPOUT")
+                    .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new NoiseRecKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
-                    .shuffleGrouping("KAFKA_SPOUT")
+                    .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
 
@@ -121,10 +127,10 @@ public class FilteringTopology {
         config.setDebug(true);
 
         if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
-            config.setNumWorkers(4);
+            config.setNumWorkers(5);
         }
         else{
-            config.setNumWorkers(7);
+            config.setNumWorkers(8);
         }
 
         /* Submit Topology */

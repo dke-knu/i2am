@@ -19,6 +19,7 @@ import i2am.Common.DbAdapter;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +28,9 @@ import java.util.Map;
 public class BloomFilteringBolt extends BaseRichBolt {
     private int bucketSize;
     private String keywords;
-    private List<String> wordArray; // Filter List
     private BloomFilter bloomFilter; // Bloom Filter
     private String topologyName;
-    private String[] hashFunctions;
-    private DbAdapter dbAdapter;
+    private String hashFunctions[];
 
     /* RedisKey */
     private String redisKey = null;
@@ -49,11 +48,9 @@ public class BloomFilteringBolt extends BaseRichBolt {
     private final static Logger logger = LoggerFactory.getLogger(BloomFilteringBolt.class);
 
     public BloomFilteringBolt(String redisKey, JedisClusterConfig jedisClusterConfig, String topologyName){
-        this.wordArray = wordArray;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
         this.topologyName = topologyName;
-        dbAdapter = new DbAdapter();
     }
 
     @Override
@@ -68,8 +65,7 @@ public class BloomFilteringBolt extends BaseRichBolt {
         }
 
         try {
-            dbAdapter.connect();
-            hashFunctions = dbAdapter.getBloomHashFunction(topologyName);
+            hashFunctions = DbAdapter.getInstance().getBloomHashFunction(topologyName);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -79,8 +75,14 @@ public class BloomFilteringBolt extends BaseRichBolt {
         bloomFilter = new BloomFilter(bucketSize, hashFunctions);
         for(String word: keywords.split(" ")){
             try {
-                bloomFilter.registData(word);
+                bloomFilter.registering(word);
             } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
         }
@@ -89,19 +91,22 @@ public class BloomFilteringBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple input) {
         String data = input.getString(0);
+        String target = input.getString(1);
         boolean flag = false;
 
-        String[] words  = data.split(" ");
-        for(String word : words){
-            try {
-                flag = bloomFilter.filtering(word);
-                if(flag){
-                    collector.emit(new Values(data));
-                    break;
-                }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+        try {
+            flag = bloomFilter.filtering(target);
+            if(flag){
+                collector.emit(new Values(data));
             }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
         }
     }
 
@@ -128,30 +133,30 @@ class BloomFilter{
         }
     }
 
-    // Regeist Data to Filter
-    void registData(String data) throws UnsupportedEncodingException {
+    // Registering data
+    void registering(String data) throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         int hashCode = 0;
 
-        hashCode = hashFunction.javaHashFunction(data);
+        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[0]).invoke(data);
         buckets.set(hashCode%bucketSize, true);
 
-        hashCode = hashFunction.xxHash32(data);
+        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[1]).invoke(data);
         buckets.set(hashCode%bucketSize, true);
 
-        hashCode = hashFunction.jsHash(data);
+        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[2]).invoke(data);
         buckets.set(hashCode%bucketSize, true);
     }
 
     // Filtering
-    boolean filtering(String data) throws UnsupportedEncodingException {
+    boolean filtering(String data) throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         boolean flag = false;
         int hashCode1 = 0;
         int hashCode2 = 0;
         int hashCode3 = 0;
 
-        hashCode1 = hashFunction.javaHashFunction(data);
-        hashCode2 = hashFunction.xxHash32(data);
-        hashCode3 = hashFunction.jsHash(data);
+        hashCode1 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[0]).invoke(data);
+        hashCode2 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[1]).invoke(data);
+        hashCode3 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[2]).invoke(data);
 
         if(buckets.get(hashCode1%bucketSize) && buckets.get(hashCode2%bucketSize) && buckets.get(hashCode3%bucketSize)){
             flag = true;
