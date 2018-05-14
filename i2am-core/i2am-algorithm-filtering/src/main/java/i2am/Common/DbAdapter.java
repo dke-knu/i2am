@@ -18,7 +18,7 @@ public class DbAdapter {
     private static final String GETTARGETINDEXQUERY = "SELECT COLUMN_INDEX FROM tbl_src_csv_schema WHERE IDX = ?";
     private static final String GETBLOOMHASHFUNCTIONQUERY = "SELECT HASH_FUNCTION1, HASH_FUNCTION2, HASH_FUNCTION3 FROM tbl_params_bloom_filtering WHERE IDX = (SELECT IDX FROM tbl_topology WHERE TOPOLOGY_NAME = ?)";
 
-    public DbAdapter(){
+    private DbAdapter(){
         dbAdmin = DbAdmin.getInstance();
         ds = dbAdmin.getDataSource();
     }
