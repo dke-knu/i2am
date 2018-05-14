@@ -121,12 +121,11 @@ class BloomFilter{
     private int bucketSize;
     private String[] hashFunctions;
     private List<Boolean> buckets;
-    private HashFunction hashFunction;
+    private HashFunction hashFunction = new HashFunction();
 
     BloomFilter(int bucketSize, String[] hashFunctions){
         this.bucketSize = bucketSize;
         this.hashFunctions = hashFunctions;
-        hashFunction = new HashFunction();
         buckets = new ArrayList<Boolean>();
 
         for(int i = 0; i < bucketSize; i++){
