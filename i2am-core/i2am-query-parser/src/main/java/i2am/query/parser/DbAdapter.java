@@ -193,8 +193,8 @@ public class DbAdapter {
 		return ret;
 	}
 	
-	public String[] getSchema (String topologyName) {
 		Connection con = null;
+		public String[] getSchema (String topologyName) {
 		Statement stmt = null;
 		String sql = null;
 		
@@ -206,8 +206,9 @@ public class DbAdapter {
 
 			sql = "SELECT COLUMN_NAME FROM tbl_src_csv_schema "
 					+ "WHERE F_SRC = (SELECT IDX FROM tbl_src "
-					+ "WHERE IDX = (SELECT F_SRC FROM tbl_topology "
-					+ "WHERE TOPOLOGY_NAME = '" + topologyName + "')) ORDER BY COLUMN_INDEX DESC";
+					+ "WHERE IDX = (SELECT F_SRC FROM tbl_plan "
+					+ "WHERE IDX = (SELECT F_PLAN FROM tbl_topology "
+					+ "WHERE TOPOLOGY_NAME = '" + topologyName + "'))) ORDER BY COLUMN_INDEX DESC";
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			int rowcount = 0;

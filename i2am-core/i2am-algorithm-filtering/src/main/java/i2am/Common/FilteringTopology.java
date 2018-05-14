@@ -1,15 +1,22 @@
 package i2am.Common;
 
-import i2am.Filtering.BloomFilteringBolt;
-import i2am.Filtering.KalmanFilteringBolt;
-import i2am.Filtering.NoiseRecKalmanFilteringBolt;
-import i2am.Filtering.QueryFilteringBolt;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.kafka.*;
+import org.apache.storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.StringScheme;
+import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.kafka.bolt.KafkaBolt;
 import org.apache.storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper;
 import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
@@ -20,11 +27,13 @@ import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import i2am.Filtering.BloomFilteringBolt;
+import i2am.Filtering.KalmanFilteringBolt;
+import i2am.Filtering.NoiseRecKalmanFilteringBolt;
+import i2am.Filtering.QueryFilteringBolt;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.Protocol;
-
-import java.net.InetSocketAddress;
-import java.util.*;
 
 public class FilteringTopology {
     public static void main(String[] args) throws InvalidTopologyException, AuthorizationException, AlreadyAliveException {
