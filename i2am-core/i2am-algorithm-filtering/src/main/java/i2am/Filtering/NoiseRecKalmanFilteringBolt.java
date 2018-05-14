@@ -62,7 +62,9 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
 
     @Override
     public void execute(Tuple input) {
-        double x_present = Double.parseDouble(input.getString(0));
+        String data = input.getStringByField("data");
+        int targetIndex = input.getIntegerByField("targetIndex");
+        double x_present = Double.parseDouble(input.getStringByField("target"));
         double x_next, P_next, K, z, H = 1;
 
         if(inputData.size() < windowSize) {     // 다음 R 계산을 위해 차곡차곡 담는다
@@ -92,8 +94,20 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
             inputData.clear();
         }
 
-        collector.emit(new Values(Double.toString(x)));
+        String switchedData = switchTarget(data, targetIndex, x);
 
+        collector.emit(new Values(switchedData));
+
+    }
+
+    public String switchTarget(String data, int targetIndex, Double x){
+        String dataArray[] = data.split(",");
+        dataArray[targetIndex] = Double.toString(x);
+        String switchedData = "";
+        for(String string: dataArray){
+            switchedData = switchedData + "," + string;
+        }
+        return switchedData;
     }
 
     @Override
@@ -101,7 +115,6 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
         declarer.declare(new Fields("data"));
     }
 }
-
 
 class RCalculator{
 

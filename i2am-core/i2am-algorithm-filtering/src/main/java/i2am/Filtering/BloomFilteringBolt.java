@@ -90,8 +90,8 @@ public class BloomFilteringBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-        String data = input.getString(0);
-        String target = input.getString(1);
+        String data = input.getStringByField("data");
+        String target = input.getStringByField("target");
         boolean flag = false;
 
         try {
@@ -121,11 +121,12 @@ class BloomFilter{
     private int bucketSize;
     private String[] hashFunctions;
     private List<Boolean> buckets;
-    private HashFunction hashFunction = new HashFunction();
+    private HashFunction hashFunction;
 
     BloomFilter(int bucketSize, String[] hashFunctions){
         this.bucketSize = bucketSize;
         this.hashFunctions = hashFunctions;
+        hashFunction = new HashFunction();
         buckets = new ArrayList<Boolean>();
 
         for(int i = 0; i < bucketSize; i++){

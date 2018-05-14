@@ -37,11 +37,11 @@ public class DeclaringBolt extends BaseRichBolt{
     public void execute(Tuple input) {
         String data = input.getString(0);
         String target = data.split(",")[targetIndex];
-        collector.emit(new Values(data, target));
+        collector.emit(new Values(data, target, targetIndex));
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data", "target"));
+        declarer.declare(new Fields("data", "target", "targetIndex"));
     }
 }

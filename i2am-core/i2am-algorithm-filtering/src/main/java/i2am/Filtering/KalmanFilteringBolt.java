@@ -59,7 +59,9 @@ public class KalmanFilteringBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-        double x_present = Double.parseDouble(input.getString(0));
+        String data = input.getStringByField("data");
+        int targetIndex = input.getIntegerByField("targetIndex");
+        double x_present = Double.parseDouble(input.getStringByField("target"));
         double x_next, P_next, K, z, H = 1;
 
         x_next = x;
@@ -70,8 +72,19 @@ public class KalmanFilteringBolt extends BaseRichBolt {
         x = x_next + K*(z - H*x_next);		// filtered data
         P = (1 - K*H)*P_next;
 
-        collector.emit(new Values(Double.toString(x)));
+       String switchedData = switchTarget(data, targetIndex, x);
 
+        collector.emit(new Values(switchedData));
+    }
+
+    public String switchTarget(String data, int targetIndex, Double x){
+        String dataArray[] = data.split(",");
+        dataArray[targetIndex] = Double.toString(x);
+        String switchedData = "";
+        for(String string: dataArray){
+            switchedData = switchedData + "," + string;
+        }
+        return switchedData;
     }
 
     @Override
