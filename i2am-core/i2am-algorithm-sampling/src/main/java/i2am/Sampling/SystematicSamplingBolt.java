@@ -66,7 +66,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
         if(count == Long.MAX_VALUE) count = 0; // Overflow Exception
 
         count++;
-        String data = input.getString(0);
+        String data = input.getStringByField("data");
 
         /* Systematic Sampling */
         if(count%interval == randomNumber) {

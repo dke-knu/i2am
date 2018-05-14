@@ -24,7 +24,6 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
     private int windowSize;
     private int targetIndex;
     private String topologyName;
-    private DbAdapter dbAdapter;
     private Map<String, Integer> dataMap; // It saves data's weight
 
     /* Redis */
@@ -44,7 +43,6 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
     public PriorityDeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.topologyName = topologyName;
-        dbAdapter = new DbAdapter();
         dataMap = new HashMap<String, Integer>();
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
@@ -63,8 +61,7 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
         }
 
         try {
-            dbAdapter.connect();
-            targetIndex = dbAdapter.getTargetIndex(dbAdapter.getTarget(topologyName));
+            targetIndex = DbAdapter.getInstance().getTargetIndex(DbAdapter.getInstance().getTarget(topologyName));
         } catch (SQLException e) {
             e.printStackTrace();
         }

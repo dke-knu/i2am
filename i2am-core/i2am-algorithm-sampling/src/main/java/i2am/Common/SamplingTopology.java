@@ -88,17 +88,17 @@ public class SamplingTopology {
 
         /* DeclaringBolt */
         if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING")){
-            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new DeclaringBolt(redisKey, jedisClusterConfig), 1)
+            topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("PRIORITY_SAMPLING")){
-            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new PriorityDeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
+            topologyBuilder.setBolt("DECLARING_BOLT", new PriorityDeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
-            topologyBuilder.setBolt("DECLARING_FIELD_BOLT", new BBSDeclaringBolt(redisKey, jedisClusterConfig), 1)
+            topologyBuilder.setBolt("DECLARING_BOLT", new BBSDeclaringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }
@@ -122,22 +122,22 @@ public class SamplingTopology {
                 break;
             case "RESERVOIR_SAMPLING":
                 topologyBuilder.setBolt(algorithmName + "_BOLT", new ReservoirSamplingBolt(redisKey, jedisClusterConfig), 4)
-                        .shuffleGrouping("DECLARING_FIELD_BOLT")
+                        .shuffleGrouping("DECLARING_BOLT")
                         .setNumTasks(4);
                 break;
             case "HASH_SAMPLING":
-                topologyBuilder.setBolt(algorithmName + "_BOLT", new HashSamplingBolt(redisKey, jedisClusterConfig), 4)
-                        .shuffleGrouping("DECLARING_FIELD_BOLT")
+                topologyBuilder.setBolt(algorithmName + "_BOLT", new HashSamplingBolt(topologyName, redisKey, jedisClusterConfig), 4)
+                        .shuffleGrouping("DECLARING_BOLT")
                         .setNumTasks(4);
                 break;
             case "PRIORITY_SAMPLING":
                 topologyBuilder.setBolt(algorithmName + "_BOLT", new PrioritySamplingBolt(redisKey, jedisClusterConfig), 4)
-                        .shuffleGrouping("DECLARING_FIELD_BOLT")
+                        .shuffleGrouping("DECLARING_BOLT")
                         .setNumTasks(4);
                 break;
             case "BINARY_BERNOULLI_SAMPLING":
                 topologyBuilder.setBolt(algorithmName + "_SITE_BOLT", new BBSSiteBolt(), 4)
-                        .shuffleGrouping("DECLARING_FIELD_BOLT")
+                        .shuffleGrouping("DECLARING_BOLT")
                         .setNumTasks(4);
                 topologyBuilder.setBolt(algorithmName + "_BOLT", new BBSCoordinatorBolt(redisKey, jedisClusterConfig), 2)
                         .shuffleGrouping(algorithmName + "_SITE_BOLT")

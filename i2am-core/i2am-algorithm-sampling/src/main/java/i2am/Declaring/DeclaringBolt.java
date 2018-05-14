@@ -21,6 +21,8 @@ import java.util.Map;
 public class DeclaringBolt extends BaseRichBolt {
     private int count;
     private int windowSize;
+    private int targetIndex;
+    private String topologyName;
 
     /* Redis */
     private String redisKey;
@@ -36,8 +38,9 @@ public class DeclaringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(DeclaringBolt.class);
 
-    public DeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public DeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
+        this.topologyName = topologyName;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -54,6 +57,12 @@ public class DeclaringBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        try {
+            targetIndex = DbAdapter.getInstance().getTargetIndex(DbAdapter.getInstance().getTarget(topologyName));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         windowSize = Integer.parseInt(jedisCommands.hget(redisKey, windowSizeKey));
     }
 
@@ -61,7 +70,8 @@ public class DeclaringBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         count++;
         String data = input.getString(0);
-        collector.emit(new Values(data, count));
+        String target = data.split(",")[targetIndex];
+        collector.emit(new Values(data, count, target));
 
         if(count == windowSize){
             count = 0;
@@ -70,6 +80,6 @@ public class DeclaringBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data", "count"));
+        declarer.declare(new Fields("data", "count", "target"));
     }
 }

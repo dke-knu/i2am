@@ -69,7 +69,7 @@ public class KSampleBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple input) {
 
-        String data = input.getString(0);
+        String data = input.getStringByField("data");
         count++;
         double slot;
         double prob=0.0;
