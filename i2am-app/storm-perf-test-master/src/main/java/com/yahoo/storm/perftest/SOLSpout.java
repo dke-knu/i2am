@@ -25,6 +25,7 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichSpout;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.utils.Utils;
 
 public class SOLSpout extends BaseRichSpout {
   private int _sizeInBytes;
@@ -69,6 +70,7 @@ public class SOLSpout extends BaseRichSpout {
 
   @Override
   public void nextTuple() {
+	Utils.sleep(1);
     final String message = _messages[_rand.nextInt(_messages.length)];
     if(_ackEnabled) {
       _collector.emit(new Values(message), _messageCount);

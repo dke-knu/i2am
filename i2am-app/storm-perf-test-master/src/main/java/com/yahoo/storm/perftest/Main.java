@@ -16,7 +16,9 @@
 
 package com.yahoo.storm.perftest;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +108,7 @@ public class Main {
   }
 
   public void metrics(Nimbus.Client client, int size, int poll, int total) throws Exception {
-    System.out.println("status\ttopologies\ttotalSlots\tslotsUsed\ttotalExecutors\texecutorsWithMetrics\ttime\ttime-diff ms\ttransferred\tthroughput (MB/s)\ttotal Failed");
+    System.out.println("status topologies\ttotalSlots\tslotsUsed\ttotalExecutors\texecutorsWithMetrics\ttime\ttime-diff ms\ttransferred\tthroughput (MB/s)\ttotal Failed\tCL(ms)");
     MetricsState state = new MetricsState();
     long pollMs = poll * 1000;
     long now = System.currentTimeMillis();
@@ -163,6 +165,7 @@ public class Main {
     state.slotsUsed = totalUsedSlots;
 
     int numTopologies = summary.get_topologies_size();
+    double compLat = 0.0D;
     long totalTransferred = 0;
     int totalExecutors = 0;
     int executorsWithMetrics = 0;
@@ -176,6 +179,7 @@ public class Main {
         if (stats != null) {
           if (stats.get_specific().is_set_spout()) {
             SpoutStats ss = stats.get_specific().get_spout();
+            compLat = getSpoutStatDoubleValueFromMap(ss.get_complete_ms_avg(), ":all-time").doubleValue();
             Map<String, Long> failedMap = ss.get_failed().get(":all-time");
             if (failedMap != null) {
               for (String key: failedMap.keySet()) {
@@ -205,13 +209,26 @@ public class Main {
     long transferredDiff = totalTransferred - state.transferred;
     state.transferred = totalTransferred;
     double throughput = (transferredDiff == 0 || time == 0) ? 0.0 : (transferredDiff * size)/(1024.0 * 1024.0)/(time/1000.0);
-    System.out.println(message+"\t"+numTopologies+"\t"+totalSlots+"\t"+totalUsedSlots+"\t"+totalExecutors+"\t"+executorsWithMetrics+"\t"+now+"\t"+time+"\t"+transferredDiff+"\t"+throughput+"\t"+totalFailed);
+    throughput = Math.round(throughput*10000d)/10000d;
+    compLat = Double.parseDouble(String.format("%.2f", new Object[] { Double.valueOf(compLat) }));
+    System.out.println(message+"\t\t"+numTopologies+"\t"+totalSlots+"\t\t"+totalUsedSlots+"\t\t"+totalExecutors+"\t\t"+executorsWithMetrics+"\t\t"+now+"\t"+time+"\t\t"+transferredDiff+"\t\t"+throughput+"\t\t"+totalFailed +"\t\t" + compLat);
     if ("WAITING".equals(message)) {
       //System.err.println(" !("+totalUsedSlots+" > 0 && "+slotsUsedDiff+" == 0 && "+totalExecutors+" > 0 && "+executorsWithMetrics+" >= "+totalExecutors+")");
     }
     return !(totalUsedSlots > 0 && slotsUsedDiff == 0 && totalExecutors > 0 && executorsWithMetrics >= totalExecutors);
   } 
-
+  public static Double getSpoutStatDoubleValueFromMap(Map<String, Map<String, Double>> map, String statName) {
+	    Double statValue = Double.valueOf(0.0D);
+	    Map intermediateMap = (Map)map.get(statName);
+	    if (intermediateMap != null) {
+	      Set key = intermediateMap.keySet();
+	      if (key.size() > 0) {
+	        Iterator itr = key.iterator();
+	        statValue = (Double)intermediateMap.get(itr.next());
+	      }
+	    }
+	    return statValue;
+	  }
  
   public void realMain(String[] args) throws Exception {
     Map clusterConf = Utils.readStormConfig();
