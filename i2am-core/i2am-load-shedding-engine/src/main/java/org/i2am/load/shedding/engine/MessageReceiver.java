@@ -62,7 +62,7 @@ public class MessageReceiver implements Runnable {
             this.map = map;
         }
 
-        @Override
+//        @Override
         public void run() {
             // parsing
             try {

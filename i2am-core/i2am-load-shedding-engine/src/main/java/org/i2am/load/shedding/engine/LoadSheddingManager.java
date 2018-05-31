@@ -222,7 +222,7 @@ public class LoadSheddingManager {
         new Thread(messageReceiver).start();
 
 //        loadSheddingByTopic();
-//        loadSheddingAllTopic();
+        loadSheddingAllTopic();
 
         double varThreshold = 100000.0;
         int winSize = 4;
