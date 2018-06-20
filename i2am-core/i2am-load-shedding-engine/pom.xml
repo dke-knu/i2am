@@ -10,11 +10,27 @@
   <groupId>i2am-load-shedding-engine</groupId>
   <artifactId>i2am-load-shedding-engine</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <name>i2am-load-shedding-engine</name>
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

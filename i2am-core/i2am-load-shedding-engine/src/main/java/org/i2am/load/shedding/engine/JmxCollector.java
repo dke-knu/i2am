@@ -74,8 +74,10 @@ public class JmxCollector {
             if (count < 1) {
                 count++;
                 val = Long.parseLong(tmp);
+//                System.out.print("bytesInPerSec: "+val);
             } else {
                 val -= Long.parseLong(tmp);
+//                System.out.println(" | bytesOutPerSec: "+tmp);
                 break;
             }
         }

@@ -8,7 +8,6 @@ public class LoadSheddingManager {
     //for all topics loadshedding
     private static boolean totalSwitch = false;
 
-
     private static Map<String, String> conf = new HashMap<String, String>();
 
     public LoadSheddingManager(Map conf) {
@@ -32,7 +31,6 @@ public class LoadSheddingManager {
         threshold = calculateThreshold();
 
         while (true) {
-
             JmxCollector collector = new JmxCollector(conf.get("hosts"));
             long topicThreshold = threshold / jmxTopics.size();
             Set<String> keySet = jmxTopics.keySet();
@@ -56,13 +54,16 @@ public class LoadSheddingManager {
 
         while (true) {
             totalcurrentJmx = collector.collectJmx();
-            System.out.println("total: " + totalcurrentJmx);
+//            System.out.println("total: " + totalcurrentJmx);
+            System.out.println(totalcurrentJmx);
+
 
             totalSwitch = loadSheddingCheck(threshold, totalcurrentJmx, totalSwitch);
             Thread.sleep(1000);
         }
     }
 
+    //전체
     public boolean loadSheddingCheck(double threshold, double curJmx, boolean dbSwitch){
         if (curJmx > threshold && !dbSwitch) {
             System.out.println("[LOADSHEDDING ON!]");
@@ -76,7 +77,7 @@ public class LoadSheddingManager {
         }
         return dbSwitch;
     }
-
+    //토픽별
     public void loadSheddingCheck(double threshold, double curJmx, boolean dbSwitch, String topic){
         if (curJmx > threshold && !dbSwitch) {
             System.out.println("[LOADSHEDDING ON!]");
@@ -112,10 +113,10 @@ public class LoadSheddingManager {
                 curVar = (double) sumJmx / winSize;
             }
             var = curVar - preVar;
-            System.out.println("winSize: " + window.size() + ", curVar: " + curVar + ", currentJmx: " + currentJmx + ", sum: " + sumJmx + ", var: " + var);
+//            System.out.println("windowSize: "+window.size()+", preVar: " + preVar + ", curVar: " + curVar + ", var: " + var);
+            System.out.println(var);
 
-            totalSwitch = loadSheddingCheck(varThreshold, curVar, totalSwitch);
-
+            totalSwitch = loadSheddingCheck(varThreshold, var, totalSwitch);
             preVar = curVar;
             Thread.sleep(1000);
         }
@@ -160,15 +161,12 @@ public class LoadSheddingManager {
 
                 var = curVar - tmp.preVar;
 
-                System.out.println("[" + topic + "] winSize: " + tmp.window.size() + ", curVar: " + curVar + ", currentJmx: " + currentJmx + ", sum: " + tmp.sumJmx + ", var: " + var);
-
-                loadSheddingCheck(varThreshold, curVar, jmxTopics.get(topic), topic);
-
+                System.out.println("[" + topic + "] winSize: " + tmp.window.size() + ", preVar: " + tmp.preVar + ", curVar: " + curVar + ", var: " + var);
+                loadSheddingCheck(varThreshold, var, jmxTopics.get(topic), topic);
                 tmp.preVar = curVar;
             }
             Thread.sleep(1000);
         }
-
     }
 
     public static void main(String args[]) throws Exception {
@@ -183,8 +181,8 @@ public class LoadSheddingManager {
         conf.put("user", "root");
         conf.put("password", "1234");
         // for JMX
-//        conf.put("hosts", "192.168.56.100,192.168.56.101,192.168.56.102");
-        conf.put("hosts", "192.168.56.100");
+        conf.put("hosts", "192.168.56.100,192.168.56.101,192.168.56.102");
+//        conf.put("hosts", "192.168.56.100,192.168.56.102");
 
         LoadSheddingManager lsm = new LoadSheddingManager(conf);
 
@@ -206,7 +204,5 @@ public class LoadSheddingManager {
         int winSize = 4;
 //        loadSheddingVarAll(varThreshold, winSize);
 //        loadSheddingVarByTopic(varThreshold, winSize);
-
     }
-
 }
