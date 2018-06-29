@@ -1,5 +1,6 @@
 package i2am.metadata;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -34,7 +35,10 @@ public class PropertiesFactory {
 		if(props == null) {
 			props = new Properties();
 			try {
-				props.load(new FileInputStream("../config/metadb.properties"));
+				String workingPath = System.getProperty("user.dir");
+				props.load(new FileInputStream(workingPath.substring(0, 
+							(workingPath.lastIndexOf("i2am-core")+"i2am-core".length())) 
+						+ "/config/metadb.properties"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
