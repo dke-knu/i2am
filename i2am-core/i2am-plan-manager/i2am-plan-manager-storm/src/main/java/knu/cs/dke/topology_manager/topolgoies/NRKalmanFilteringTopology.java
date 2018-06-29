@@ -11,13 +11,15 @@ import org.apache.storm.thrift.transport.TTransportException;
 public class NRKalmanFilteringTopology extends ASamplingFilteringTopology {
 	
 	private double q_val;	
-
+	private int target;
+	
 	private RemoteStormController storm;
 
-	public NRKalmanFilteringTopology(String createdTime, String plan, int index, String topologyType, Double q_val) throws TTransportException {
+	public NRKalmanFilteringTopology(String createdTime, String plan, int index, String topologyType, Double q_val, int target) throws TTransportException {
 		super(createdTime, plan, index, topologyType);
 
 		this.q_val = q_val;		
+		this.target = target;
 		storm = new RemoteStormController();
 	}
 
@@ -52,5 +54,13 @@ public class NRKalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	public void setQ_val(double q_val) {
 		this.q_val = q_val;
+	}
+
+	public int getTarget() {
+		return target;
+	}
+
+	public void setTarget(int target) {
+		this.target = target;
 	}
 }

@@ -1,5 +1,6 @@
 package knu.cs.dke.topology_manager.sources;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public abstract class Source extends Thread {
@@ -16,7 +17,7 @@ public abstract class Source extends Thread {
 	private String transTopic;	
 	
 	// Data Scheme
-	private SourceSchema[] data;
+	private ArrayList<SourceSchema> data;
 	
 	// Option 1: Intelligent Engine.	
 	private String useIntelliEngine;
@@ -30,7 +31,7 @@ public abstract class Source extends Thread {
 	// Option 3: ConceptDrift
 	private String useConceptDrift;
 	
-	public Source(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public Source(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine) {
 		
 		// Required
@@ -58,7 +59,7 @@ public abstract class Source extends Thread {
 		this.useConceptDrift = useConceptDrift;
 	}	
 	
-	public Source(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public Source(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target) {
 		
 		// Required
@@ -175,16 +176,15 @@ public abstract class Source extends Thread {
 	}
 
 
-	public SourceSchema[] getData() {
+	public ArrayList<SourceSchema> getData() {
 		return data;
 	}
 
 
-	public void setData(SourceSchema[] data) {
+	public void setData(ArrayList<SourceSchema> data) {
 		this.data = data;
 	}
-
-
+	
 	public String getTarget() {
 		return target;
 	}

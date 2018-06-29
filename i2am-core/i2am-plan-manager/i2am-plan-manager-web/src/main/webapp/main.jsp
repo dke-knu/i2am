@@ -83,10 +83,10 @@ $(document).ready(function() {
 
 
 	<div id="navbar">
-		<a href="#" id="home"> Home </a>
-		<a href="#" id="plan"> Plan </a>
+		<a href="#" id="home"> Home </a>		
 		<a href="#" id="source"> Source </a>
 		<a href="#" id="destination"> Destination </a>
+		<a href="#" id="plan"> Plan </a>
 		<div id="dropdown">
 			<button id="dropbtn">Resource
 				<i class="fa fa-caret-down"></i>

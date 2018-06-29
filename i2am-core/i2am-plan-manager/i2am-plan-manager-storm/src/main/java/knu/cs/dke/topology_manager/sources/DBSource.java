@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -19,7 +20,7 @@ public class DBSource extends Source {
 	private String dbName;	
 	private String query;	
 	
-	public DBSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public DBSource(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine,
 			String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery)
 	{
@@ -33,7 +34,7 @@ public class DBSource extends Source {
 		this.query = dbQuery;		
 	}
 
-	public DBSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public DBSource(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target,
 			String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery)
 	{

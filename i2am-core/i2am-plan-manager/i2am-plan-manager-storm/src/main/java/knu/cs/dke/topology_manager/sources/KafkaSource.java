@@ -1,5 +1,6 @@
 package knu.cs.dke.topology_manager.sources;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Timer;
@@ -22,7 +23,7 @@ public class KafkaSource extends Source {
 	private boolean status;
 	
 	// Create Kafka Source
-	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine,
 			String zookeeperIp, String zookeeperPort, String topic)
 	{
@@ -33,7 +34,7 @@ public class KafkaSource extends Source {
 		this.topic = topic;		
 	}
 	
-	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, SourceSchema[] data,
+	public KafkaSource(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine, String testData, String target,
 			String zookeeperIp, String zookeeperPort, String topic)
 	{

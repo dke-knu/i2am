@@ -32,21 +32,29 @@ public class SourceList {
 	}
 	
 	public synchronized boolean add(Source source) {
-		if (mSources.containsKey(source.getSourceName())) return false;
-		mSources.put(source.getSourceName(), source);
+		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (mSources.containsKey(srcId)) return false;
+		mSources.put(srcId, source);
 		return true;
 	}
 	
 	public synchronized boolean remove(Source source) {
-		if (!mSources.containsKey(source.getSourceName())) return false;
-		mSources.remove(source.getSourceName());
+		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (!mSources.containsKey(srcId)) return false;
+		mSources.remove(srcId);
 		return true;
 	}
 	
-	public synchronized boolean set(Source source) {		
+	public synchronized boolean set(Source source) {	
 		// 값이 있으면 Update, 없으면 Add 됨..
-		if (!mSources.containsKey(source.getSourceName())) return false;
-		mSources.put(source.getSourceName(), source);		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (!mSources.containsKey(srcId)) return false;
+		mSources.put(srcId, source);		
 		return true;
 	}
 	
@@ -61,11 +69,14 @@ public class SourceList {
 				
 		int i = 0;
 		for(String key: mSources.keySet()) {			
-			System.out.println("[Source. " + i);
+			System.out.println("[Source " + i + "]");
 			System.out.println("Source Name: " + key);
-			System.out.println("Status: " + mSources.get(key).getStatus());
+			System.out.println("Source Type: " + mSources.get(key).getSrcType());
 			System.out.println("Thread Name: " + mSources.get(key).getName());
 			System.out.println("Thread Status: " + mSources.get(key).isAlive());
+			System.out.println("Status: " + mSources.get(key).getStatus());		
+			System.out.println("'");
+			i++;
 		}
 	}
 }

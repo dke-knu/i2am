@@ -11,6 +11,7 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" type="text/css" href="css/home.css">
 
 <title>I2AM</title>
@@ -26,12 +27,12 @@
 		
 		<br><br><br>
 		
-		<p><img class="logo" src="./img/logo_i2am.png" width=10%></img></p>
+		<p><i class='fa fa-cog logo'></i></p>
 		
 		<br><br><br>			
 		<br><br><br>
 				
-		<a href="index.jsp"><button>Start now!</button></a>	
+		<a href="index.jsp"><button type="button" class="newbutton">Start now!</button></a>	
 		
 	</div>
 	

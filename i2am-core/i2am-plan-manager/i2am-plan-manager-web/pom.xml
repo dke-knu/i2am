@@ -33,9 +33,18 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
 		</dependency>
+			
+		<dependency>
+        	<groupId>i2am</groupId>
+			<artifactId>i2am-metadata</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+        </dependency>
 
 	</dependencies>
 	<build>
 		<finalName>i2am-plan-manager-web</finalName>
 	</build>
+	
 </project>

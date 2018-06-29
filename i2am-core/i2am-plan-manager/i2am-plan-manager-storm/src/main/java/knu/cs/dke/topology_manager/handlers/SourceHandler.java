@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -90,7 +91,7 @@ public class SourceHandler {
 		
 		// Data Schema!!
 		JSONArray columns = (JSONArray) content.get("dataScheme");
-		SourceSchema[] data = new SourceSchema[columns.size()]; 
+		ArrayList<SourceSchema> data = new ArrayList<SourceSchema>();
 		
 		for(int i=0; i<columns.size(); i++) {
 			
@@ -99,7 +100,7 @@ public class SourceHandler {
 			
 			SourceSchema temp = new SourceSchema(Integer.parseInt((String) column.get("column_index")), (String) column.get("column_name"), (String) column.get("column_type"));
 			
-			data[i] = temp;
+			data.add(temp);
 		}
 
 		// Source Type.
@@ -124,7 +125,7 @@ public class SourceHandler {
 			// List에 저장☆
 			sources.add(source);
 			// DB Adapter로 DB에 저장★
-			DbAdapter db = new DbAdapter();
+			DbAdapter db = DbAdapter.getInstance();
 			db.addSource(source);			
 			break;
 
@@ -149,7 +150,7 @@ public class SourceHandler {
 			// List에 저장☆
 			sources.add(source);
 			// DB Adapter로 DB에 저장★
-			DbAdapter dbdb = new DbAdapter();
+			DbAdapter dbdb = DbAdapter.getInstance();
 			dbdb.addSource(source);	
 
 			break;
@@ -167,7 +168,7 @@ public class SourceHandler {
 
 			sources.add(source);
 			// DB Adapter로 DB에 저장★
-			DbAdapter customDb = new DbAdapter();
+			DbAdapter customDb = DbAdapter.getInstance();
 			customDb.addSource(source);
 
 			break;
@@ -177,65 +178,65 @@ public class SourceHandler {
 			break;
 		}		
 
-		// 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
-		// Concept Drift 엔진에 전송
-		if(intelliEngine.equals("Y")) {
-
-			// "user-id", "src-name"
-			// String message = source.getOwner() + "," + source.getSourceName();
-
-			// JSON
-			JSONObject message = new JSONObject();
-			message.put("message", "new-src");
-			message.put("user-id", source.getOwner());
-			message.put("src-name", source.getSourceName());			
-
-			Socket socket = null;
-			OutputStream os = null;
-			OutputStreamWriter osw = null;
-			BufferedWriter bw = null;
-
-			Socket socket2 = null;
-			OutputStream os2 = null;
-			OutputStreamWriter osw2 = null;
-			BufferedWriter bw2 = null;
-
-			try {
-				// Intelligent Engine.
-				socket = new Socket("MN", 7979);
-				os = socket.getOutputStream();
-				osw = new OutputStreamWriter(os);
-				bw = new BufferedWriter(osw);
-				bw.write(message.toJSONString());
-
-				// Concept Drift.
-				// 165.132.214.219 39393
-				socket2 = new Socket("165.132.214.219", 39393);
-				os2 = socket2.getOutputStream();
-				osw2 = new OutputStreamWriter(os2);
-				bw2 = new BufferedWriter(osw2);
-				bw2.write(message.toJSONString());
-			}
-			catch (Exception e ) {
-				e.printStackTrace();
-			}
-			finally {
-				try {
-					bw.close();
-					osw.close();
-					os.close();
-					socket.close();
-
-					bw2.close();
-					osw2.close();
-					os2.close();
-					socket2.close();
-				}
-				catch(Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}		
+//		// 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
+//		// Concept Drift 엔진에 전송
+//		if(intelliEngine.equals("Y")) {
+//
+//			// "user-id", "src-name"
+//			// String message = source.getOwner() + "," + source.getSourceName();
+//
+//			// JSON
+//			JSONObject message = new JSONObject();
+//			message.put("message", "new-src");
+//			message.put("user-id", source.getOwner());
+//			message.put("src-name", source.getSourceName());			
+//
+//			Socket socket = null;
+//			OutputStream os = null;
+//			OutputStreamWriter osw = null;
+//			BufferedWriter bw = null;
+//
+//			Socket socket2 = null;
+//			OutputStream os2 = null;
+//			OutputStreamWriter osw2 = null;
+//			BufferedWriter bw2 = null;
+//
+//			try {
+//				// Intelligent Engine.
+//				socket = new Socket("MN", 7979);
+//				os = socket.getOutputStream();
+//				osw = new OutputStreamWriter(os);
+//				bw = new BufferedWriter(osw);
+//				bw.write(message.toJSONString());
+//
+//				// Concept Drift.
+//				// 165.132.214.219 39393
+//				socket2 = new Socket("165.132.214.219", 39393);
+//				os2 = socket2.getOutputStream();
+//				osw2 = new OutputStreamWriter(os2);
+//				bw2 = new BufferedWriter(osw2);
+//				bw2.write(message.toJSONString());
+//			}
+//			catch (Exception e ) {
+//				e.printStackTrace();
+//			}
+//			finally {
+//				try {
+//					bw.close();
+//					osw.close();
+//					os.close();
+//					socket.close();
+//
+//					bw2.close();
+//					osw2.close();
+//					os2.close();
+//					socket2.close();
+//				}
+//				catch(Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}		
 	}
 
 	public void destroySource(String sourceKey) {
@@ -265,7 +266,7 @@ public class SourceHandler {
 		Source source = sources.get(name);
 		source.setStatus("ACTIVE");			
 
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.changeSourceStatus(source);
 
 		sources.set(source);
@@ -330,7 +331,7 @@ public class SourceHandler {
 		Source source = sources.get(name);
 		source.setStatus("DEACTIVE");		
 
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.changeSourceStatus(source);
 
 		// Thread Stop.				

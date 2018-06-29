@@ -42,7 +42,6 @@ public class RedisAdapter {
 
 	protected RedisAdapter() {}
 
-
 	private JedisCluster jedis;
 
 	protected JedisCluster getConnection() {

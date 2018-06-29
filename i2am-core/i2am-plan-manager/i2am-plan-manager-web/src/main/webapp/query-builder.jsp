@@ -17,14 +17,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.3.0/bootbox.min.js"></script>  
 <script src="http://querybuilder.js.org/assets/js/docs.min.js"></script>
 <script src="http://querybuilder.js.org/assets/js/script.js"></script>
-
-
 </head>
 
-<body>
-
-
-  
+<body>  
   <div class="col-md-12">
     <div id="builder-basic"></div>
 

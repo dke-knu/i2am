@@ -40,8 +40,7 @@ public class Plan {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
-			topology.submitTopology();
-			
+			topology.submitTopology();			
 		}
 		submitted = true;
 	}
@@ -141,4 +140,5 @@ public class Plan {
 	public List<ASamplingFilteringTopology> getTopologies() {
 		return this.lTopologies;
 	}
+
 }

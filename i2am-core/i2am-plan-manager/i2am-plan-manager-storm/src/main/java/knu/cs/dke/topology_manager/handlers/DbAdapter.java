@@ -1,20 +1,31 @@
 package knu.cs.dke.topology_manager.handlers;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import i2am.metadata.DbAdmin;
+import knu.cs.dke.topology_manager.DestinationList;
 import knu.cs.dke.topology_manager.Plan;
+import knu.cs.dke.topology_manager.SourceList;
+import knu.cs.dke.topology_manager.destinations.CustomDestination;
 import knu.cs.dke.topology_manager.destinations.DBDestination;
 import knu.cs.dke.topology_manager.destinations.Destination;
 import knu.cs.dke.topology_manager.destinations.KafkaDestination;
+import knu.cs.dke.topology_manager.sources.CustomSource;
 import knu.cs.dke.topology_manager.sources.DBSource;
 import knu.cs.dke.topology_manager.sources.KafkaSource;
 import knu.cs.dke.topology_manager.sources.Source;
 import knu.cs.dke.topology_manager.sources.SourceSchema;
+import knu.cs.dke.topology_manager.sources.TestData;
 import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.BloomFilteringTopology;
@@ -33,8 +44,8 @@ public class DbAdapter {
 
 	private static final Class<?> klass = (new Object() {
 	}).getClass().getEnclosingClass();
-	//   private static final Log logger = LogFactory.getLog(klass);
-
+	private static final Log logger = LogFactory.getLog(klass);
+	 
 	// singleton
 	private volatile static DbAdapter instance;
 	public static DbAdapter getInstance() {
@@ -48,31 +59,12 @@ public class DbAdapter {
 		return instance;
 	}
 
-	protected DbAdapter() {}
+	private final DbAdmin dbAdmin;
+	private final DataSource ds;
 
-	private Connection cn;
-
-	protected Connection getConnection() throws SQLException {
-
-		String driverName = "org.mariadb.jdbc.Driver";
-		String url = "jdbc:mariadb://" + "114.70.235.43" + ":" + "3306" + "/i2am";
-		String user = "plan-manager"/* USER */;
-		String password = "dke214"/* PASSWD */;
-
-		try {
-			Class.forName(driverName);
-			this.cn = DriverManager.getConnection(url, user, password);
-		} catch (ClassNotFoundException e) {
-			System.out.println("Load error: " + e.getStackTrace());
-		} catch (SQLException e) {
-			System.out.println("Connection error: " + e.getStackTrace());
-		}
-
-		return cn;
-	}
-
-	protected void close(Connection con) throws SQLException {
-		con.close();
+	private DbAdapter() {
+		dbAdmin = DbAdmin.getInstance();
+		ds = dbAdmin.getDataSource();
 	}
 
 	/*
@@ -83,7 +75,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT * FROM TBL_USER " + "WHERE ID='" + id + "' AND PASSWORD='" + pw +"'";
@@ -98,7 +90,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -113,10 +105,10 @@ public class DbAdapter {
 		Statement stmt = null;
 
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
-			// user 테이블에서 [이름]으로 [IDX]가져오기
+			// user 테이블에서 [이름(메일)]으로 [IDX]가져오기
 			String owner = source.getOwner();
 			String ownerQuery = "SELECT IDX FROM tbl_user WHERE ID = '" + owner + "'";
 			ResultSet ownerIdx = stmt.executeQuery(ownerQuery);
@@ -164,8 +156,9 @@ public class DbAdapter {
 
 			ResultSet insert = stmt.executeQuery(insertSource);			
 
-			// Source에서 Index 가져오기 [이름으로]
-			String last = "SELECT IDX FROM tbl_src WHERE NAME = " + "'" + source.getSourceName() +"'";
+			// Source에서 Index 가져오기 [name] + [owner]로! 
+			String last = "SELECT IDX FROM tbl_src WHERE NAME = " + "'" + source.getSourceName() +"'"
+							+ "AND F_OWNER =" + ownerNumber;
 			ResultSet idx = stmt.executeQuery(last);
 			idx.next();
 			int sourceNumber = ((Number) idx.getObject(1)).intValue();
@@ -211,16 +204,16 @@ public class DbAdapter {
 			}
 
 			// src_csv_schema 추가 + target 정보 가져오기			
-			SourceSchema[] data = source.getData();
+			ArrayList<SourceSchema> data = source.getData();
 			
-			for(int i=0; i<data.length; i++) {
+			for(int i=0; i<data.size(); i++) {
 				
 				String insertScheme ="INSERT INTO tbl_src_csv_schema "
 									+ "VALUES ("
 									+ "'0',"
-									+ "'" + data[i].getColumnIndex() + "',"
-									+ "'" + data[i].getColumnName() + "',"
-									+ "'" + data[i].getColumnType() + "',"
+									+ "'" + data.get(i).getColumnIndex() + "',"
+									+ "'" + data.get(i).getColumnName() + "',"
+									+ "'" + data.get(i).getColumnType() + "',"
 									+ "'" + sourceNumber + "'"
 									+ ")";
 				
@@ -262,7 +255,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -277,7 +270,7 @@ public class DbAdapter {
 		Statement stmt = null;
 
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			// Get User.
@@ -289,18 +282,18 @@ public class DbAdapter {
 
 			// Get Source.
 			String source = plan.getSource();
-			String sourceQuery = "SELECT IDX FROM tbl_src WHERE NAME = '" + source + "'";
+			String sourceQuery = "SELECT IDX FROM tbl_src WHERE NAME = '" + source + "'" + " AND F_OWNER ='" + ownerNumber + "'";
 			ResultSet sourceIdx = stmt.executeQuery(sourceQuery);
 			sourceIdx.next();
 			int sourceNumber = ((Number) sourceIdx.getObject(1)).intValue();
 
 			// Get Destination.
 			String destination = plan.getDestination();
-			String destinationQuery = "SELECT IDX FROM tbl_dst WHERE NAME = '" + destination + "'";
+			String destinationQuery = "SELECT IDX FROM tbl_dst WHERE NAME = '" + destination + "'" + " AND F_OWNER ='" + ownerNumber + "'";;
 			ResultSet destinationIdx = stmt.executeQuery(destinationQuery);
 			destinationIdx.next();
-			int destinationNumber = ((Number) destinationIdx.getObject(1)).intValue();
-
+			int destinationNumber = ((Number) destinationIdx.getObject(1)).intValue();		
+			
 			// Plan			
 			String planQuery = "INSERT INTO tbl_plan "
 					+ "VALUES ("
@@ -315,6 +308,8 @@ public class DbAdapter {
 					+ ")";
 			ResultSet insertPlan = stmt.executeQuery(planQuery);
 
+			System.out.println("[DBAdapter] 플랜 입력 됨");
+			
 			// Topology!
 			List<ASamplingFilteringTopology> topologies = plan.getTopologies();			
 
@@ -349,7 +344,7 @@ public class DbAdapter {
 						+ ")";
 
 				ResultSet insertTopology = stmt.executeQuery(topologyQuery) ;
-
+				
 				// 이제 Type에 맞춰 Parameter Table에 값을 넣으세요!
 				// 자신에 해당하는 Topology를 찾으려면
 				// Plan & Topology Index 일치				
@@ -360,6 +355,11 @@ public class DbAdapter {
 				topologyIdx.next();
 				int topologyNumber = ((Number) topologyIdx.getObject(1)).intValue();
 
+				// Target
+				String targetQuery = "";
+				ResultSet targetIdx;
+				int targetNumber = -1;
+				
 				switch(topology.getTopologyType()) {
 
 				case "BINARY_BERNOULLI_SAMPLING":
@@ -379,11 +379,18 @@ public class DbAdapter {
 
 				case "HASH_SAMPLING":
 
-					HashSamplingTopology hss = (HashSamplingTopology) topology;					
+					HashSamplingTopology hss = (HashSamplingTopology) topology;	
+					
+					targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE F_SRC =" + sourceNumber + " AND COLUMN_INDEX = " + hss.getTarget();
+					targetIdx = stmt.executeQuery(targetQuery);
+					targetIdx.next();
+					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
+					
 					String hash_Query = "INSERT INTO tbl_params_hash_sampling "
 							+ "VALUES ("
 							+ "'0',"
-							+ "'" + topologyNumber + "',"							
+							+ "'" + topologyNumber + "',"		
+							+ "'" + targetNumber + "',"
 							+ "'" + hss.getSampleSize() + "',"
 							+ "'" + hss.getWindowSize() + "',"
 							+ "'" + "DEFAULT" + "'" // Hash Function							
@@ -395,10 +402,17 @@ public class DbAdapter {
 				case "KALMAN_FILTERING":
 
 					KalmanFilteringTopology kft = (KalmanFilteringTopology) topology;
+					
+					targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE F_SRC =" + sourceNumber + " AND COLUMN_INDEX = " + kft.getTarget();
+					targetIdx = stmt.executeQuery(targetQuery);
+					targetIdx.next();
+					targetNumber = ((Number) targetIdx.getObject(1)).intValue();					
+					
 					String kalman_query = "INSERT INTO tbl_params_kalman_filtering "
 							+ "VALUES ("
 							+ "'0',"
 							+ "'" + topologyNumber + "',"
+							+ "'" + targetNumber + "',"
 							+ "'" + kft.getQ_val() + "',"
 							+ "'" + kft.getR_val() + "'"
 							+ ")";
@@ -411,6 +425,7 @@ public class DbAdapter {
 					String k_query = "INSERT INTO tbl_params_k_sampling "
 							+ "VALUES ("
 							+ "'0',"
+							+ "'" + topologyNumber + "',"
 							+ "'" + kst.getSamplingRate() + "'"
 							+ ")";					
 					ResultSet k_paramsResult = stmt.executeQuery(k_query);
@@ -446,10 +461,16 @@ public class DbAdapter {
 					
 					PrioritySamplingTopology pst = (PrioritySamplingTopology) topology; 
 
+					targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE F_SRC =" + sourceNumber + " AND COLUMN_INDEX = " + pst.getTarget();
+					targetIdx = stmt.executeQuery(targetQuery);
+					targetIdx.next();
+					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
+					
 					String priority_Query ="INSERT INTO tbl_params_priority_sampling "
 							+ "VALUES ("
 							+ "'0',"
 							+ "'" + topologyNumber + "',"
+							+ "'" + targetNumber + "',"
 							+ "'" + pst.getSampleSize() + "',"
 							+ "'" + pst.getWindowSize() + "'"					
 							+ ")";
@@ -474,10 +495,16 @@ public class DbAdapter {
 					
 					BloomFilteringTopology blf = (BloomFilteringTopology) topology;
 
+					targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE F_SRC =" + sourceNumber + " AND COLUMN_INDEX = " + blf.getTarget();
+					targetIdx = stmt.executeQuery(targetQuery);
+					targetIdx.next();
+					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
+					
 					String bloom_Query = "INSERT INTO tbl_params_bloom_filtering "
 							+ "VALUES ("
 							+ "'0',"
 							+ "'" + topologyNumber + "',"
+							+ "'" + targetNumber + "',"
 							+ "'" + blf.getBucketSize() + "',"
 							+ "'" + blf.getKeywords() + "'"
 							+ ")";
@@ -488,10 +515,16 @@ public class DbAdapter {
 					
 					NRKalmanFilteringTopology nrkf = (NRKalmanFilteringTopology) topology;
 
+					targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE F_SRC =" + sourceNumber + " AND COLUMN_INDEX = " + nrkf.getTarget();
+					targetIdx = stmt.executeQuery(targetQuery);
+					targetIdx.next();
+					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
+					
 					String nr_kalman_query = "INSERT INTO tbl_params_noise_recommend_kalman_filtering "
 							+ "VALUES ("
 							+ "'0',"
-							+ "'" + topologyNumber + "',"							
+							+ "'" + topologyNumber + "',"		
+							+ "'" + targetNumber + "',"
 							+ "'" + nrkf.getQ_val() + "'"
 							+ ")";
 					ResultSet nr_kalman_paramsResult = stmt.executeQuery(nr_kalman_query);
@@ -530,7 +563,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -545,7 +578,7 @@ public class DbAdapter {
 		Statement stmt = null;
 
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			// user 테이블에서 [이름]으로 [IDX]가져오기
@@ -627,7 +660,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -643,7 +676,7 @@ public class DbAdapter {
 
 		try {
 
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			String status = plan.getStatus();
@@ -662,7 +695,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -678,7 +711,7 @@ public class DbAdapter {
 
 		try {
 
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			String status = source.getStatus();
@@ -697,7 +730,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -714,7 +747,7 @@ public class DbAdapter {
 
 		try {
 
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			String status = destination.getStatus();
@@ -733,7 +766,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -763,11 +796,279 @@ public class DbAdapter {
 	// Edit Destination
 	
 	// Update Recommendation
-	public boolean updateRecommendationn(Source source) {
-		
-		
+	public boolean updateRecommendationn(Source source) {		
 		return true;
 	}
+	
+	public boolean loadSources(SourceList sources) {
+		
+		Connection con = null;
+		Statement stmt = null;		
+
+		// Sources		
+		try {
+
+			con = ds.getConnection();
+			stmt = con.createStatement();						
+
+			// Database
+			String query = "select * from tbl_src s, tbl_src_database_info d, tbl_user u, tbl_src_test_data t where s.IDX = d.F_SRC AND s.F_OWNER = u.IDX";
+			ResultSet rs = stmt.executeQuery(query);
+			
+			while( rs.next() ) {
+				
+				DBSource temp = null;
+				
+				if( rs.getString("IS_RECOMMENDATION") == "Y" ) { // 지능형 엔진 사용
+					
+					TestData td = new TestData(rs.getString("u.ID"), rs.getString("t.NAME"), rs.getString("t.CREATED_TIME"), rs.getString("t.FILE_PATH"), rs.getInt("t.FILE_SIZE"), rs.getString("t.FILE_TYPE"));
+										
+					temp = new DBSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"), "testData", "target",
+							rs.getString("IP"), rs.getString("PORT"), rs.getString("ID"), rs.getString("PASSWORD"), rs.getString("DB_NAME"), rs.getString("QUERY"));					
+				}
+				else { // 지능형 엔진 미사용
+					
+					temp = new DBSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"),
+							rs.getString("IP"), rs.getString("PORT"), rs.getString("ID"), rs.getString("PASSWORD"), rs.getString("DB_NAME"), rs.getString("QUERY"));					
+										
+				}
+								
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				temp.setTransTopic(rs.getString("TRANS_TOPIC"));			
+				
+				ArrayList<SourceSchema> schema = new ArrayList<SourceSchema>();
+				query = "select * from tbl_src s, tbl_src_csv_schema c, tbl_user u where s.NAME ='" + rs.getString("s.NAME") + "' AND s.IDX = c.F_SRC AND u.ID = '" + rs.getString("u.ID") +"'";
+				rs = stmt.executeQuery(query);
+				
+				while( rs.next() ) {
+					
+					SourceSchema column = new SourceSchema( rs.getInt("COLUMN_INDEX"), rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE") );					
+					schema.add(column);
+				}				
+				temp.setData(schema);
+				
+				sources.add(temp);
+			}
+			
+			// Kafka
+			query = "select * from tbl_src s, tbl_src_kafka_info d, tbl_user u, tbl_src_test_data t where s.IDX = d.F_SRC AND s.F_OWNER = u.IDX";
+			rs = stmt.executeQuery(query);
+			
+			while( rs.next() ) {
+				
+				KafkaSource temp = null;
+				
+				if( rs.getString("IS_RECOMMENDATION") == "Y" ) { // 지능형 엔진 사용
+					
+					//TestData td = new TestData(rs.getString("u.ID"), rs.getString("t.NAME"), rs.getString("t.CREATED_TIME"), rs.getString("t.FILE_PATH"), rs.getInt("t.FILE_SIZE"), rs.getString("t.FILE_TYPE"));
+										
+					temp = new KafkaSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"), "testData", "target",
+							rs.getString("ZOOKEEPER_IP"), rs.getString("PORT"), rs.getString("TOPIC"));					
+				}
+				else { // 지능형 엔진 미사용
+					
+					temp = new KafkaSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"),
+							rs.getString("ZOOKEEPER_IP"), rs.getString("PORT"), rs.getString("TOPIC"));					
+										
+				}
+								
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				temp.setTransTopic(rs.getString("TRANS_TOPIC"));				
+				
+				ArrayList<SourceSchema> schema = new ArrayList<SourceSchema>();
+				query = "select * from tbl_src s, tbl_src_csv_schema c, tbl_user u where s.NAME ='" + rs.getString("s.NAME") + "' AND s.IDX = c.F_SRC AND u.ID = '" + rs.getString("u.ID") +"'";
+				rs = stmt.executeQuery(query);
+				
+				while( rs.next() ) {
+					
+					SourceSchema column = new SourceSchema( rs.getInt("COLUMN_INDEX"), rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE") );					
+					schema.add(column);
+				}				
+				temp.setData(schema);			
+				
+				sources.add(temp);
+			}
+			
+			// Custom
+			query = "select * from tbl_src s, tbl_user u, tbl_src_test_data t where s.SRC_TYPE = 'CUSTOM' AND t.F_OWNER = u.IDX";
+			rs = stmt.executeQuery(query);
+						
+			while( rs.next() ) {
+	
+				CustomSource temp = null;
+				
+				if( rs.getString("IS_RECOMMENDATION") == "Y" ) { // 지능형 엔진 사용
+					
+					TestData td = new TestData(rs.getString("u.ID"), rs.getString("t.NAME"), rs.getString("t.CREATED_TIME"), rs.getString("t.FILE_PATH"), rs.getInt("t.FILE_SIZE"), rs.getString("t.FILE_TYPE"));
+										
+					temp = new CustomSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"), "testData", "target");
+											
+				}
+				else { // 지능형 엔진 미사용
+					
+					temp = new CustomSource(rs.getString("s.NAME"), rs.getString("CREATED_TIME"), rs.getString("u.ID"), rs.getString("SRC_TYPE"), null, 
+							rs.getString("USES_CONCEPT_DRIFT"), rs.getString("USES_LOAD_SHEDDING"), rs.getString("IS_RECOMMENDATION"));						
+										
+				}
+								
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				temp.setTransTopic(rs.getString("TRANS_TOPIC"));
+							
+				ArrayList<SourceSchema> schema = new ArrayList<SourceSchema>();
+				query = "select * from tbl_src s, tbl_src_csv_schema c, tbl_user u where s.NAME ='" + rs.getString("s.NAME") + "' AND s.IDX = c.F_SRC AND u.ID = '" + rs.getString("u.ID") +"'";
+				rs = stmt.executeQuery(query);
+				
+				while( rs.next() ) {
+					
+					SourceSchema column = new SourceSchema( rs.getInt("COLUMN_INDEX"), rs.getString("COLUMN_NAME"), rs.getString("COLUMN_TYPE") );					
+					schema.add(column);
+				}				
+				temp.setData(schema);					
+				
+				sources.add(temp);
+			}			
+			
+			if (rs.next())   return true;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}			
+		
+		return false;
+	}
+	
+	public boolean loadDestinations(DestinationList destinations) {
+		
+		Connection con = null;
+		Statement stmt = null;		
+
+		// Sources		
+		try {
+
+			con = ds.getConnection();
+			stmt = con.createStatement();
+			
+			// Database
+			String query = "select * from tbl_dst d, tbl_dst_database_info i, tbl_user u where d.IDX = i.F_DST";
+			ResultSet rs = stmt.executeQuery(query);
+
+			while( rs.next() ) {
+
+				DBDestination temp = new DBDestination(rs.getString("d.NAME"), rs.getString("d.CREATED_TIME"), rs.getString("u.ID"), rs.getString("d.DST_TYPE"),
+						rs.getString("i.IP"), rs.getString("i.PORT"), rs.getString("i.ID"), rs.getString("i.PASSWORD"), rs.getString("i.DB_NAME"), rs.getString("i.TABLE_NAME"));
+							
+			
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				
+				destinations.add(temp);				
+			}
+			
+			// Kafka
+			query = "select * from tbl_dst d, tbl_dst_kafka_info i, tbl_user u where d.IDX = i.F_DST";
+			rs = stmt.executeQuery(query);
+
+			while( rs.next() ) {
+
+				KafkaDestination temp = new KafkaDestination(rs.getString("d.NAME"), rs.getString("d.CREATED_TIME"), rs.getString("u.ID"), rs.getString("d.DST_TYPE"),
+						rs.getString("i.ZOOKEEPER_IP"), rs.getString("i.PORT"), rs.getString("i.TOPIC"));
+							
+			
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				
+				destinations.add(temp);				
+			}
+						
+			// Custom
+			query = "select * from tbl_dst d, tbl_user u where d.DST_TYPE = 'CUSTOM' AND d.F_OWNER = u.IDX";
+			rs = stmt.executeQuery(query);
+			
+			while( rs.next() ) {
+
+				CustomDestination temp = new CustomDestination(rs.getString("d.NAME"), rs.getString("d.CREATED_TIME"), rs.getString("u.ID"), rs.getString("d.DST_TYPE"));							
+			
+				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("STATUS"));
+				
+				destinations.add(temp);				
+			}			
+			
+			if (rs.next())   return true;			
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}			
+		
+		return false;
+	}
+//	
+//	public boolean loadPlans(PlanList plans) {
+//		
+//		Connection con = null;
+//		Statement stmt = null;		
+//
+//		// Sources		
+//		try {
+//
+//			con = this.getConnection();
+//			stmt = con.createStatement();
+//			
+//			String sql;			
+//			sql = "UPDATE tbl_dst SET STATUS ='" + status + "' WHERE NAME ='" + destination.getDestinationName() + "'";
+//			
+//			ResultSet rs = stmt.executeQuery(sql);			
+//
+//			if (rs.next())   return true;
+//
+//			
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if (stmt != null) {
+//					stmt.close();
+//				}
+//				if (con != null) {
+//					close(con);
+//				}
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+//		}			
+//		
+//		return false;
+//	}
 }
 
 

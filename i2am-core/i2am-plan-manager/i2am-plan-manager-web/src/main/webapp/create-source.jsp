@@ -255,24 +255,24 @@ $(document).ready(function() {
 		</div>
 		
 		<div class="tab">
-			<h2>Smart Engine</h2><br>
+			<h2>Use Smart Engine</h2><br>
 				
 				
 			<div class="checkEngine">
 			<label class="container">
-				Use Concept Drift Engine
+				Concept Drift Engine
 				<input type="checkbox" name="chk_cd" value="cd">
 				<span class="checkmark"></span>			
 			</label>
 			
 			<label class="container">
-				Use LoadShedding
+				LoadShedding
 				<input type="checkbox" name="chk_ls" value="ls">
 				<span class="checkmark"></span>			
 			</label>
 			
 			<label class="container">
-				Use Intelligent Recommendation Engine
+				Intelligent Recommendation Engine
 				<input type="checkbox" name="chk_ir" value="ir" id="intengine">
 				<span class="checkmark"></span>			
 			</label>				
@@ -630,7 +630,7 @@ $("#intengine").change(function() {
 								
 				if( type == "NUMERIC" ) {
 					
-					// target valueï¿½ï¿½ indexï¿½ï¿½ ï¿½Ò±ï¿½?ï¿½ï¿½?ï¿½ï¿½ï¿½ï¿½
+					// target value¸¦ index·Î ÇÒ±î?¤µ?¤¾¤¾
 					target.append("<label class='radiocontainer'>" + 
 							"<div class='radiolabelleft'>" + name + "</div>" +		
 							// "<div class='radiolabelright'>" + type + "</div>" +																			 

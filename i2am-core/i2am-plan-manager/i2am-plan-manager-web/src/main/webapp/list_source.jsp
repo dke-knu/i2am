@@ -53,8 +53,8 @@ function loadTblSrc() {
 				"<td>" + recommendation + "</td>" +
 				//"<td>" + (obj.USES_LOAD_SHEDDING=="Y"?"Used":"Unused") + "</td>" +
 				"<td>" +					 
-					"<div class='status'> DEACTIVE <i class='fa fa-caret-down'></i>" + 
-						"<div class='status-content'><a>ACTIVE</a></div>" +	
+					"<div class='status' onclick=changeState('src'" + ",'" + obj.NAME + "','" + after + "')>" + obj.STATUS + " <i class='fa fa-caret-down'></i>" + 
+						"<div class='status-content'><a>" + after + "</a></div>" +	
 					"</div>" +
 				"</td>" +
 				"</div>" +
@@ -67,6 +67,33 @@ function loadTblSrc() {
   }
 loadTblSrc();
 
+</script>
+
+<script>
+function changeState(type, name, after) {
+
+	alert("Change Status: " + type + ", " + name + ", " + after);
+		
+	$.ajax({
+		type : 'post',
+		url : './ajax/change-status.jsp',
+		data : ({
+		  type: type,
+		  name: name,
+		  after: after
+		}),
+		success : function(response) {
+			  //alert(response.trim());
+			  console.log(response.trim());
+			  if (response.trim() == "true") {
+				  // window.open("./list_plan.jsp", "_self");
+			  } else {				  
+				  // window.location.reload();
+				  // 
+			  }
+		} 
+	});
+}
 </script>
 
 <title>Plan Manager - Source</title>

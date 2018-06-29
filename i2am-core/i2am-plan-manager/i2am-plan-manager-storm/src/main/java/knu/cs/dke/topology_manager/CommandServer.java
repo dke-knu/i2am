@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import knu.cs.dke.topology_manager.handlers.DbAdapter;
+
 public class CommandServer implements Runnable {
 	
 	// Server Info.
@@ -19,7 +21,7 @@ public class CommandServer implements Runnable {
 	// Plan Info.
 	private PlanList plans = null;
 	private SourceList sources = null;
-	private DestinationList destination = null;
+	private DestinationList destinations = null;
 	
 	// Server Start.
 	public static void main(String[] args) {
@@ -27,9 +29,23 @@ public class CommandServer implements Runnable {
 	}
 
 	public CommandServer(){
+		
 		plans = PlanList.getInstance();		
 		sources = SourceList.getInstance();
-		destination = DestinationList.getInstance();
+		destinations = DestinationList.getInstance();
+		
+		
+		System.out.println("[Command Server] 데이터베이스를 읽는 중...");
+		DbAdapter db;
+		db = DbAdapter.getInstance();
+		
+		db.loadSources(sources);
+		db.loadDestinations(destinations);
+		//db.loadPlans(plans);
+		
+		plans.printSummary();
+		sources.printSummary();
+		destinations.printSummary();
 	}
 
 	public void run(){		
@@ -48,7 +64,7 @@ public class CommandServer implements Runnable {
 				}
 				throw new RuntimeException("[Server] Error accepting client connection", e);
 			}
-			this.threadPool.execute(new CommandClientSocket(clientSocket, plans, sources, destination));			
+			this.threadPool.execute(new CommandClientSocket(clientSocket, plans, sources, destinations));			
 		}
 		this.threadPool.shutdown();
 		System.out.println("[Server] Server Stopped.") ;
@@ -92,9 +108,5 @@ public class CommandServer implements Runnable {
 		System.out.println("     =========================================");
 		System.out.println(" ");
 		
-	}
-	
-	private void loadDataBase() {
-		// To-Do
 	}
 }

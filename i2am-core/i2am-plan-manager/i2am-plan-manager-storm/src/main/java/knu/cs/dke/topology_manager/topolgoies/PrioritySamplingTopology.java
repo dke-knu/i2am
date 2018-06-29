@@ -12,14 +12,16 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 
 	private int sampleSize;
 	private int windowSize;
+	private int target;
 	
 	private RemoteStormController storm;
 	
-	public PrioritySamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
+	public PrioritySamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize, int target) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;	
+		this.target = target;
 		
 		storm = new RemoteStormController();
 	}
@@ -63,5 +65,13 @@ public class PrioritySamplingTopology extends ASamplingFilteringTopology {
 	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
 		storm.runTopology(this);		
+	}
+
+	public int getTarget() {
+		return target;
+	}
+
+	public void setTarget(int target) {
+		this.target = target;
 	}
 }

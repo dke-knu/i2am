@@ -40,7 +40,7 @@ public class RemoteStormController {
 		conf.put(Config.NIMBUS_SEEDS, "MN"); // NIMBUS_HOSTS > NIMBUS_SEEDS
 		storm_conf = Utils.readStormConfig();		
 		storm_conf.put("nimbus.seeds", Arrays.asList("MN")); // nimbus.host > nimbus.seeds
-		NimbusClient nimbus = new NimbusClient(storm_conf, "MN", 6627);	
+		// NimbusClient nimbus = new NimbusClient(storm_conf, "MN", 6627);	
 	}
 
 	public void runTopology(ASamplingFilteringTopology topology) throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {

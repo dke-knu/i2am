@@ -54,4 +54,21 @@ public class DestinationList {
 		mDestinations.put(destination.getDestinationName(), destination);		
 		return true;
 	}
+	
+	public synchronized void printSummary() {
+		
+		System.out.println("[Destination List Summary]");
+		System.out.println("Map Size: " + mDestinations.size());
+				
+		int i = 0;
+		for(String key: mDestinations.keySet()) {			
+			System.out.println("[Destination " + i + "]");
+			System.out.println("Destination Name: " + key);			
+			System.out.println("Thread Name: " + mDestinations.get(key).getName());
+			System.out.println("Thread Status: " + mDestinations.get(key).isAlive());
+			System.out.println("Status: " + mDestinations.get(key).getStatus());	
+			
+			i++;
+		}
+	}
 }

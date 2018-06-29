@@ -57,6 +57,37 @@ h1 {
   opacity: 0.8;
 }
 
+.setRules {
+	background-color: #115191;
+	color: #ffffff;
+	border: none;
+	padding: 8px 20px;
+	margin: 0px;  
+  	font-size: 17px;
+  	font-family: Raleway;
+  	cursor: pointer;
+}
+
+.setRules:disabled {
+	background-color: gray;
+}
+
+.setRules:hover {
+	opacity: 0.8;
+}
+
+.cannot {
+	text-align: center;
+	font-size: 17px;
+	color: red;
+	padding: 5px;
+}
+
+.schemenTarget {	
+	margin-bottom: 10px;
+	display: none;
+}
+
 .mySubmit {	
 	margin: 10px;
 	padding: 10px 15px;
@@ -80,6 +111,25 @@ h1 {
 	box-shadow: 0 2px #be4727;
 	transform: translateY(3px);
 }
+
+.mySubmitFail {	
+	float: right;
+	font-size: 12px;
+	padding: 10px;
+	margin-right: 10px;
+	width: 360px;
+	height: 80px;
+	background-color: #c6dbd5;
+	border: solid 1px lightgray;	
+	border-radius: 3px;	
+	display: none;	
+	overflow-y: scroll;
+}
+
+.mySubmitFail ul {
+	list-style-type: square;
+}
+
 
 .columnWrap {
 	display: table;
@@ -173,7 +223,7 @@ h1 {
 	border-radius: 2px;	
 	box-shadow: 0 2px lightgray;
 	
-	z-index: 2;		
+	z-index: 3;		
 }
 
 .item {		
@@ -181,11 +231,10 @@ h1 {
 	text-align: left;
 	width: 100%;
 	
-	z-index: 3;
 }
 
 .jtk-connector { 
-	z-index:4;
+	z-index:10;
 	opacity: 0.8;
 }
 
@@ -261,7 +310,6 @@ h1 {
 	margin-top: 9px;
 	margin-right: 10px;		
 	
-	z-index: 4;
 }
 
 .params {	
@@ -275,18 +323,27 @@ h1 {
 	border-top: 1px solid lightgray;
 }
 
-.params .paramsInputs {
+.paramsInputs {
 	width:90%;
-	margin: auto;
-	
+	margin: auto;	
 }
 
-.params .paramInput {	
-	width: 100%;
+.paramInputLabel {
+	font-size: 17px;
+	padding: 4px;
+	display: inline-block;
+	width: 40%;	
+	text-align: right;
+	margin-right: 5px;
+}
+
+.paramInput {	
+	width: 45%;	
 	font-size: 17px;
 	padding: 4px;
 	font-family: Raleway;
-	border: 1px solid #aaaaaa;	
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
 	margin-bottom: 5px;
 }
 
@@ -313,7 +370,6 @@ h1 {
     opacity: 0;
     transition: opacity 0.3s;	
     
-    z-index: 5;
 }
 
 .myTooltip .myTooltiptext::after {
@@ -367,4 +423,18 @@ h1 {
 .filterActive {
 	background-color: gray;
 	color: white;
+}
+
+table {
+	width: 100%;
+}
+
+td, th {	
+	border-bottom: 1px solid #dddddd;
+	text-align: center;	
+	padding: 5px;
+}
+
+th {
+	background-color: #ebebeb;
 }

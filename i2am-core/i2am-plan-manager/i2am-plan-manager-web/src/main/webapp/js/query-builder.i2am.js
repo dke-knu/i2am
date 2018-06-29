@@ -1,3 +1,4 @@
+/*
 $('#builder-basic').queryBuilder({
   
   filters: [{
@@ -21,6 +22,7 @@ $('#builder-basic').queryBuilder({
     }
   }]
 });
+*/
 
 function convertJsonToI2AMQuery(json) {
     return jsonToI2AMQuery(json);

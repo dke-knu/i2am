@@ -23,7 +23,6 @@ public class SystematicSamplingTopology extends ASamplingFilteringTopology {
 		storm = new RemoteStormController();
 	}
 
-
 	@Override
 	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		// TODO Auto-generated method stub

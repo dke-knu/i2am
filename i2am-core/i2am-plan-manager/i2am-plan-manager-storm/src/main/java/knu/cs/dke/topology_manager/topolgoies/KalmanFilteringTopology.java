@@ -12,14 +12,17 @@ public class KalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	private double q_val;
 	private double r_val;	
+	private int target;
 	
 	private RemoteStormController storm;
 		
-	public KalmanFilteringTopology(String createdTime, String plan, int index, String topologyType, Double q_val, Double r_val) throws TTransportException {
+	public KalmanFilteringTopology(String createdTime, String plan, int index, String topologyType, Double q_val, Double r_val, int target) throws TTransportException {
 		super(createdTime, plan, index, topologyType);
 
 		this.q_val = q_val;
 		this.r_val = r_val;	
+		this.target = target;
+		
 		storm = new RemoteStormController();
 	}
 
@@ -62,5 +65,13 @@ public class KalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	public void setR_val(double r_val) {
 		this.r_val = r_val;
+	}
+
+	public int getTarget() {
+		return target;
+	}
+
+	public void setTarget(int target) {
+		this.target = target;
 	}
 }

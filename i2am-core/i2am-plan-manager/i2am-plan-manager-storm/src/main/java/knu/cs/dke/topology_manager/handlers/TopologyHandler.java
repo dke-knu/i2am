@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import i2am.query.parser.Node;
 import knu.cs.dke.topology_manager.DestinationList;
 import knu.cs.dke.topology_manager.Plan;
 import knu.cs.dke.topology_manager.PlanList;
@@ -76,21 +77,25 @@ public class TopologyHandler {
 
 	private void createPlan() throws TTransportException {		
 
+		System.out.println("[Topology Handler] 플랜 생성 중...!");
 		// Parse Content!
 		JSONObject content = (JSONObject) command.get("commandContent");		
 
-		String planName = (String) content.get("planName");
+		// Parse Plan!
+		JSONObject json_plan = (JSONObject) content.get("plan");
+		
+		String planName = (String) json_plan.get("planName");
 		String createdTime = (String) content.get("createdTime");
 		String owner = (String) content.get("owner");
 
-		String source = (String) content.get("srcName");
-		String destination = (String) content.get("dstName");
+		String source = (String) json_plan.get("srcName");
+		String destination = (String) json_plan.get("dstName");
 
 		String srcTopic = sources.get(source).getTransTopic();
 		String dstTopic = destinations.get(destination).getTransTopic();
 
 		// Algorithms
-		JSONArray algorithms = (JSONArray) content.get("algorithms");
+		JSONArray algorithms = (JSONArray) json_plan.get("topoloiges");
 
 		List<ASamplingFilteringTopology> topologies = new ArrayList<ASamplingFilteringTopology>();
 
@@ -99,84 +104,90 @@ public class TopologyHandler {
 		for ( int i=0; i<algorithmsSize; i++ ) {
 
 			JSONObject algorithm = (JSONObject) algorithms.get(i);			
-			String algorithmType = (String) algorithm.get("algorithmType");
+			String algorithmType = (String) algorithm.get("topology_type");
 
 			ASamplingFilteringTopology temp = null;
 
 			switch(algorithmType) {			
 
-			case "BINARY_BERNOULLI_SAMPLING":
-				JSONObject bb_params = (JSONObject) algorithm.get("algorithmParams");				
-				int bb_sampleSize = ((Number) bb_params.get("sampleSize")).intValue();
-				int bb_windowSize = ((Number) bb_params.get("windowSize")).intValue();
+			case "bbs":
+				JSONObject bb_params = (JSONObject) algorithm.get("topology_params");				
+				int bb_sampleSize = ((Number) bb_params.get("sample_size")).intValue();
+				int bb_windowSize = ((Number) bb_params.get("window_size")).intValue();
 				temp = new BinaryBernoulliSamplingTopology(createdTime, planName, i, "BINARY_BERNOULLI_SAMPLING", bb_sampleSize, bb_windowSize);				
 				break;
 
-			case "HASH_SAMPLING":
-				JSONObject hash_params = (JSONObject) algorithm.get("algorithmParams");
-				int hash_sampleSize = ((Number) hash_params.get("sampleRatio")).intValue();
-				int hash_windowSize = ((Number) hash_params.get("windowSize")).intValue();
-				String hash_function = (String) hash_params.get("hashFunction");
+			case "hs":
+				JSONObject hash_params = (JSONObject) algorithm.get("topology_params");
+				int hash_sampleSize = ((Number) hash_params.get("sample_ratio")).intValue();
+				int hash_windowSize = ((Number) hash_params.get("window_size")).intValue();
+				int hash_target = ((Number) hash_params.get("target")).intValue();
+				//String hash_function = (String) hash_params.get("hashFunction");
 				// int bucket_size = ((Number) hash_params.get("bucketsize")).intValue();
-				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, hash_function);
+				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, "hash_function", hash_target);
 				break;				
 
-			case "PRIORITY_SAMPLING":
-				JSONObject priority_params = (JSONObject) algorithm.get("algorithmParams");
-				int priority_sampleSize = ((Number) priority_params.get("sampleSize")).intValue();
-				int priority_windowSize = ((Number) priority_params.get("windowSize")).intValue();	
-				temp = new PrioritySamplingTopology(createdTime, planName, i, "PRIORITY_SAMPLING", priority_sampleSize, priority_windowSize);
+			case "ps":
+				JSONObject priority_params = (JSONObject) algorithm.get("topology_params");
+				int priority_sampleSize = ((Number) priority_params.get("sample_size")).intValue();
+				int priority_windowSize = ((Number) priority_params.get("window_size")).intValue();	
+				int priority_target = ((Number) priority_params.get("target")).intValue();
+				temp = new PrioritySamplingTopology(createdTime, planName, i, "PRIORITY_SAMPLING", priority_sampleSize, priority_windowSize, priority_target);
 				break;
 
-			case "RESERVOIR_SAMPLING":
-				JSONObject reservoir_params = (JSONObject) algorithm.get("algorithmParams");
-				int reservoir_sampleSize = ((Number) reservoir_params.get("sampleSize")).intValue();
-				int reservoir_windowSize = ((Number) reservoir_params.get("windowSize")).intValue();
+			case "rs":
+				JSONObject reservoir_params = (JSONObject) algorithm.get("topology_params");
+				int reservoir_sampleSize = ((Number) reservoir_params.get("sample_size")).intValue();
+				int reservoir_windowSize = ((Number) reservoir_params.get("window_size")).intValue();
 				temp = new ReservoirSamplingTopology(createdTime, planName, i, "RESERVOIR_SAMPLING", reservoir_sampleSize, reservoir_windowSize);				
 				break;		
 
-			case "SYSTEMATIC_SAMPLING":
-				JSONObject systematic_params = (JSONObject) algorithm.get("algorithmParams");	
+			case "ss":
+				JSONObject systematic_params = (JSONObject) algorithm.get("topology_params");	
 				int interval = ((Number) systematic_params.get("interval")).intValue();												
 				temp = new SystematicSamplingTopology(createdTime, planName, i, "SYSTEMATIC_SAMPLING", interval);				
 				break;		
 
-			case "K_SAMPLING":
-				JSONObject k_params = (JSONObject) algorithm.get("algorithmParams");
-				int k_sampling_rate = ((Number) k_params.get("samplingRate")).intValue();
+			case "ks":
+				JSONObject k_params = (JSONObject) algorithm.get("topology_params");
+				int k_sampling_rate = ((Number) k_params.get("sample_rate")).intValue();
 				temp = new KSamplingTopology(createdTime, planName, i, "K_SAMPLING", k_sampling_rate);
 				break;
 
-			case "QUERY_FILTERING":
-				JSONObject query_params = (JSONObject) algorithm.get("algorithmParams");
-				String query_keywords = (String) query_params.get("keywords");
-				temp = new QueryFilteringTopology(createdTime, planName, i, "QUERY_FILTERING", query_keywords);								
+			case "qf":
+				JSONObject query_params = (JSONObject) algorithm.get("topology_params");
+				String query_keywords = (String) query_params.get("query");
+				temp = new QueryFilteringTopology(createdTime, planName, i, "QUERY_FILTERING", query_keywords);		
+				//Node node = Node.parse(query_keywords);
 				break;
 
-			case "BLOOM_FILTERING":
-				JSONObject bloom_params = (JSONObject) algorithm.get("algorithmParams");
-				int bloom_size = ((Number) bloom_params.get("bucketSize")).intValue();
+			case "bf":
+				JSONObject bloom_params = (JSONObject) algorithm.get("topology_params");
+				int bloom_size = ((Number) bloom_params.get("bucket_size")).intValue();
 				String bloom_keywords = (String) bloom_params.get("keywords");
-				temp = new BloomFilteringTopology(createdTime, planName, i, "BLOOM_FILTERING", bloom_size, bloom_keywords);
+				int bloom_target = ((Number) bloom_params.get("target")).intValue();
+				temp = new BloomFilteringTopology(createdTime, planName, i, "BLOOM_FILTERING", bloom_size, bloom_keywords, bloom_target);
 				break;
 
-			case "KALMAN_FILTERING":				
-				JSONObject kalman_params = (JSONObject) algorithm.get("algorithmParams");
-				double qValue = ((Number) kalman_params.get("qVal")).doubleValue();
-				double rValue = ((Number) kalman_params.get("rVal")).doubleValue();				
-				temp = new KalmanFilteringTopology(createdTime, planName, i, "KALMAN_FILTERING", qValue, rValue);
+			case "kf":				
+				JSONObject kalman_params = (JSONObject) algorithm.get("topology_params");
+				double qValue = ((Number) kalman_params.get("q_value")).doubleValue();
+				double rValue = ((Number) kalman_params.get("r_value")).doubleValue();
+				int kalman_target = ((Number) kalman_params.get("target")).intValue();
+				temp = new KalmanFilteringTopology(createdTime, planName, i, "KALMAN_FILTERING", qValue, rValue, kalman_target);
 				break;
 
-			case "NOISE_RECOMMEND_KALMAN_FILTERING":
-				JSONObject nr_kalman_params = (JSONObject) algorithm.get("algorithmParams");
-				double nr_qValue = ((Number) nr_kalman_params.get("qVal")).doubleValue();								
-				temp = new NRKalmanFilteringTopology(createdTime, planName, i, "NR_KALMAN_FILTERING", nr_qValue);
+			case "nrkf":
+				JSONObject nr_kalman_params = (JSONObject) algorithm.get("topology_params");
+				double nr_qValue = ((Number) nr_kalman_params.get("q_value")).doubleValue();
+				int nr_kalman_target = ((Number) nr_kalman_params.get("target")).intValue();
+				temp = new NRKalmanFilteringTopology(createdTime, planName, i, "NR_KALMAN_FILTERING", nr_qValue, nr_kalman_target);
 				break;			
 
 			case "UC_K_SAMPLING":
-				JSONObject uc_k_params = (JSONObject) algorithm.get("algorithmParams");
-				int uc_k_sampleRate = ((Number) uc_k_params.get("samplingRate")).intValue();
-				double uc = ((Number) uc_k_params.get("ucUnderBound")).doubleValue();
+				JSONObject uc_k_params = (JSONObject) algorithm.get("topology_params");
+				int uc_k_sampleRate = ((Number) uc_k_params.get("sample_rate")).intValue();
+				double uc = ((Number) uc_k_params.get("uc_under_bound")).doubleValue();
 				temp = new UCKSamplingTopology(createdTime, planName, i, "UC_K_SAMPLING", uc_k_sampleRate, uc);
 				break;			
 
@@ -210,12 +221,12 @@ public class TopologyHandler {
 		plans.add(plan);
 
 		// Plan to DB ...
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.addPlan(plan);
 
 		// Topology Params to Redis ...
-		RedisAdapter redis = new RedisAdapter();
-		redis.addPlanParams(plan);	
+		// RedisAdapter redis = new RedisAdapter();
+		// redis.addPlanParams(plan);	
 
 	}
 
@@ -262,7 +273,7 @@ public class TopologyHandler {
 		System.out.print("Ignore?");
 
 		// DB에서도 해당 플랜의 상태와 ModifiedTime 변경
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.changePlanStatus(temp);
 
 		// 만약 상태가 active로 바뀐다면!

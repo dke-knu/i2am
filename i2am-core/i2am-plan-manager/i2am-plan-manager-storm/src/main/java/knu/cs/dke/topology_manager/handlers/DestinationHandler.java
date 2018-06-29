@@ -82,7 +82,7 @@ public class DestinationHandler {
 
 			destinations.add(destination);
 
-			DbAdapter db = new DbAdapter();
+			DbAdapter db = DbAdapter.getInstance();
 			db.addDestination(destination);
 
 			break;
@@ -100,7 +100,7 @@ public class DestinationHandler {
 
 			destinations.add(db_destination);
 
-			DbAdapter dbdb = new DbAdapter();
+			DbAdapter dbdb = DbAdapter.getInstance();
 			dbdb.addDestination(db_destination);
 			
 			break;
@@ -110,7 +110,7 @@ public class DestinationHandler {
 			
 			destinations.add(custom_destination);
 			
-			DbAdapter customDb = new DbAdapter();
+			DbAdapter customDb = DbAdapter.getInstance();
 			customDb.addDestination(custom_destination);
 			
 			break;
@@ -133,7 +133,7 @@ public class DestinationHandler {
 		Destination destination = destinations.get(name);
 		destination.setStatus("ACTIVE");
 
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.changeDestinationStatus(destination);
 
 		destinations.set(destination);
@@ -153,7 +153,7 @@ public class DestinationHandler {
 		Destination destination = destinations.get(name);
 		destination.setStatus("DEACTIVE");
 
-		DbAdapter db = new DbAdapter();
+		DbAdapter db = DbAdapter.getInstance();
 		db.changeDestinationStatus(destination);
 		
 		// Thread Stop.		

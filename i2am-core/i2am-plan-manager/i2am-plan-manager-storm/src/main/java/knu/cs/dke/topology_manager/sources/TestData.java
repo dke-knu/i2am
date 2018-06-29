@@ -6,10 +6,10 @@ public class TestData {
 	private String fileName;
 	private String createdTime;	
 	private String filePath;
-	private String fileSize;
+	private int fileSize;
 	private String fileType; // CSV, XML, JSON ... 
 
-	public TestData(String owner, String fileName, String createdTime, String filePath, String fileSize, String fileType ) {		
+	public TestData(String owner, String fileName, String createdTime, String filePath, int fileSize, String fileType ) {		
 		this.onwer = owner;
 		this.fileName = fileName;
 		this.createdTime = createdTime;
@@ -50,11 +50,11 @@ public class TestData {
 		this.filePath = filePath;
 	}
 
-	public String getFileSize() {
+	public int getFileSize() {
 		return fileSize;
 	}
 
-	public void setFileSize(String fileSize) {
+	public void setFileSize(int fileSize) {
 		this.fileSize = fileSize;
 	}
 

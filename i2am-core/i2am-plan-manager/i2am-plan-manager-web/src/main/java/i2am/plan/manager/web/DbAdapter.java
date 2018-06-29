@@ -68,6 +68,7 @@ public class DbAdapter {
 			ResultSet rs = stmt.executeQuery(sql);
 
 			if (rs.next())	return true;
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -89,18 +90,17 @@ public class DbAdapter {
 		Connection con = null;
 		Statement stmt = null;
 		String sql = null;
+		
 		try {
 			con = this.getConnection();
-			stmt = con.createStatement();
-
-			sql = "SELECT * FROM tbl_user "
-					+ "WHERE ID='" + id + "'";
+			stmt = con.createStatement();			
+			
+			sql = "SELECT * FROM tbl_user " + "WHERE ID='" + id + "'";
 			ResultSet rs = stmt.executeQuery(sql);
 			if (rs.next())	return false;
 
-			sql = "INSERT INTO tbl_user (ID, NAME, PASSWORD) "
-					+ "VALUES ('" + id + "', '" + name + "', '" + pw + "')";
-
+			sql = "INSERT INTO tbl_user (ID, NAME, PASSWORD) " + "VALUES ('" + id + "', '" + name + "', '" + pw + "')";
+			
 			return stmt.executeUpdate(sql) > 0;
 
 		} catch (SQLException e) {
@@ -192,9 +192,10 @@ public class DbAdapter {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
-			sql = "SELECT NAME, CREATED_TIME, IS_RECOMMENDATION, USES_LOAD_SHEDDING, STATUS "
+			sql = "SELECT * "
 					+ "FROM tbl_src WHERE F_OWNER = "
-					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
+					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";				
+			
 			return getJSONArray(stmt.executeQuery(sql));
 
 		} catch (SQLException e) {
@@ -338,10 +339,12 @@ public class DbAdapter {
 		try {
 			con = this.getConnection();
 			stmt = con.createStatement();
-
-			sql = "SELECT * "
-					+ "FROM tbl_csv_schema WHERE F_SRC = "
-					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";			
+			
+			sql = "SELECT s.NAME, c.COLUMN_INDEX, c.COLUMN_NAME, c.COLUMN_TYPE "
+					+ "FROM tbl_src s, tbl_src_csv_schema c "
+					+ "WHERE s.IDX = c.F_SRC "
+					+ "AND s.F_OWNER = (SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
+			
 			
 			return getJSONArray(stmt.executeQuery(sql));
 
