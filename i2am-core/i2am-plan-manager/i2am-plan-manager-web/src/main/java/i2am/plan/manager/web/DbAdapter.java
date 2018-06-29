@@ -1,22 +1,27 @@
 package i2am.plan.manager.web;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import i2am.metadata.DbAdmin;
 
 
 public class DbAdapter {
 	
 	private static final Class<?> klass = (new Object() {
 	}).getClass().getEnclosingClass();
-	//	private static final Log logger = LogFactory.getLog(klass);
-
+	private static final Log logger = LogFactory.getLog(klass);
+	 
 	// singleton
 	private volatile static DbAdapter instance;
 	public static DbAdapter getInstance() {
@@ -24,35 +29,18 @@ public class DbAdapter {
 			synchronized(DbAdapter.class) {
 				if(instance == null) {
 					instance = new DbAdapter();
-				} 
+				}
 			} 
 		} 
 		return instance;
-	}
+	}	
 
-	protected DbAdapter() {}
+	private final DbAdmin dbAdmin;
+	private final DataSource ds;
 
-	private Connection cn;
-	protected Connection getConnection() throws SQLException {
-		String driverName = "org.mariadb.jdbc.Driver";
-		String url = "jdbc:mariadb://114.70.235.43:3306/i2am";
-		String user = "plan-manager";
-		String password = "dke214";
-
-		try {
-			Class.forName(driverName);
-			this.cn = DriverManager.getConnection(url, user, password);
-		} catch (ClassNotFoundException e) {
-			System.out.println("Load error: " + e.getStackTrace());
-		} catch (SQLException e) {
-			System.out.println("Connection error: " + e.getStackTrace());
-		}
-
-		return cn;
-	}
-
-	protected void close(Connection con) throws SQLException {
-		con.close();
+	private DbAdapter() {
+		dbAdmin = DbAdmin.getInstance();
+		ds = dbAdmin.getDataSource();
 	}
 
 	public boolean login(String id, String pw) {
@@ -60,7 +48,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT * FROM tbl_user "
@@ -77,7 +65,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -92,7 +80,7 @@ public class DbAdapter {
 		String sql = null;
 		
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();			
 			
 			sql = "SELECT * FROM tbl_user " + "WHERE ID='" + id + "'";
@@ -111,7 +99,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -125,7 +113,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT IDX FROM tbl_user WHERE ID='" + owner + "'";
@@ -145,7 +133,7 @@ public class DbAdapter {
 					stmt.close();
 				} 
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -159,7 +147,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT NAME, CREATED_TIME, SUBSTRING_INDEX(FILE_PATH, '/', -1) AS FILE_NAME, FILE_SIZE, FILE_TYPE "
@@ -175,7 +163,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -189,7 +177,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT * "
@@ -206,7 +194,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -220,7 +208,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT NAME, CREATED_TIME, STATUS "
@@ -236,7 +224,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -250,7 +238,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT p.NAME, p.CREATED_TIME, p.STATUS, s.TRANS_TOPIC as INPUT, d.TRANS_TOPIC as OUTPUT "
@@ -267,7 +255,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) { 
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -305,7 +293,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT * FROM tbl_" + type.toLowerCase() + " "
@@ -323,7 +311,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -337,7 +325,7 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 		try {
-			con = this.getConnection();
+			con = ds.getConnection();
 			stmt = con.createStatement();
 			
 			sql = "SELECT s.NAME, c.COLUMN_INDEX, c.COLUMN_NAME, c.COLUMN_TYPE "
@@ -356,7 +344,7 @@ public class DbAdapter {
 					stmt.close();
 				}
 				if (con != null) {
-					close(con);
+					con.close();
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
