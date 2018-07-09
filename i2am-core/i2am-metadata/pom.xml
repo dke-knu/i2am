@@ -65,6 +65,13 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>${basedir}/../config</directory>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
