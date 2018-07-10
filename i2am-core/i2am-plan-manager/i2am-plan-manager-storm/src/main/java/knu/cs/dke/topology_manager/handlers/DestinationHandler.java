@@ -128,9 +128,12 @@ public class DestinationHandler {
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
+		
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("dstName");
+		
 
-		Destination destination = destinations.get(name);
+		Destination destination = destinations.get(owner, name);
 		destination.setStatus("ACTIVE");
 
 		DbAdapter db = DbAdapter.getInstance();
@@ -148,9 +151,11 @@ public class DestinationHandler {
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
+		
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("dstName");
 
-		Destination destination = destinations.get(name);
+		Destination destination = destinations.get(owner, name);
 		destination.setStatus("DEACTIVE");
 
 		DbAdapter db = DbAdapter.getInstance();

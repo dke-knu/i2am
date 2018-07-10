@@ -261,9 +261,10 @@ public class SourceHandler {
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("srcName");		
 
-		Source source = sources.get(name);
+		Source source = sources.get(owner, name);
 		source.setStatus("ACTIVE");			
 
 		DbAdapter db = DbAdapter.getInstance();
@@ -326,9 +327,10 @@ public class SourceHandler {
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("srcName");
 
-		Source source = sources.get(name);
+		Source source = sources.get(owner, name);
 		source.setStatus("DEACTIVE");		
 
 		DbAdapter db = DbAdapter.getInstance();

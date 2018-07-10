@@ -8,7 +8,6 @@
 	String srcType = request.getParameter("src_type");
 	Boolean usesIntelli = Boolean.parseBoolean(request.getParameter("uses_intelligent_engine"));
 	String testDataName = request.getParameter("test_data_name");
-
 	CommandSubmitter submitter = new CommandSubmitter();
 	
 	KafkaInfo kafka = null;
@@ -22,10 +21,9 @@
 				request.getParameter("database_name"), request.getParameter("database_query")
 			);
 	}
-	submitter.createSrc(user_id, srcName, SRC_TYPE.valueOf(srcType), database, kafka, usesIntelli, testDataName);
+	//submitter.createSrc(user_id, srcName, SRC_TYPE.valueOf(srcType), database, kafka, usesIntelli, testDataName);
 	
 	submitter.submit();
 	String command = submitter.printCommand();
 %>
 <%=command %>
-

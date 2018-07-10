@@ -103,11 +103,11 @@ public class RedisAdapter {
 
 				String query_redisKey = query_topology.getRedisKey();
 
-				String query_kewords = query_topology.getKeywords();
+				//String query_kewords = query_topology.getKeywords();
 				String query_inputTopic = query_topology.getInputTopic();
 				String query_outputTOpic = query_topology.getOutputTopic();
 
-				jedisCn.hset(query_redisKey, "Keywords", query_kewords);
+				//jedisCn.hset(query_redisKey, "Keywords", query_kewords);
 				jedisCn.hset(query_redisKey, "InputTopic", query_inputTopic);
 				jedisCn.hset(query_redisKey, "OutputTopic", query_outputTOpic);
 

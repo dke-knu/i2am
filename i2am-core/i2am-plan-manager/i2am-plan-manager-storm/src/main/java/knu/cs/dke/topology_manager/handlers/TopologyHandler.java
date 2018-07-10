@@ -14,7 +14,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import i2am.query.parser.Node;
 import knu.cs.dke.topology_manager.DestinationList;
 import knu.cs.dke.topology_manager.Plan;
 import knu.cs.dke.topology_manager.PlanList;
@@ -91,8 +90,8 @@ public class TopologyHandler {
 		String source = (String) json_plan.get("srcName");
 		String destination = (String) json_plan.get("dstName");
 
-		String srcTopic = sources.get(source).getTransTopic();
-		String dstTopic = destinations.get(destination).getTransTopic();
+		String srcTopic = sources.get(owner, source).getTransTopic();
+		String dstTopic = destinations.get(owner, destination).getTransTopic();
 
 		// Algorithms
 		JSONArray algorithms = (JSONArray) json_plan.get("topoloiges");
@@ -156,8 +155,8 @@ public class TopologyHandler {
 
 			case "qf":
 				JSONObject query_params = (JSONObject) algorithm.get("topology_params");
-				String query_keywords = (String) query_params.get("query");
-				temp = new QueryFilteringTopology(createdTime, planName, i, "QUERY_FILTERING", query_keywords);		
+				String query = (String) query_params.get("query");
+				temp = new QueryFilteringTopology(createdTime, planName, i, "QUERY_FILTERING", query);		
 				//Node node = Node.parse(query_keywords);
 				break;
 
@@ -256,11 +255,12 @@ public class TopologyHandler {
 
 		// Modified Content.
 		String plan = (String) content.get("planName");
+		String owner = (String) content.get("owner");
 		String status = (String) content.get("after");
 		String modifiedTime = (String) content.get("modifiedTime");
 
 		// Modified Plan.
-		Plan temp = plans.get(plan); // 해당 플랜
+		Plan temp = plans.get(owner, plan); // 해당 플랜
 		temp.setStatus(status);
 		temp.setModifiedTime(modifiedTime);
 

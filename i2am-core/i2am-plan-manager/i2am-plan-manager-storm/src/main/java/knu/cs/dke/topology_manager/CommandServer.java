@@ -36,12 +36,10 @@ public class CommandServer implements Runnable {
 		
 		
 		System.out.println("[Command Server] 데이터베이스를 읽는 중...");
-		DbAdapter db;
-		db = DbAdapter.getInstance();
-		
-		db.loadSources(sources);
-		db.loadDestinations(destinations);
-		//db.loadPlans(plans);
+				
+		DbAdapter.getInstance().loadSources(sources);
+		DbAdapter.getInstance().loadDestinations(destinations);
+		DbAdapter.getInstance().loadPlans(plans);
 		
 		plans.printSummary();
 		sources.printSummary();

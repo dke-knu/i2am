@@ -25,8 +25,11 @@ public class PlanList {
 		mPlans = new HashMap<String, Plan>();
 	}
 	
-	public synchronized Plan get(String planID) {
-		return mPlans.get(planID);
+	public synchronized Plan get(String owner, String planName) {
+		
+		String planId =  owner + planName;
+		
+		return mPlans.get(planId);
 	}
 	
 	public synchronized boolean add(Plan plan) {
@@ -68,9 +71,7 @@ public class PlanList {
 		int i = 0;
 		for(String key: mPlans.keySet()) {			
 			System.out.println("[Plan " + i + "]");
-			System.out.println("Plan Name: " + key);			
-			System.out.println("Thread Name: " + mPlans.get(key).getStatus());
-			
+			System.out.println("Plan Name: " + mPlans.get(key).getPlanName());			
 			i++;
 		}
 	}

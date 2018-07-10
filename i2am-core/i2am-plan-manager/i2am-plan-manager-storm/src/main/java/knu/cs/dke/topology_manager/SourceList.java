@@ -27,8 +27,11 @@ public class SourceList {
 		mSources = new HashMap<String, Source>();
 	}
 	
-	public synchronized Source get(String sourceID) {
-		return mSources.get(sourceID);
+	public synchronized Source get(String owner, String sourceName) {
+		
+		String sourceId = owner + sourceName;
+		
+		return mSources.get(sourceId);
 	}
 	
 	public synchronized boolean add(Source source) {
@@ -63,14 +66,14 @@ public class SourceList {
 	}
 	
 	public synchronized void printSummary() {
-					
+		
 		System.out.println("[Source List Summary]");
 		System.out.println("Map Size: " + mSources.size());
 				
 		int i = 0;
 		for(String key: mSources.keySet()) {			
 			System.out.println("[Source " + i + "]");
-			System.out.println("Source Name: " + key);
+			System.out.println("Source Name: " + mSources.get(key).getSourceName());
 			System.out.println("Source Type: " + mSources.get(key).getSrcType());
 			System.out.println("Thread Name: " + mSources.get(key).getName());
 			System.out.println("Thread Status: " + mSources.get(key).isAlive());

@@ -11,16 +11,15 @@ import org.apache.storm.thrift.transport.TTransportException;
 
 public class QueryFilteringTopology extends ASamplingFilteringTopology {
 
-	private String keywords;		
+	private String query;		
 	
 	private RemoteStormController storm;
 	
 	public QueryFilteringTopology(String createdTime, String plan, int index, String topologyType, String keyword) throws TTransportException {
 		super(createdTime, plan, index, topologyType);
 		
-		this.keywords = keyword;		
-		storm = new RemoteStormController();		
-		
+		this.query = keyword;		
+		storm = new RemoteStormController();				
 	}
 
 	@Override
@@ -49,12 +48,12 @@ public class QueryFilteringTopology extends ASamplingFilteringTopology {
 		storm.runTopology(this);		
 	}
 
-	public String getKeywords() {
-		return keywords;
+	public String getQuery() {
+		return query;
 	}
 
-	public void setKeywords(String keywords) {
-		this.keywords = keywords;
+	public void setQuery(String keywords) {
+		this.query = keywords;
 	}	
 	
 }

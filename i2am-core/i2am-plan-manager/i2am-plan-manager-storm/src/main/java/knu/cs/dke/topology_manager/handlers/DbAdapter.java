@@ -13,8 +13,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import i2am.metadata.DbAdmin;
+import i2am.query.parser.Node;
 import knu.cs.dke.topology_manager.DestinationList;
 import knu.cs.dke.topology_manager.Plan;
+import knu.cs.dke.topology_manager.PlanList;
 import knu.cs.dke.topology_manager.SourceList;
 import knu.cs.dke.topology_manager.destinations.CustomDestination;
 import knu.cs.dke.topology_manager.destinations.DBDestination;
@@ -451,10 +453,14 @@ public class DbAdapter {
 					String query_Query = "INSERT INTO tbl_params_query_filtering "
 							+ "VALUES ("
 							+ "'0',"
-							+ "'" + topologyNumber + "',"
-							+ "'" + qft.getKeywords() + "'"
+							+ "'" + topologyNumber + "'"							
 							+ ")";
-					ResultSet query_paramsResult = stmt.executeQuery(query_Query);					
+					ResultSet query_paramsResult = stmt.executeQuery(query_Query);
+														
+					// public void addQuery (Node node, String id, String srcName, String topologyName)
+					Node node = Node.parse(qft.getQuery());
+					i2am.query.parser.DbAdapter.getInstance().addQuery(node, owner, source, qft.getTopologyName());
+					
 					break;					
 
 				case "PRIORITY_SAMPLING":					
@@ -1032,43 +1038,63 @@ public class DbAdapter {
 		
 		return false;
 	}
-//	
-//	public boolean loadPlans(PlanList plans) {
-//		
-//		Connection con = null;
-//		Statement stmt = null;		
-//
-//		// Sources		
-//		try {
-//
-//			con = this.getConnection();
-//			stmt = con.createStatement();
-//			
-//			String sql;			
-//			sql = "UPDATE tbl_dst SET STATUS ='" + status + "' WHERE NAME ='" + destination.getDestinationName() + "'";
-//			
-//			ResultSet rs = stmt.executeQuery(sql);			
-//
-//			if (rs.next())   return true;
-//
-//			
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		} finally {
-//			try {
-//				if (stmt != null) {
-//					stmt.close();
-//				}
-//				if (con != null) {
-//					close(con);
-//				}
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}			
-//		
-//		return false;
-//	}
+
+	public boolean loadPlans(PlanList plans) {
+		
+		Connection con = null;
+		Statement stmt = null;		
+
+		// Sources		
+		try {
+
+			con = ds.getConnection();
+			stmt = con.createStatement();
+			
+			// Plan
+			String plan_query = "select * from tbl_plan p, tbl_src s, tbl_dst d, tbl_user u where p.F_SRC = s.IDX and p.F_DST = d.IDX and p.F_OWNER = u.IDX";			
+						
+			ResultSet rs = stmt.executeQuery(plan_query);			
+
+			while( rs.next() ) {
+				
+				String owner = rs.getString("u.ID");
+				String planName = rs.getString("p.NAME");
+				String created_time = rs.getString("CREATED_TIME");
+				String modified_time = rs.getString("MODIFIED_TIME");
+				String status = rs.getString("STATUS");
+				String srcName = rs.getString("s.NAME");
+				String dstName = rs.getString("d.NAME");
+				
+				Plan temp = new Plan(planName, created_time, status, owner, srcName, dstName);
+				temp.setModifiedTime(modified_time);
+				
+				plans.add(temp);				
+			}	
+			
+			// Topologies
+			
+			
+			
+			if (rs.next())   return true;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}			
+		
+		return false;
+	}
+	
 }
 
 
