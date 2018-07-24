@@ -226,6 +226,10 @@ h1 {
 	z-index: 3;		
 }
 
+.itemWrap:hover {
+	transform: scale(1.01);
+}
+
 .item {		
 	display: table;
 	text-align: left;
@@ -245,7 +249,7 @@ h1 {
 }
 
 .item:hover {
-	opacity: 0.9;
+	opacity: 0.9;	
 }
 
 .source {	
@@ -324,7 +328,7 @@ h1 {
 }
 
 .paramsInputs {
-	width:90%;
+	width:95%;
 	margin: auto;	
 }
 
@@ -345,6 +349,55 @@ h1 {
 	border: 1px solid #aaaaaa;
 	margin-top: 5px;	
 	margin-bottom: 5px;
+}
+
+.selectLabel {
+	font-size: 17px;
+	padding: 4px;	
+	width: 70%;	
+	text-align: left;	
+	margin-left: 24px;
+}
+
+.mySelect {	
+	width: 70%;
+	font-size: 17px;
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
+	margin-bottom: 5px;	
+}
+
+.recommendation {
+	width: 90%;
+	margin: auto;	
+	font-size: 15px;
+	padding: 20px 10px 10px 10px;
+	text-align: center;	
+}
+
+.recommended {	
+	transform: scale(2.5);
+	border: 3px solid #ffeb60;	
+	animation: shake 2s; 
+	animation-iteration-count: infinite; 
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); border-color: orange; }
+    10% { transform: translate(0px, 0px) rotate(-1deg); }
+    20% { transform: translate(-1px, 0px) rotate(1deg) border-color: #ffeb60; }
+    30% { transform: translate(1px, 0px) rotate(0deg); }
+    40% { transform: translate(0px, 1px) rotate(1deg);  border-color: orange; }
+    50% { transform: translate(0px, 1px) rotate(-1deg); }
+    60% { transform: translate(-1px, 0px) rotate(0deg); border-color: #ffeb60;}
+    70% { transform: translate(1px, 0px) rotate(0deg); }
+    80% { transform: translate(0px, 0px) rotate(0deg); border-color: orange;}
+    90% { transform: translate(0px, 0px) rotate(0deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); border-color: #ffeb60; }
+}
+
+.target {
+	background-color: #fed385;
 }
 
 .query {
@@ -385,8 +438,7 @@ h1 {
 
 .myTooltip:hover .myTooltiptext {	
     visibility: visible;
-    opacity: 1;
-    
+    opacity: 1;    
 }
 
 .filterWrap {

@@ -40,7 +40,7 @@ public class CommandHandler {
 		
 		// Command for Call Topology Handler !
 		case "CREATE_PLAN":
-		case "DESTROY_PLAN": // To-Do
+		case "DESTROY_PLAN":
 		case "CHANGE_STATUS_OF_PLAN":
 		case "EDIT_PLAN": // To-Do
 			TopologyHandler th = new TopologyHandler(input_command, plans, sources, destinations);
@@ -49,7 +49,7 @@ public class CommandHandler {
 	
 		// Command for Call Source Handler !!	
 		case "CREATE_SRC":			
-		case "DESTROY_SRC": // To-Do	
+		case "DESTROY_SRC": 	
 		case "CHANGE_STATUS_OF_SRC":
 		case "EDIT_SOURCE": // To-Do			
 			SourceHandler sh = new SourceHandler(sources, input_command);
@@ -66,10 +66,10 @@ public class CommandHandler {
 			break;
 			
 		// Command for Intelligent Engine !!!!
-		case "new-algorithm":
-			SourceHandler na = new SourceHandler(sources, input_command);
-			na.updateRecommendation();
-			break;
+//		case "new-algorithm":
+//			SourceHandler na = new SourceHandler(sources, input_command);
+//			na.updateRecommendation();
+//			break;
 			
 		// Command is not identified !!!!!
 		default:

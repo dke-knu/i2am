@@ -12,59 +12,18 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 		
 	private int sampleSize;
 	private int windowSize;
-	// private int bucketSize;	
-	private String hashFunction; // Enum
 	private int target;
 	
-	private RemoteStormController storm;
-	
 	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize,
-			String HashFunction, int target) throws TTransportException {
+			int target) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
 		
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;	
-		// this.bucketSize = bucketSize;
-		this.hashFunction = HashFunction;
-		this.target = target;
-		
-		storm = new RemoteStormController();
+		this.target = target;		
 	}
 	
-	@Override
-	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.killTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.activateTopology(super.getTopologyName());
-		
-	}
-
-	@Override
-	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.deactivateTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
-		// TODO Auto-generated method stub
-		storm.runTopology(this);		
-	}
-
-	public String getHashFunction() {
-		return hashFunction;
-	}
-
-	public void setHashFunction(String hashFunction) {
-		this.hashFunction = hashFunction;
-	}
-
 	public int getSampleSize() {
 		return sampleSize;
 	}
@@ -87,6 +46,5 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 
 	public void setTarget(int target) {
 		this.target = target;
-	}	
-	
+	}		
 }

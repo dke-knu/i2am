@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -43,20 +44,28 @@ public class DBDestination extends Destination {
 		// Kafka Config
 		// Consumer: Read from User's Source
 		// Needed Parameters: server IP&Port, topic name ...
-		String servers = "MN:9092";
-		String topics = super.getTransTopic();
-		String groupId = super.getDestinationName();
+		// Consumer: Read from User's Source
+		// Needed Parameters: server IP&Port, topic name ...
+		String read_server = "114.70.235.43:19092";
 
-		Properties props = new Properties();
-		props.put("bootstrap.servers", servers);
-		props.put("group.id", groupId);
-		props.put("enable.auto.commit", "false");
-		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("auto.offset.reset", "earliest");
+		String read_servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
+				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
-		consumer.subscribe(Arrays.asList(topics));
+		String read_topics = super.getTransTopic();
+		String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
+
+		// Consumer Props
+		Properties consume_props = new Properties();
+		consume_props.put("bootstrap.servers", read_servers);
+		consume_props.put("group.id", groupId);
+		consume_props.put("enable.auto.commit", "true");
+		consume_props.put("auto.offset.reset", "earliest");
+		consume_props.put("auto.commit.interval.ms", "1000");
+		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
+		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
+		consumer.subscribe(Arrays.asList(super.getTransTopic()));
 
 		// DB Config.
 		Connection connection = null;
@@ -113,7 +122,7 @@ public class DBDestination extends Destination {
 			// stmt.close();
 			// connection.close();
 		}
-		
+
 	}
 
 	public String getIp() {

@@ -61,7 +61,7 @@ function loadTblPlan() {
 					"</td>" +
 					"<td><div class='controlButton monitoring'><i class='fa fa-eye'></i> VIEW</div></td>" +
 					"<td><div class='controlButton edit'><i class='fa fa-edit'></i> Edit</div>" +
-					"<div class='controlButton delete'><i class='fa fa-trash-o'></i> Delete</div></td>" +
+					"<div class='controlButton delete' onclick=remove('PLAN','" + obj.NAME  + "')><i class='fa fa-trash-o'></i> Delete</div></td>" +
 					
 				"</tr>"
 			)				
@@ -88,12 +88,38 @@ function changeState(type, name, after) {
 			  //alert(response.trim());
 			  console.log(response.trim());
 			  if (response.trim() == "true") {
-				  // window.open("./list_plan.jsp", "_self");
+				  window.open("./list_plan.jsp", "_self");
 			  } else {				  
-				  // window.location.reload();
+				  window.location.reload();
 				  // 
 			  }
 		} 
+	});
+}
+</script>
+
+<script>
+function remove(type, name) {
+
+	alert("Remove: " + type + ", " + name);
+	
+	// 예외처리1: 만약 동작중이면 삭제할 수 없도록
+	
+	$.ajax({
+		type: 'post',
+		url: './ajax/destroy.jsp',
+		data: ({
+			type: type,
+			name: name
+		}), 
+		success: function(response) {
+			console.log(response.trim());
+			if(response.trim() == "true") {
+				window.open("./home.jsp", "_self");
+			} else {
+				window.location.reload();
+			}
+		}
 	});
 }
 </script>

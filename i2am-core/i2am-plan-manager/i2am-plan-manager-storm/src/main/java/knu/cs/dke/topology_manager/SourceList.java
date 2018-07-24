@@ -22,9 +22,11 @@ public class SourceList {
 	}
 
 	private Map<String, Source> mSources;
+	private Map<String, Thread> runningThreads;
 
 	private SourceList() {
 		mSources = new HashMap<String, Source>();
+		runningThreads = new HashMap<String, Thread>();
 	}
 	
 	public synchronized Source get(String owner, String sourceName) {
@@ -65,10 +67,21 @@ public class SourceList {
 		return mSources.size();
 	}
 	
+	public synchronized boolean addThread(Thread thread) {
+						
+		runningThreads.put(thread.getName(), thread);		
+		return true;
+	}
+	
+	public synchronized Thread getThread(String sourceName) {
+							
+		return runningThreads.get(sourceName);
+	}
+	
 	public synchronized void printSummary() {
 		
-		System.out.println("[Source List Summary]");
-		System.out.println("Map Size: " + mSources.size());
+		System.out.println("\n[Source List Summary]\n");
+		System.out.println("Map Size: " + mSources.size() + "\n");
 				
 		int i = 0;
 		for(String key: mSources.keySet()) {			
@@ -78,7 +91,7 @@ public class SourceList {
 			System.out.println("Thread Name: " + mSources.get(key).getName());
 			System.out.println("Thread Status: " + mSources.get(key).isAlive());
 			System.out.println("Status: " + mSources.get(key).getStatus());		
-			System.out.println("'");
+			System.out.println("\n");
 			i++;
 		}
 	}

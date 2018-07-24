@@ -20,8 +20,8 @@ public class Plan {
 	private String source;
 	private String destination;
 	
-	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성
-	private boolean submitted; // Storm에 Submit 되어있는지 여부. 
+	private List<ASamplingFilteringTopology> lTopologies; // 플랜은 여러 토폴로지로 구성	
+	 
 	
 	public Plan(String name, String createdTime, String status, String owner, String source, String destination) {
 
@@ -32,8 +32,7 @@ public class Plan {
 		this.owner = owner;
 		this.source = source;
 		this.destination = destination;		
-		this.lTopologies = null;
-		this.submitted = false; 
+		this.lTopologies = null;	
 	}	
 
 	public void submitTopologies() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
@@ -41,8 +40,7 @@ public class Plan {
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
 			topology.submitTopology();			
-		}
-		submitted = true;
+		}		
 	}
 
 	public void killTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException {
@@ -50,11 +48,10 @@ public class Plan {
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
 			topology.killTopology();
-		}
-		submitted = false;
+		}		
 	}
 
-	public void activateTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException {
+	public void activateTopologies() throws NotAliveException, AuthorizationException, TException, InterruptedException, IOException {
 		// TODO Auto-generated method stub
 		if (lTopologies == null || lTopologies.isEmpty()) return;
 		for (ASamplingFilteringTopology topology: lTopologies) {
@@ -126,19 +123,10 @@ public class Plan {
 		this.source = source;
 	}
 
-	public boolean isSubmitted() {
-		return submitted;
-	}
-
-	public void setSubmitted(boolean submitted) {
-		this.submitted = submitted;
-	}
-
 	public void setTopologies(List<ASamplingFilteringTopology> topologies) {		
 		this.lTopologies = topologies;
 	}
 	public List<ASamplingFilteringTopology> getTopologies() {
 		return this.lTopologies;
 	}
-
 }

@@ -1,7 +1,11 @@
 package knu.cs.dke.topology_manager;
 
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 
 public class PlanList {
 	
@@ -65,14 +69,25 @@ public class PlanList {
 	
 	public synchronized void printSummary() {
 		
-		System.out.println("[Plan List Summary]");
-		System.out.println("Map Size: " + mPlans.size());
+		System.out.println("\n[Plan List Summary]\n");
+		System.out.println("Map Size: " + mPlans.size() + "\n");
 				
 		int i = 0;
 		for(String key: mPlans.keySet()) {			
 			System.out.println("[Plan " + i + "]");
 			System.out.println("Plan Name: " + mPlans.get(key).getPlanName());			
 			i++;
+			
+			List<ASamplingFilteringTopology> topologies = mPlans.get(key).getTopologies();
+			
+			for(int j=0; j<topologies.size(); j++ ) {
+							
+				System.out.println("[Topology " + j + "]");				
+				System.out.println("\t" + topologies.get(j).getPlan());
+				System.out.println("\t" + topologies.get(j).getIndex());
+				System.out.println("\t" + topologies.get(j).getTopologyType());
+				System.out.println("\n");
+			}
 		}
 	}
 }

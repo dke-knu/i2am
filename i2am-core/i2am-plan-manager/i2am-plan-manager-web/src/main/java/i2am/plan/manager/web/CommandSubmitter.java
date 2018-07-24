@@ -25,7 +25,8 @@ public class CommandSubmitter {
 
 	public enum COMMAND_TYPE {
 		CREATE_SRC, CREATE_DST, CREATE_PLAN,
-		CHANGE_STATUS_OF_SRC, CHANGE_STATUS_OF_DST, CHANGE_STATUS_OF_PLAN
+		CHANGE_STATUS_OF_SRC, CHANGE_STATUS_OF_DST, CHANGE_STATUS_OF_PLAN,
+		DESTROY_SRC, DESTROY_DST, DESTROY_PLAN
 	};
 	public enum SRC_TYPE {CUSTOM, KAFKA, DATABASE};
 	public enum DST_TYPE {CUSTOM, KAFKA, DATABASE};
@@ -33,8 +34,8 @@ public class CommandSubmitter {
 		BINARY_BERNOULLI_SAMPLING, HASH_SAMPLING, PRIORITY_SAMPLING,
 		RESERVOIR_SAMPLING, STRATIFIED_SAMPLING, SYSTEMATIC_SAMPLING,
 		K_SAMPLING, UC_K_SAMPLING, DISTRIBUTED_BINARY_BERNOULLI_SAMPLING,
-
-		QUERY_FILTERING, BLOOM_FILTERING, KALMAN_FILTERING, NOISE_RECOMMEND_KALMAN_FILTERING
+		QUERY_FILTERING, BLOOM_FILTERING, KALMAN_FILTERING, NOISE_RECOMMEND_KALMAN_FILTERING,
+		I_KALMAN_FILTERING
 	};
 	public enum STATUS {ACTIVE, DEACTIVE};
 
@@ -63,6 +64,30 @@ public class CommandSubmitter {
 		command.put("commandContent", commandContent);
 	}
 
+	// remove src, dst, plan.
+	public void remove(String commander, COMMAND_TYPE commandType, String name) {
+		
+		String commandId = UUID.randomUUID().toString();
+		String commandTime = format.format(new Date());
+		
+		command.put("commandId", commandId);
+		command.put("commander", commander);
+		command.put("commandType", commandType.name());
+		command.put("commandTime", commandTime);
+
+		JSONObject commandContent = new JSONObject();
+		commandContent.put("owner", commander);
+		if (commandType == COMMAND_TYPE.DESTROY_SRC)
+			commandContent.put("srcName", name);
+		else if (commandType == COMMAND_TYPE.DESTROY_DST)
+			commandContent.put("dstName", name);
+		else if (commandType == COMMAND_TYPE.DESTROY_PLAN)
+			commandContent.put("planName", name);
+		commandContent.put("modifiedTime", commandTime);
+		
+		command.put("commandContent", commandContent);		
+	}
+	
 	// create src. 
 	public void createSrc(String commander, String srcName, SRC_TYPE srcType, 
 			KafkaInfo kafka, DatabaseInfo database, String[] data,

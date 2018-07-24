@@ -266,7 +266,7 @@ $(document).ready(function() {
 			</label>
 			
 			<label class="container">
-				LoadShedding
+				Load Shedding
 				<input type="checkbox" name="chk_ls" value="ls">
 				<span class="checkmark"></span>			
 			</label>

@@ -4,8 +4,7 @@ public class CustomDestination extends Destination {
 	
 	public CustomDestination(String destinationName, String createdTime, String owner, String dstType) {
 		
-		super(destinationName, createdTime, owner, dstType);
-		
+		super(destinationName, createdTime, owner, dstType);		
 	}
 
 	@Override

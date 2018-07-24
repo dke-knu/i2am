@@ -19,7 +19,7 @@ public class DBSource extends Source {
 	private String userPassword;
 	private String dbName;	
 	private String query;	
-	
+
 	public DBSource(String sourceName, String createdTime, String owner, String srcType, ArrayList<SourceSchema> data,
 			String useConceptDrift, String useLoadShedding, String useIntelliEngine,
 			String dbIp, String dbPort, String dbId, String dbPassword, String dbName, String dbQuery)
@@ -47,7 +47,7 @@ public class DBSource extends Source {
 		this.dbName = dbName;
 		this.query = dbQuery;		
 	}
-	
+
 	@Override
 	public void run() {
 
@@ -55,23 +55,26 @@ public class DBSource extends Source {
 		String JDBC_DRIVER = "org.mariadb.jdbc.Driver";
 		String DB_URL = "jdbc:mariadb://" + ip + "/" + dbName;
 
-		// Kafka Config. (Producer)
-		// Producer
-		String servers = "MN:9092";
-		String topic = super.getTransTopic();
+		// Producer: To Server Kafka
+		String write_server = "114.70.235.43:19092";
 
-		Properties props = new Properties();
-		props.put("bootstrap.servers", servers);
-		props.put("acks", "all");
-		props.put("retries", 0);
-		props.put("batch.size", 16384);
-		props.put("linger.ms", 1);
-		props.put("buffer.memory", 33554432);
-		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
+		String write_servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
+				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
 
-		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(props);
+		String write_topic = super.getTransTopic();
 
+		Properties produce_props = new Properties();
+		produce_props.put("bootstrap.servers", write_servers);
+		produce_props.put("acks", "all");
+		produce_props.put("retries", 0);
+		produce_props.put("batch.size", 16384);
+		produce_props.put("linger.ms", 1);
+		produce_props.put("buffer.memory", 33554432);
+		produce_props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		produce_props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");	
+
+		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(produce_props);
+		
 		// DB Config.
 		Connection connection = null;
 		Statement stmt = null;
@@ -102,10 +105,10 @@ public class DBSource extends Source {
 				ResultSetMetaData rsmd = result.getMetaData();
 
 				int columns = rsmd.getColumnCount();
-				
-				
+
+
 				while(result.next()) {
-					
+
 					String message = "";
 
 					for (int i = 1; i <= columns; i++) {
@@ -113,13 +116,11 @@ public class DBSource extends Source {
 						String columnValue = result.getString(i);											
 						message = message + columnValue + ",";
 					}
-					
+
 					message = message.substring(0, message.length()-1);
-					producer.send(new ProducerRecord<String, String>(topic, message));
-					// System.out.println(message);			
-					
-				}				
-				
+					producer.send(new ProducerRecord<String, String>(write_topic, message));
+					// System.out.println(message);		
+				}	
 				Thread.sleep(3000);
 			}
 		}

@@ -23,9 +23,11 @@ public class DestinationList {
 	}
 
 	private Map<String, Destination> mDestinations;
+	private Map<String, Thread> runningThreads;
 
 	private DestinationList() {
 		mDestinations = new HashMap<String, Destination>();
+		runningThreads = new HashMap<String, Thread>();
 	}
 	
 	public synchronized Destination get(String owner, String destinationName) {
@@ -64,10 +66,21 @@ public class DestinationList {
 		return true;
 	}
 	
+	public synchronized boolean addThread(Thread thread) {
+		
+		runningThreads.put(thread.getName(), thread);		
+		return true;
+	}
+	
+	public synchronized Thread getThread(String destinationName) {
+							
+		return runningThreads.get(destinationName);
+	}
+	
 	public synchronized void printSummary() {
 		
-		System.out.println("[Destination List Summary]");
-		System.out.println("Map Size: " + mDestinations.size());
+		System.out.println("\n[Destination List Summary]\n");
+		System.out.println("Map Size: " + mDestinations.size() + "\n");
 				
 		int i = 0;
 		for(String key: mDestinations.keySet()) {			
@@ -76,7 +89,7 @@ public class DestinationList {
 			System.out.println("Thread Name: " + mDestinations.get(key).getName());
 			System.out.println("Thread Status: " + mDestinations.get(key).isAlive());
 			System.out.println("Status: " + mDestinations.get(key).getStatus());	
-			
+			System.out.println("\n");
 			i++;
 		}
 	}

@@ -19,7 +19,7 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.NimbusClient;
 import org.apache.storm.utils.Utils;
 
-public class RemoteStormController {
+public class RemoteStormControllerOrigin {
 
 	// Storm Conf.
 	private TopologyBuilder builder;
@@ -27,32 +27,47 @@ public class RemoteStormController {
 	private Config conf;
 	private Map storm_conf;	
 
-	private String sampling_jarDirectory = "$STORM_HOME/TestTopology.jar";
-	private String sampling_class = "i2am.Common.DynamicTopology";	
+	private String sampling_jarDirectory = "$STORM_HOME/Sampling.jar";
+	private String sampling_class = "i2am.Common.SamplingTopology";
 
-	public RemoteStormController() throws TTransportException  {
+	private String filtering_jarDirectory = "$STORM_HOME/Filtering.jar";
+	private String filtering_class = "i2am.Common.FilteringTopology";
+
+	public RemoteStormControllerOrigin() throws TTransportException  {
 		// Storm Conf.
 		builder = new TopologyBuilder();
 		conf = new Config();		
-		conf.put(Config.NIMBUS_SEEDS, "114.70.235.43"); // NIMBUS_HOSTS > NIMBUS_SEEDS
+		conf.put(Config.NIMBUS_SEEDS, "MN"); // NIMBUS_HOSTS > NIMBUS_SEEDS
 		storm_conf = Utils.readStormConfig();		
-		storm_conf.put("nimbus.seeds", Arrays.asList("114.70.235.43")); // nimbus.host > nimbus.seeds
-		nimbus = new NimbusClient(storm_conf, "114.70.235.43", 6627);	
+		storm_conf.put("nimbus.seeds", Arrays.asList("MN")); // nimbus.host > nimbus.seeds
+		// NimbusClient nimbus = new NimbusClient(storm_conf, "MN", 6627);	
 	}
 
-	public boolean isSubmitted(String topologyName) throws AuthorizationException, TException {
-		
-		return (!nimbus.getClient().isTopologyNameAllowed(topologyName));
-	}
-	
 	public void runTopology(ASamplingFilteringTopology topology) throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
 
 		String topologyName = topology.getTopologyName();		
-		// String redisKey = topology.getRedisKey();
-		// String topologyType = topology.getTopologyType();		
+		String redisKey = topology.getRedisKey();
+		String topologyType = topology.getTopologyType();		
 
-		String jarDirectory = sampling_jarDirectory; 
-		String algorithmType = sampling_class;
+		String jarDirectory = null;
+		String algorithmType = null;
+		
+		
+		
+		if(topologyType.contains("SAMPLING")) {
+
+			jarDirectory = sampling_jarDirectory;
+			algorithmType = sampling_class;			
+		}
+		else if (topologyType.contains("FILTERING")) {
+
+			jarDirectory = filtering_jarDirectory;
+			algorithmType = filtering_class;
+		}
+		else {
+
+			System.out.println("[Storm Remote Controller] Sampling? Filtering?");
+		}
 
 		String[] command = 
 			{
@@ -62,8 +77,8 @@ public class RemoteStormController {
 							+ jarDirectory + " "
 							+ algorithmType + " "
 							+ topologyName + " "
-							+ topology.getInputTopic() + " "
-							+ topology.getOutputTopic()							
+							+ redisKey + " "
+							+ topologyType
 			};	
 
 		System.out.println("[Topology] Run Topology : " + topologyName);
@@ -77,62 +92,43 @@ public class RemoteStormController {
 		while((line = br.readLine()) != null) {
 			System.out.println(line);
 		}
+
 	}
 
 	public void killTopology(String topologyName) throws NotAliveException, AuthorizationException, TException, InterruptedException {
 
 		try {			
-			KillOptions options = new KillOptions();
+			KillOptions options = null;
 			options.set_wait_secs(10);
 			System.out.println("[Topology] Kill Topology : " + topologyName);
-			
-			if(!nimbus.getClient().isTopologyNameAllowed(topologyName)) { // 있으면 킬				
-				nimbus.getClient().killTopologyWithOpts(topologyName, options);
-				Thread.sleep(3000);
-			}
-			else {
-				System.out.println("[Storm Controller] 토폴로지를 찾을 수 없음");
-			}					
+			nimbus.getClient().killTopologyWithOpts(topologyName, options);
+			Thread.sleep(3000);
 
 		} catch (AlreadyAliveException ae) {
 			ae.printStackTrace();
-		} 		
+		} 
+		nimbus.close();		
 	}
 
 	public void activateTopology(String topologyName) throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		try {	
-			
+		try {			
 			System.out.println("[Topology] Active Topology : " + topologyName);
-			
-			if(!nimbus.getClient().isTopologyNameAllowed(topologyName)) { // 없으면 켜야되는데
-				// Submit
-				nimbus.getClient().activate(topologyName);
-				Thread.sleep(3000);				
-			}
-			else {
-				System.out.println("[Storm Controller] 토폴로지를 찾을 수 없음");
-			}
-			
+			nimbus.getClient().activate(topologyName);
+			Thread.sleep(3000);
 		} catch (AlreadyAliveException ae) {
 			ae.printStackTrace();
-		} 			
+		} 
+		nimbus.close();			
 	}
 
 	public void deactivateTopology(String topologyName) throws NotAliveException, AuthorizationException, TException, InterruptedException {
 		try {			
-			
 			System.out.println("[Topology] Deactive Topology : " + topologyName);
-			
-			if(!nimbus.getClient().isTopologyNameAllowed(topologyName)) { // 있으면 끔
-				nimbus.getClient().deactivate(topologyName);
-				Thread.sleep(3000);
-			}
-			else {
-				System.out.println("[Storm Controller] 토폴로지를 찾을 수 없음");
-			}
-			
+			nimbus.getClient().deactivate(topologyName);			
+			Thread.sleep(3000);
 		} catch (AlreadyAliveException ae) {
 			ae.printStackTrace();
-		} 		
+		} 
+		nimbus.close();
 	}	
 }

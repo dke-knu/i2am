@@ -29,43 +29,54 @@ public class KafkaDestination extends Destination {
 	@Override
 	public void run() {
 
-		// Consumer: Read from Server's Source
+		// Consumer: Read from User's Source
 		// Needed Parameters: server IP&Port, topic name ...
-		String read_servers = "MN:9092";
+		String read_server = "114.70.235.43:19092";
+
+		String read_servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
+				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
+
 		String read_topics = super.getTransTopic();
 		String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
 
-		Properties consumer_props = new Properties();
-		consumer_props.put("bootstrap.servers", read_servers); // From User
-		consumer_props.put("group.id", groupId);
-		// consumer_props.put("enable.auto.commit", "false");
-		consumer_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		consumer_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		consumer_props.put("auto.offset.reset", "earliest");
+		// Consumer Props
+		Properties consume_props = new Properties();
+		consume_props.put("bootstrap.servers", read_servers);
+		consume_props.put("group.id", groupId);
+		consume_props.put("enable.auto.commit", "true");
+		consume_props.put("auto.offset.reset", "earliest");
+		consume_props.put("auto.commit.interval.ms", "1000");
+		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
-		// Producer: Server
-		String write_servers = zookeeperIp + ":" + zookeeperPort;
+
+		// Producer: Server Kafka --> User's
+		String write_server = zookeeperIp + ":" + zookeeperPort;
+
+		/*String write_servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
+				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";*/
+		
 		String write_topic = this.topic;
 
-		Properties producer_props = new Properties();
-		producer_props.put("bootstrap.servers", write_servers); // To User Kafka
-		producer_props.put("acks", "all");
-		// producer_props.put("retries", 0);
-		// producer_props.put("batch.size", 16384);
-		// producer_props.put("linger.ms", 1);
-		// producer_props.put("buffer.memory", 33554432);
-		producer_props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		producer_props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");		
+		Properties produce_props = new Properties();
+		produce_props.put("bootstrap.servers", write_server);
+		produce_props.put("acks", "all");
+		produce_props.put("retries", 0);
+		produce_props.put("batch.size", 16384);
+		produce_props.put("linger.ms", 1);
+		produce_props.put("buffer.memory", 33554432);
+		produce_props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		produce_props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");	
 
 		////////////////////
 		//* Read & Write *///
 		//////////////////////
 		/////////////////////
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consumer_props);
+		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
 		consumer.subscribe(Arrays.asList(read_topics));
 
-		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(producer_props);
+		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(produce_props);
 		boolean status = true;		
 
 		try {			

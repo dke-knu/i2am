@@ -202,6 +202,39 @@ public class DbAdapter {
 		}
 		return null;
 	}
+	
+	public JSONArray getListSrcWithIntelligentEngine(String owner) {
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+		try {
+			con = ds.getConnection();
+			stmt = con.createStatement();
+
+			sql = "SELECT * "
+					+ "FROM tbl_src s left join tbl_intelligent_engine i "
+					+ "ON (s.IDX = i.F_SRC)" 
+					+ "WHERE s.F_OWNER = "
+					+ "( SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";				
+			
+			return getJSONArray(stmt.executeQuery(sql));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally { 
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}	
 
 	public JSONArray getListDst(String owner) {
 		Connection con = null;
@@ -332,6 +365,37 @@ public class DbAdapter {
 					+ "FROM tbl_src s, tbl_src_csv_schema c "
 					+ "WHERE s.IDX = c.F_SRC "
 					+ "AND s.F_OWNER = (SELECT IDX FROM tbl_user WHERE ID='" + owner + "' );";
+			
+			
+			return getJSONArray(stmt.executeQuery(sql));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally { 
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}	
+	
+	public JSONArray getIntelligentTarget(String owner) {
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+		try {
+			con = ds.getConnection();
+			stmt = con.createStatement();
+			
+			sql = "SELECT * FROM tbl_src s, tbl_intelligent_engine i, tbl_src_csv_schema c "
+					+ "WHERE s.IDX = i.F_SRC AND i.F_TARGET = c.IDX AND s.F_OWNER = (SELECT Idx FROM tbl_user WHERE id ='" + owner + "')";
 			
 			
 			return getJSONArray(stmt.executeQuery(sql));

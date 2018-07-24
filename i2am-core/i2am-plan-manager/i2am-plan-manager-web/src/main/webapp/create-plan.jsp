@@ -36,7 +36,7 @@ function getSourceList() {
 		
 	$.ajax({
 		type : 'post',
-		url : './ajax/get-list-src.jsp',
+		url : './ajax/get-list-src-with-intelligent.jsp',
 		data : ({}),
 		async: false,
 		cache: false,
@@ -55,18 +55,25 @@ function getSourceList() {
 			
 	while (arr.length > 0) {
 		var obj = arr.pop();
-		//console.log(obj.NAME);	
-		
+		//console.log(obj.NAME);
 		var source = '<div class="itemWrap drag source"' + ' name=' + obj.NAME  + '>' +
 						'<div class="item">' +			
-						'<i class="fa fa-filter type sourceType"></i>' +
-							'<div class="name">' + obj.NAME + '</div>' +						
-							'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
-						'</div>' +
-							'<div class="params">' +		 								
-		 						'<table class="schema"><tr><th>#</th><th>name</th><th>type</th></tr></table>'
-	 						'</div>' +
-						'</div>';
+							'<i class="fa fa-filter type sourceType"></i>' +
+								'<div class="name">' + obj.NAME + '</div>' +						
+								//'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
+								'<div class="control"> </div>' +
+							'</div>' +
+						'<div class="params">' +		 								
+		 					'<table class="schema"><tr><th>#</th><th>name</th><th>type</th></tr></table>'
+	 					'</div>';
+	 					
+	 	if(obj.IS_RECOMMENDATION == "Y") {
+	 		
+	 		source = source + '<div class="recommendation"><i class="fa fa-thumbs-o-up"></i> ' + obj.RECOMMENDED_SAMPLING.replace("_", " ") + '</div>';
+	 		
+	 	}						
+	 					
+	 	source = source + '</div>';				
 						
 		list.prepend(source);
 	}	
@@ -107,6 +114,44 @@ function setSourceSchema() {
 }
 </script>
 
+<script>
+function setTargets() {
+	
+	var targets_list = null;
+	
+	$.ajax({
+		type : 'post',
+		url : './ajax/get-target.jsp',
+		data : ({}),
+		async: false,
+		cache: false,
+		success : function(target_data) {
+			target_data = target_data.replace(/(^\s*)|(\s*$)/gi, "");
+			targets_list = target_data;
+		} 
+	});	
+	
+	if (targets_list == null) {
+		alert("Targets cannot load.");
+		return ;
+	}	
+	
+	targets = JSON.parse(targets_list);	
+	console.log(targets_list);
+	
+	for(var i=0; i<targets.length; i++ ) {
+		
+		var target = targets[i];		
+		var recommendation = $("div[name='" + target.NAME + "']").find(".schema");
+		var td = recommendation.find("td:contains('" + target.COLUMN_NAME + "')");
+		var tr = td.parent();
+		
+		console.log(tr);
+		tr.addClass("target");
+	}
+}
+</script>
+
 <script> 
 function getDestinationList() {
 	// Insert Source & Destination
@@ -141,7 +186,8 @@ function getDestinationList() {
 						'<div class="item">' +			
 						'<i class="fa fa-database type destinationType"></i>' +
 							'<div class="name">' + obj.NAME + '</div>' +						
-							'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
+							//'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
+							'<div class="control"></div>' +
 						/* '</div>' +
 						 '<div class="params">' +
 	 						'Parameters<br><br>' +
@@ -165,6 +211,7 @@ $(document).ready(function() {
 	
 	getSourceList();
 	setSourceSchema();
+	setTargets();
 	getDestinationList();
 	
 	// jsPlumb init.
@@ -313,7 +360,7 @@ $(document).ready(function() {
 				}
 				
 				// Å¸°Ù ÇÊ¿ä --> ¼ýÀÚ
-				if( $(target).attr("name") == 'kf' || $(target).attr("name") == 'nrkf' ) {
+				if( $(target).attr("name") == 'kf' || $(target).attr("name") == 'nrkf' || $(target).attr("name") == 'ikf' ) {
 					
 					var columns = [];
 					
@@ -402,7 +449,7 @@ $(document).ready(function() {
 			
 			// Å¸°ÙÀÌ ÀÖ´Â »ùÇÃ¸µ ºñÈ°¼ºÈ­ 
 			if( $(target).attr("name") == "bf" || $(target).attr("name") == "hs" || $(target).attr("name") == "kf"
-					|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" ) {				
+					|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" || $(target).attr("name") == "ikf" ) {				
 							
 				target.find(".cannot").show();
 				target.find(".schemenTarget").hide();				
@@ -462,7 +509,7 @@ $(document).ready(function() {
 			
 			// Å¸°Ù ºñÈ°¼ºÈ­
 			if( $(target).attr("name") == "bf" || $(target).attr("name") == "hs" || $(target).attr("name") == "kf"
-				|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" ) {				
+				|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" || $(target).attr("name") == "ikf" ) {				
 						
 					target.find(".cannot").show();
 					target.find(".schemenTarget").hide();				
@@ -524,7 +571,9 @@ $(document).ready(function() {
 				      disabled: true
 			    });
 				itemWrap.addClass('dragAfter');
-				params.slideDown("slow");				
+				params.slideDown("slow");		
+				
+				itemWrap.removeClass("recommended");
 								
 				var min = $("<div class='control min'></div>").text("_");
 				var del = $("<div class='control del'></div>").text("X");
@@ -535,6 +584,7 @@ $(document).ready(function() {
 				if( itemWrap.hasClass('source') ) {
 					
 					plumb.addEndpoint(itemWrap, source);
+					recommendedAlgorithm(itemWrap.find(".recommendation"));
 				}
 				else if ( itemWrap.hasClass('destination') ) {
 				
@@ -568,6 +618,11 @@ $(document).ready(function() {
 		var origin = $(".drag[name='" + itemWrap.attr('name') + "']");
 		origin.show();
 		origin.removeClass("isHidden");
+		
+		if(itemWrap.hasClass('source')) {			
+			$(".itemWrap").removeClass("recommended");			
+		}
+		
 		plumb.remove(itemWrap);		
 	});
 
@@ -720,7 +775,7 @@ $(document).ready(function() {
 						  }						
 					}
 					else if( $(next).attr("name") == "bf" || $(next).attr("name") == "hs" || $(next).attr("name") == "kf"
-						|| $(next).attr("name") == "nrkf" || $(next).attr("name") == "ps" ) {
+						|| $(next).attr("name") == "nrkf" || $(next).attr("name") == "ps" || $(next).attr("name") == "ikf") {
 												
 						// ¶óµð¿À ¹Ú½º
 						var radioName = $(next).find(".radioTarget").attr("name");
@@ -748,7 +803,15 @@ $(document).ready(function() {
 								parameters[$(inputs[i]).attr("parameter")] = parseInt($(inputs[i]).val());	
 							}							
 						}						
-						parameters["target"] = parseInt(targetIndex);						
+						parameters["target"] = parseInt(targetIndex);	
+						
+						if($(next).attr("name") == "nrkf") {														
+							var selected = $(".mySelect option:selected").val();
+							parameters["measure"] = selected;
+						}
+						
+						
+						
 					}
 					else {
 						
@@ -846,6 +909,41 @@ $(window).resize(function() {
 $(window).trigger('resize');
 </script>
 
+<script>
+function recommendedAlgorithm(algorithmName) {
+		
+	//console.log($(algorithmName).text());
+	if( algorithmName == null ) {
+		
+		alert("¾øÀ½");
+		return;
+	}	
+	
+	var algorithm = $(algorithmName).text().replace(/ /g, "");	
+	var find;		
+	
+	switch(algorithm) {	
+	case "BINARYBERNOULLISAMPLING": find = "bbs"; break;
+	case "HASHSAMPLING": find = "hs"; break;
+	case "KSAMPLING": find = "ks"; break;
+	case "UCKSAMPLING": find = "ucks"; break;
+	case "PRIORITYSAMPLING": find = "ps"; break;
+	case "RESERVOIRSAMPLING": find = "rs"; break;
+	case "SYSTEMATICSAMPLING": find = "ss"; break;
+	case "BLOOMFILTERING": find = "bf"; break;
+	case "QUERYFILTERING": find = "qf"; break;
+	case "KALMANFILTERING": find = "kf"; break;
+	case "NOISERECOMMENDEDKALMANFILTERING": find = "nrkf"; break;
+	case "INTELLIGENTKALMANFILTERING": find = "ikf"; break;
+	default: find = null;
+	}
+ 	
+	$(".itemWrap").removeClass("recommended");
+	$("div[name='" + find + "']").addClass("recommended");	
+}
+</script>
+
+
 </head>
 <body> 
 	<div class="myRow">	
@@ -873,9 +971,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Binary Bernoulli Sampling</div>								
-							<div class="control myTooltip">?
-								<span class="myTooltiptext">¼³¶ò</span>
-							</div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			 							 		
@@ -889,7 +985,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Hash Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">
@@ -907,7 +1003,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">K Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			 							 		
@@ -920,7 +1016,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">UC K Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			 							 		
@@ -934,7 +1030,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Priority Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			
@@ -952,7 +1048,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Reservoir Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			 							 		
@@ -966,7 +1062,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Systematic Sampling</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">			 							 		
@@ -979,7 +1075,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Bloom Filtering</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">		
@@ -997,7 +1093,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Query Filtering</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params query">		
 							<div class="paramsInput">			 							 		
@@ -1015,7 +1111,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Kalman Filtering</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">	
@@ -1023,8 +1119,12 @@ $(window).trigger('resize');
 								<div class="cannot"> Connect with source. </div>
 					 			<div class="schemenTarget"></div>							
 									 							 		
-					 			<div class="paramInputLabel">Q value</div><input class="paramInput" parameter="q_value"></input><br>
-					 			<div class="paramInputLabel">R value</div><input class="paramInput" parameter="r_value"></input>
+					 			<div class="paramInputLabel">A value</div><input class="paramInput" parameter="a_value" value=1.0></input><br>
+					 			<div class="paramInputLabel">Q value</div><input class="paramInput" parameter="q_value" value=0.01></input>
+					 			<div class="paramInputLabel">H value</div><input class="paramInput" parameter="h_value" value=1.0></input>
+					 			<div class="paramInputLabel">Initial X value</div><input class="paramInput" parameter="x_value" value=0.0></input>
+					 			<div class="paramInputLabel">Initial P value</div><input class="paramInput" parameter="p_value" value=1000.0></input>
+					 			<div class="paramInputLabel">R value</div><input class="paramInput" parameter="r_value" value=0.5></input>
 				 			</div>
 				 		</div>
 					</div>
@@ -1033,7 +1133,7 @@ $(window).trigger('resize');
 						<div class="item">			
 							<i class='fa fa-cog type topologyType'></i>
 							<div class="name">Noise Recommend Kalman Filtering</div>								
-							<div class="control myTooltip">?<span class="myTooltiptext">¼³¶ò</span></div>
+							<div class="control"></div>
 						</div>	
 						<div class="params">		
 							<div class="paramsInput">
@@ -1041,12 +1141,45 @@ $(window).trigger('resize');
 								<div class="cannot"> Connect with source. </div>
 					 			<div class="schemenTarget"></div>
 										 							 		
-					 			<div class="paramInputLabel">Q value</div><input class="paramInput" parameter="q_value"></input><br>					 		
+					 			<div class="paramInputLabel">A value</div><input class="paramInput" parameter="a_value" value=1.0></input><br>
+					 			<div class="paramInputLabel">Q value</div><input class="paramInput" parameter="q_value" value=0.01></input>
+					 			<div class="paramInputLabel">H value</div><input class="paramInput" parameter="h_value" value=1.0></input>
+					 			<div class="paramInputLabel">Initial X value</div><input class="paramInput" parameter="x_value" value=0.0></input>
+					 			<div class="paramInputLabel">Initial P value</div><input class="paramInput" parameter="p_value" value=1000.0></input>
+					 			<div class="selectLabel">Recommended Measure</div>
+					 				<center>
+					 				<select class="mySelect">
+					 					<option value="wt" selected>Wavelet Transform</option>
+					 					<option value="ma">Moving Average</option>
+					 				</select>
+					 				</center>					 			
+					 							 		
 				 			</div>
 				 		</div>
-					</div>						
-			</div>
-			 
+					</div>
+					
+					<div class="itemWrap drag topology" name="ikf">
+						<div class="item">			
+							<i class='fa fa-cog type topologyType'></i>
+							<div class="name">Intelligent Kalman Filtering</div>								
+							<div class="control"></div>
+						</div>	
+						<div class="params">		
+							<div class="paramsInput">
+							
+								<div class="cannot"> Connect with source. </div>
+					 			<div class="schemenTarget"></div>
+										 							 		
+					 			<div class="paramInputLabel">A value</div><input class="paramInput" parameter="a_value" value=1.0></input><br>
+					 			<div class="paramInputLabel">Q value</div><input class="paramInput" parameter="q_value" value=0.01></input>
+					 			<div class="paramInputLabel">H value</div><input class="paramInput" parameter="h_value" value=1.0></input>
+					 			<div class="paramInputLabel">Initial X value</div><input class="paramInput" parameter="x_value" value=0.0></input>
+					 			<div class="paramInputLabel">Initial P value</div><input class="paramInput" parameter="p_value" value=1000.0></input>
+					 						 		
+				 			</div>
+				 		</div>
+					</div>							
+			</div>			 
 			</div>
 			
 			<div class="column right">

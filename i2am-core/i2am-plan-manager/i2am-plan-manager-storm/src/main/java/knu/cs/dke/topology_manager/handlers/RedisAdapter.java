@@ -85,12 +85,10 @@ public class RedisAdapter {
 
 				String sys_redisKey = sys_topology.getRedisKey();
 
-				String sys_sampleKey = sys_topology.getTopologyName();
 				String sys_interval = String.valueOf(sys_topology.getInterval());												
 				String sys_inputTopic = sys_topology.getInputTopic();
 				String sys_outputTopic = sys_topology.getOutputTopic();
 
-				jedisCn.hset(sys_redisKey, "SampleKey", sys_sampleKey);
 				jedisCn.hset(sys_redisKey, "Interval", sys_interval);				
 				jedisCn.hset(sys_redisKey, "InputTopic", sys_inputTopic);
 				jedisCn.hset(sys_redisKey, "OutputTopic", sys_outputTopic);				
@@ -103,11 +101,9 @@ public class RedisAdapter {
 
 				String query_redisKey = query_topology.getRedisKey();
 
-				//String query_kewords = query_topology.getKeywords();
 				String query_inputTopic = query_topology.getInputTopic();
 				String query_outputTOpic = query_topology.getOutputTopic();
 
-				//jedisCn.hset(query_redisKey, "Keywords", query_kewords);
 				jedisCn.hset(query_redisKey, "InputTopic", query_inputTopic);
 				jedisCn.hset(query_redisKey, "OutputTopic", query_outputTOpic);
 
@@ -162,15 +158,15 @@ public class RedisAdapter {
 				String hash_sampleKey = hash_topology.getTopologyName();				
 				String hash_sampleSize = String.valueOf(hash_topology.getSampleSize());
 				String hash_windowSize = String.valueOf(hash_topology.getWindowSize());
-				String hash_function = hash_topology.getHashFunction();
-				// String hash_bucketSize = String.valueOf(hash_topology.getBucketSize());
-
+				String hash_inputTopic = hash_topology.getInputTopic();
+				String hash_outputTopic = hash_topology.getOutputTopic();
+				
 				jedisCn.hset(hash_redisKey, "SampleKey", hash_sampleKey);
 				jedisCn.hset(hash_redisKey, "SampleSize", hash_sampleSize);
 				jedisCn.hset(hash_redisKey,  "WindowSize", hash_windowSize);
-				jedisCn.hset(hash_redisKey,  "HashFunction", hash_function);
-				// jedisCn.hset(hash_redisKey, "BucketSize", hash_bucketSize);
-
+				jedisCn.hset(hash_redisKey, "InputTopic", hash_inputTopic);
+				jedisCn.hset(hash_redisKey, "OutputTopic", hash_outputTopic);
+				
 				break;
 
 			case "PRIORITY_SAMPLING":
@@ -237,9 +233,13 @@ public class RedisAdapter {
 				
 				String qValue = String.valueOf(kalman.getQ_val());
 				String rValue = String.valueOf(kalman.getR_val());
-				
+				String kalman_inputTopic = kalman.getInputTopic();
+				String kalman_outputTopic = kalman.getOutputTopic();
+								
 				jedisCn.hset(kalman_redisKey, "Q_val", qValue);
 				jedisCn.hset(kalman_redisKey, "R_val", rValue);				
+				jedisCn.hset(kalman_redisKey, "InputTopic", kalman_inputTopic);
+				jedisCn.hset(kalman_redisKey, "OutputTopic", kalman_outputTopic);
 				
 				break;
 				
@@ -250,8 +250,12 @@ public class RedisAdapter {
 				String nr_kalman_redisKey = nr_kalman.getRedisKey();
 				
 				String nr_qValue = String.valueOf(nr_kalman.getQ_val());
+				String nr_kalman_inputTopic = nr_kalman.getInputTopic();
+				String nr_kalman_outputTopic = nr_kalman.getOutputTopic();
 				
 				jedisCn.hset(nr_kalman_redisKey, "Q_val", nr_qValue);
+				jedisCn.hset(nr_kalman_redisKey, "InputTopic", nr_kalman_inputTopic);
+				jedisCn.hset(nr_kalman_redisKey, "OutputTopic", nr_kalman_outputTopic);
 				
 				break;
 				
@@ -263,9 +267,13 @@ public class RedisAdapter {
 				
 				String uc_samplingRate = String.valueOf(uc.getSamplingRate());
 				String uc_uc = String.valueOf(uc.getUcUnderBound());
+				String uc_inputTopic = uc.getInputTopic();
+				String uc_outputTopic = uc.getOutputTopic();
 				
 				jedisCn.hset(uc_redisKey, "SamplingRate", uc_samplingRate);
 				jedisCn.hset(uc_redisKey, "UCUnderBound", uc_uc);
+				jedisCn.hset(uc_redisKey, "InputTopic", uc_inputTopic);
+				jedisCn.hset(uc_redisKey, "OutputTopic", uc_outputTopic);
 				
 				break;
 

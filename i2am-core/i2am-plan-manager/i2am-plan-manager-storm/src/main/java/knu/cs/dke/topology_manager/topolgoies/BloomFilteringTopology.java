@@ -15,8 +15,6 @@ public class BloomFilteringTopology extends ASamplingFilteringTopology{
 	private String keywords;
 	private int target;	
 	
-	private RemoteStormController storm;
-	
 	public BloomFilteringTopology(String createdTime, String plan, int index, String topologyType, int bucketSize, String keywords, int target) throws TTransportException {
 
 		super(createdTime, plan, index, topologyType);
@@ -24,33 +22,6 @@ public class BloomFilteringTopology extends ASamplingFilteringTopology{
 		this.bucketSize = bucketSize;
 		this.keywords = keywords;
 		this.target = target;		
-		
-		storm = new RemoteStormController();
-	}
-	
-	@Override
-	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.killTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.activateTopology(super.getTopologyName());
-		
-	}
-
-	@Override
-	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.deactivateTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
-		// TODO Auto-generated method stub
-		storm.runTopology(this);		
 	}
 
 	public int getBucketSize() {

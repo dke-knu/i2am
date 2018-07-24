@@ -22,6 +22,7 @@ import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.BloomFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.HashSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.IKalmanFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.KSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.KalmanFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.NRKalmanFilteringTopology;
@@ -123,7 +124,7 @@ public class TopologyHandler {
 				int hash_target = ((Number) hash_params.get("target")).intValue();
 				//String hash_function = (String) hash_params.get("hashFunction");
 				// int bucket_size = ((Number) hash_params.get("bucketsize")).intValue();
-				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, "hash_function", hash_target);
+				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, hash_target);
 				break;				
 
 			case "ps":
@@ -170,18 +171,41 @@ public class TopologyHandler {
 
 			case "kf":				
 				JSONObject kalman_params = (JSONObject) algorithm.get("topology_params");
+				double aValue = ((Number) kalman_params.get("a_value")).doubleValue();
 				double qValue = ((Number) kalman_params.get("q_value")).doubleValue();
+				double hValue = ((Number) kalman_params.get("h_value")).doubleValue();
+				double xValue = ((Number) kalman_params.get("x_value")).doubleValue();
+				double pValue = ((Number) kalman_params.get("p_value")).doubleValue();
 				double rValue = ((Number) kalman_params.get("r_value")).doubleValue();
+				
 				int kalman_target = ((Number) kalman_params.get("target")).intValue();
-				temp = new KalmanFilteringTopology(createdTime, planName, i, "KALMAN_FILTERING", qValue, rValue, kalman_target);
+				temp = new KalmanFilteringTopology(createdTime, planName, i, "KALMAN_FILTERING", aValue, qValue, hValue, xValue, pValue, rValue, kalman_target);
 				break;
 
 			case "nrkf":
 				JSONObject nr_kalman_params = (JSONObject) algorithm.get("topology_params");
+				double nr_aValue = ((Number) nr_kalman_params.get("a_value")).doubleValue();
 				double nr_qValue = ((Number) nr_kalman_params.get("q_value")).doubleValue();
+				double nr_hValue = ((Number) nr_kalman_params.get("h_value")).doubleValue();
+				double nr_xValue = ((Number) nr_kalman_params.get("x_value")).doubleValue();
+				double nr_pValue = ((Number) nr_kalman_params.get("p_value")).doubleValue();
+				String measure = (String) nr_kalman_params.get("measure");
+				
 				int nr_kalman_target = ((Number) nr_kalman_params.get("target")).intValue();
-				temp = new NRKalmanFilteringTopology(createdTime, planName, i, "NR_KALMAN_FILTERING", nr_qValue, nr_kalman_target);
-				break;			
+				temp = new NRKalmanFilteringTopology(createdTime, planName, i, "NR_KALMAN_FILTERING", nr_aValue, nr_qValue, nr_hValue, nr_xValue, nr_pValue, measure, nr_kalman_target);
+				break;		
+				
+			case "ikf":				
+				JSONObject i_kalman_params = (JSONObject) algorithm.get("topology_params");
+				double i_aValue = ((Number) i_kalman_params.get("a_value")).doubleValue();
+				double i_qValue = ((Number) i_kalman_params.get("q_value")).doubleValue();
+				double i_hValue = ((Number) i_kalman_params.get("h_value")).doubleValue();
+				double i_xValue = ((Number) i_kalman_params.get("x_value")).doubleValue();
+				double i_pValue = ((Number) i_kalman_params.get("p_value")).doubleValue();				
+				
+				int i_kalman_target = ((Number) i_kalman_params.get("target")).intValue();
+				temp = new IKalmanFilteringTopology(createdTime, planName, i, "I_KALMAN_FILTERING", i_aValue, i_qValue, i_hValue, i_xValue, i_pValue, i_kalman_target);
+				break;
 
 			case "UC_K_SAMPLING":
 				JSONObject uc_k_params = (JSONObject) algorithm.get("topology_params");
@@ -209,7 +233,6 @@ public class TopologyHandler {
 			if ( i == algorithmsSize-1 ) { // 마지막 토폴로지: Destination Trans Topic
 				temp.setOutputTopic(dstTopic);
 			}
-
 			topologies.add(temp);
 		}
 
@@ -220,8 +243,7 @@ public class TopologyHandler {
 		plans.add(plan);
 
 		// Plan to DB ...
-		DbAdapter db = DbAdapter.getInstance();
-		db.addPlan(plan);
+		DbAdapter.getInstance().addPlan(plan);
 
 		// Topology Params to Redis ...
 		// RedisAdapter redis = new RedisAdapter();
@@ -232,20 +254,18 @@ public class TopologyHandler {
 	private void destroyPlan() throws NotAliveException, AuthorizationException, TException, InterruptedException {
 
 		// Parse Content!
-	
-		/*
-		Plan temp = plans.get();
+		JSONObject content = (JSONObject) command.get("commandContent");
+		
+		// Get Information
+		String planName = (String) content.get("planName");
+		String owner = (String) content.get("owner");
+		
+		// Delete!
+		Plan temp = plans.get(owner, planName);		
 		temp.killTopologies();		
 		plans.remove(temp);
-
-		// DB 에서도 삭제 해야되에에에엥
-		DbAdapter db = new DbAdapter();
-		db.changePlanStatus(temp);
-		// 1. Topology Params 삭제 
-		// 2. Topology 삭제
-		// 3. Plan 삭제		 
-		// 4. ..... Redis에서도 삭제
-		 */
+		
+		DbAdapter.getInstance().removePlan(temp);		
 	}
 
 	private void changeStatus() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
@@ -273,17 +293,11 @@ public class TopologyHandler {
 		System.out.print("Ignore?");
 
 		// DB에서도 해당 플랜의 상태와 ModifiedTime 변경
-		DbAdapter db = DbAdapter.getInstance();
-		db.changePlanStatus(temp);
+		DbAdapter.getInstance().changePlanStatus(temp);
 
 		// 만약 상태가 active로 바뀐다면!
-		if ( status.equals("ACTIVE") ) {			
-			if (!temp.isSubmitted()) {
-				temp.submitTopologies();
-			}
-			else {
-				temp.activateTopologies();
-			}			
+		if ( status.equals("ACTIVE") ) {						
+			temp.activateTopologies();
 		} 
 		else if ( status.equals("DEACTIVE") ) {
 			temp.deactivateTopologies();
@@ -291,6 +305,5 @@ public class TopologyHandler {
 		else
 			System.out.println("[Topology Handler] Status Type Error.");		
 	}
-
 
 }
