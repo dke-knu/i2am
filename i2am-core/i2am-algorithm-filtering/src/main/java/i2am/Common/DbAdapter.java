@@ -34,11 +34,14 @@ public class DbAdapter {
     }
 
     public int getTargetIndex(String topologyName) throws SQLException {
+        int targetIndex = 0;
         connection = ds.getConnection();
         preparedStatement = connection.prepareStatement(GETTARGETINDEXQUERY);
         preparedStatement.setString(1, topologyName);
         resultSet = preparedStatement.executeQuery();
-        int targetIndex = resultSet.getInt("COLUMN_INDEX");
+        if(resultSet.next()) {
+            targetIndex = resultSet.getInt("COLUMN_INDEX");
+        }
         preparedStatement.close();
         resultSet.close();
         connection.close();
