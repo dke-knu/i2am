@@ -20,9 +20,13 @@ import java.util.Map;
  * Created by sbpark on 2017-12-04.
  */
 public class KalmanFilteringBolt extends BaseRichBolt {
-    private double x = 0, P = 1000, R, Q;
+    private double x, P, R, Q, A, H;
     /* RedisKey */
     private String redisKey = null;
+    private String initXValueKey = "Init_x_val";
+    private String initPValueKey = "Init_P_val";
+    private String AValueKey = "A_val";
+    private String HValueKey = "H_val";
     private String QValueKey = "Q_val";
     private String RValueKey = "R_val";
 
@@ -52,9 +56,12 @@ public class KalmanFilteringBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        x = Double.parseDouble(jedisCommands.hget(redisKey, initXValueKey));
+        P = Double.parseDouble(jedisCommands.hget(redisKey, initPValueKey));
+        A = Double.parseDouble(jedisCommands.hget(redisKey, AValueKey));
+        H = Double.parseDouble(jedisCommands.hget(redisKey, HValueKey));
         Q = Double.parseDouble(jedisCommands.hget(redisKey, QValueKey));
         R = Double.parseDouble(jedisCommands.hget(redisKey, RValueKey));
-
     }
 
     @Override
@@ -62,13 +69,13 @@ public class KalmanFilteringBolt extends BaseRichBolt {
         String data = input.getStringByField("data");
         int targetIndex = input.getIntegerByField("targetIndex");
         double x_present = Double.parseDouble(input.getStringByField("target"));
-        double x_next, P_next, K, z, H = 1;
+        double x_next, P_next, K, z;
 
-        x_next = x;
+        x_next = A * x;
         P_next = P+ Q; 	//Q: white noise --> by environment
-        K = P_next*H / (H*H*P_next + R);	//kalman gain
+        K = P_next * H / (H * H * P_next + R);	//kalman gain
 
-        z = x_present;
+        z = H * x_present;
         x = x_next + K*(z - H*x_next);		// filtered data
         P = (1 - K*H)*P_next;
 
@@ -84,6 +91,7 @@ public class KalmanFilteringBolt extends BaseRichBolt {
         for(String string: dataArray){
             switchedData = switchedData + "," + string;
         }
+        switchedData = switchedData.replaceFirst(",", "");
         return switchedData;
     }
 

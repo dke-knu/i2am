@@ -33,6 +33,6 @@ public class PassingBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("", "data"));
+        declarer.declare(new Fields("key", "data"));
     }
 }

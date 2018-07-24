@@ -88,7 +88,7 @@ public class FilteringTopology {
         KafkaBolt<String, String> kafkaBolt = new KafkaBolt<String, String>()
                 .withProducerProperties(properties)
                 .withTopicSelector(new DefaultTopicSelector(outputTopic))
-                .withTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper<String, String>("", "data"));
+                .withTupleToKafkaMapper(new FieldNameBasedTupleToKafkaMapper<String, String>("key", "data"));
 
         /* Topology Configuration */
         TopologyBuilder topologyBuilder = new TopologyBuilder();
