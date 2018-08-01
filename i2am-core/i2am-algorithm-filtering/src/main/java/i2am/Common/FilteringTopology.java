@@ -1,10 +1,8 @@
 package i2am.Common;
 
 import i2am.Declaring.DeclaringBolt;
-import i2am.Filtering.BloomFilteringBolt;
-import i2am.Filtering.KalmanFilteringBolt;
-import i2am.Filtering.NoiseRecKalmanFilteringBolt;
-import i2am.Filtering.QueryFilteringBolt;
+import i2am.Filtering.*;
+
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,7 +47,7 @@ public class FilteringTopology {
         /* Redis Node Configurations */
         Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
         redisNodes.add(new InetSocketAddress("MN", 17000));
-        redisNodes.add(new InetSocketAddress("SN01", 1700));
+        redisNodes.add(new InetSocketAddress("SN01", 17000));
         redisNodes.add(new InetSocketAddress("SN02", 17000));
         redisNodes.add(new InetSocketAddress("SN03", 17000));
         redisNodes.add(new InetSocketAddress("SN04", 17000));
@@ -114,12 +112,20 @@ public class FilteringTopology {
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("KALMAN_FILTERING")){
+            System.out.println("SBPARK@@@@ "+algorithmName);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
+            System.out.println("SBPARK@@@@ "+algorithmName);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new NoiseRecKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("DECLARING_BOLT")
+                    .setNumTasks(1);
+        }
+        else if(algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
+            System.out.println("SBPARK@@@@ "+algorithmName);
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new IntelligentKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
@@ -135,7 +141,7 @@ public class FilteringTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
+        if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING") || algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
             config.setNumWorkers(5);
         }
         else{
