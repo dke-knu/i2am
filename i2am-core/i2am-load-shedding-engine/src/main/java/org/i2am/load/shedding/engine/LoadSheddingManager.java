@@ -1,171 +1,39 @@
 package org.i2am.load.shedding.engine;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class LoadSheddingManager {
-    //public static Map<String, Boolean> jmxTopics = new HashMap<String, Boolean>();
     public static Map<String, Boolean> jmxTopics = Collections.synchronizedMap(new HashMap<String, Boolean>());
-    //for all topics loadshedding
-    private static boolean totalSwitch = false;
-
     private static Map<String, String> conf = new HashMap<String, String>();
+    public Map<String, lsInfo> varMap = Collections.synchronizedMap(new HashMap<String, lsInfo>());
 
-    public LoadSheddingManager(Map conf) {
+    // 생성자
+    public LoadSheddingManager(Map conf) throws IOException {
         this.conf = conf;
     }
 
-    // LoadShedding policy
-    public static long calculateThreshold() {
-        long threshold = 10000000;
-        return threshold;
-    }
-
+    // 초기화 - DB에서 플랜(토픽)정보 읽어서 jmxTopics 맵에 저장
     public void initJmxTopics() {
         DbAdapter.getInstance(conf).initMethod(jmxTopics);
     }
 
-    public void loadSheddingByTopic() throws Exception {
-        long threshold = 0;
-        long currentJmx = 0;
-
-        threshold = calculateThreshold();
-
-        while (true) {
-            JmxCollector collector = new JmxCollector(conf.get("hosts"));
-            long topicThreshold = threshold / jmxTopics.size();
-            Set<String> keySet = jmxTopics.keySet();
-            for (String key : keySet) {
-                currentJmx = collector.collectJmx(key);
-                String topic = key;
-                System.out.print(topic + ": " + currentJmx + " ");
-
-                loadSheddingCheck(topicThreshold, currentJmx, jmxTopics.get(topic), topic);
-            }
-            System.out.println();
-            Thread.sleep(1000);
-        }
-    }
-
-    public void loadSheddingAllTopic() throws Exception {
-        long totalcurrentJmx;
-        JmxCollector collector = new JmxCollector(conf.get("hosts"));
-
-        long threshold = calculateThreshold();
-
-        while (true) {
-            totalcurrentJmx = collector.collectJmx();
-//            System.out.println("total: " + totalcurrentJmx);
-            System.out.println(totalcurrentJmx);
-
-
-            totalSwitch = loadSheddingCheck(threshold, totalcurrentJmx, totalSwitch);
-            Thread.sleep(1000);
-        }
-    }
-
-    //전체
-    public boolean loadSheddingCheck(double threshold, double curJmx, boolean dbSwitch){
-        if (curJmx > threshold && !dbSwitch) {
+    // 각 플랜(토픽)별 로드쉐딩 조건 체크하여 jmxTopics 값 변경
+    public void loadSheddingCheck(double threshold, double var, String planId) {
+        if (var > threshold && !jmxTopics.get(planId)) {
             System.out.println("[LOADSHEDDING ON!]");
-            dbSwitch = true;
-            DbAdapter.getInstance(conf).setSwitchValue("true");
+            DbAdapter.getInstance(conf).setSwicthValue(planId, "true");
+            jmxTopics.put(planId, true);
         }
-        if (curJmx < threshold && dbSwitch) {
+        if (var < threshold && jmxTopics.get(planId)) {
             System.out.println("[LOADSHEDDING OFF!]");
-            dbSwitch = false;
-            DbAdapter.getInstance(conf).setSwitchValue("false");
-        }
-        return dbSwitch;
-    }
-    //토픽별
-    public void loadSheddingCheck(double threshold, double curJmx, boolean dbSwitch, String topic){
-        if (curJmx > threshold && !dbSwitch) {
-            System.out.println("[LOADSHEDDING ON!]");
-            DbAdapter.getInstance(conf).setSwicthValue(topic, "true");
-            jmxTopics.put(topic, true);
-        }
-        if (curJmx < threshold && dbSwitch) {
-            System.out.println("[LOADSHEDDING OFF!]");
-            DbAdapter.getInstance(conf).setSwicthValue(topic, "false");
-            jmxTopics.put(topic, false);
-        }
-    }
-
-    public void loadSheddingVarAll(double varThreshold, int winSize) throws Exception {
-        JmxCollector collector = new JmxCollector(conf.get("hosts"));
-        long currentJmx = 0;
-        Queue<Long> window = new LinkedList<Long>();
-        double preVar = 0.0;
-        double curVar = 0.0;
-        double var = 0.0;
-        long sumJmx = 0;
-
-        while (true) {
-            currentJmx = collector.collectJmx();
-            window.add(currentJmx);
-            //window.Size() 가 0인지 확인 안 해도 되는지
-            if (window.size() <= winSize) {
-                sumJmx += currentJmx;
-                curVar = (double) sumJmx / window.size();
-            } else {
-                sumJmx += currentJmx;
-                sumJmx -= window.poll();
-                curVar = (double) sumJmx / winSize;
-            }
-            var = curVar - preVar;
-//            System.out.println("windowSize: "+window.size()+", preVar: " + preVar + ", curVar: " + curVar + ", var: " + var);
-            System.out.println(var);
-
-            totalSwitch = loadSheddingCheck(varThreshold, var, totalSwitch);
-            preVar = curVar;
-            Thread.sleep(1000);
-        }
-    }
-
-    public class topicInfo {
-        Queue<Long> window = new LinkedList<Long>();
-        double preVar = 0.0;
-        long sumJmx = 0;
-    }
-
-    public void loadSheddingVarByTopic(double varThreshold, int winSize) throws Exception {
-        JmxCollector collector = new JmxCollector(conf.get("hosts"));
-        Map<String, topicInfo> topicMap = new HashMap<String, topicInfo>();
-        Set<String> keySet = jmxTopics.keySet();
-
-        for (String topic : keySet) {
-            topicMap.put(topic, new topicInfo());
-        }
-
-        long currentJmx = 0;
-        Queue<Long> window = new LinkedList<Long>();
-        double curVar = 0.0;
-        double var = 0.0;
-
-        topicInfo tmp;
-        while (true) {
-            for (String topic : keySet) {
-                currentJmx = collector.collectJmx(topic);
-                tmp = topicMap.get(topic);
-                tmp.window.add(currentJmx);
-
-                //window.Size() 가 0인지 확인 안 해도 되는지
-                if (tmp.window.size() <= winSize) {
-                    tmp.sumJmx += currentJmx;
-                    curVar = (double) tmp.sumJmx / tmp.window.size();
-                } else {
-                    tmp.sumJmx += currentJmx;
-                    tmp.sumJmx -= tmp.window.poll();
-                    curVar = (double) tmp.sumJmx / winSize;
-                }
-
-                var = curVar - tmp.preVar;
-
-                System.out.println("[" + topic + "] winSize: " + tmp.window.size() + ", preVar: " + tmp.preVar + ", curVar: " + curVar + ", var: " + var);
-                loadSheddingCheck(varThreshold, var, jmxTopics.get(topic), topic);
-                tmp.preVar = curVar;
-            }
-            Thread.sleep(1000);
+            DbAdapter.getInstance(conf).setSwicthValue(planId, "false");
+            jmxTopics.put(planId, false);
         }
     }
 
@@ -174,35 +42,115 @@ public class LoadSheddingManager {
         Map<String, String> conf = new HashMap<String, String>();
         // for socket connection
         conf.put("hostname", "localhost");
-        conf.put("port", "5004");
+        conf.put("mrPort", "5004");
+        conf.put("lsmPort", "5005");
         // for DB connection
         conf.put("driverName", "org.mariadb.jdbc.Driver");
         conf.put("url", "jdbc:mariadb://localhost:3306/tutorial");
         conf.put("user", "root");
         conf.put("password", "1234");
+        // for loadshedding
+        conf.put("threshold", "300");
+        conf.put("windowSize", "4");
         // for JMX
-        conf.put("hosts", "192.168.56.100,192.168.56.101,192.168.56.102");
-//        conf.put("hosts", "192.168.56.100,192.168.56.102");
+        //conf.put("hosts", "192.168.56.100,192.168.56.101,192.168.56.102");
 
         LoadSheddingManager lsm = new LoadSheddingManager(conf);
 
+        // 초기화 후 시작
         lsm.initJmxTopics();
         lsm.start();
     }
 
     public void start() throws Exception {
+        double threshold = Double.parseDouble(conf.get("threshold"));
+        int winSize = Integer.parseInt(conf.get("windowSize"));
 
         MessageReceiver messageReceiver = new MessageReceiver(jmxTopics, conf);
-//        JmxCollector collector = new JmxCollector(conf.get("hosts"));
-
         new Thread(messageReceiver).start();
 
-//        loadSheddingByTopic();
-        loadSheddingAllTopic();
+        byte[] bytes = null;
+        String message;
 
-        double varThreshold = 100000.0;
-        int winSize = 4;
-//        loadSheddingVarAll(varThreshold, winSize);
-//        loadSheddingVarByTopic(varThreshold, winSize);
+        String hostname = conf.get("hostname");
+        int port = Integer.parseInt(conf.get("lsmPort"));
+
+        //socket connection
+        try {
+            ServerSocket serverSocket = new ServerSocket();
+            serverSocket.bind(new InetSocketAddress(hostname, port));
+
+            System.out.println("[LSM 연결 기다림]");
+            Socket socket = serverSocket.accept();
+            System.out.println("[LSM 연결 수락함]");
+
+            while (true) {
+                bytes = new byte[100];
+                InputStream is = socket.getInputStream();
+                int readByteCount = is.read(bytes);
+                message = new String(bytes, 0, readByteCount, "UTF-8");
+                System.out.println("[LSM 메시지받음] " + message);
+
+                //메시지 받은 후 parsingThread 동작시킴
+                new Thread(new ParsingThread(message, winSize, threshold)).start();
+
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    // 각 플랜별 이동평균 계산을 위한 클래스
+    public class lsInfo {
+        Queue<Long> window = new ConcurrentLinkedQueue<Long>();
+        double preVar = 0.0;
+        long sumJmx = 0;
+    }
+
+    public class ParsingThread implements Runnable {
+        private String message;
+        private String planId;
+        private long time;
+        private int winSize;
+        private double threshold;
+
+        public ParsingThread(String message, int winSize, double threshold) {
+            this.message = message;
+            this.winSize = winSize;
+            this.threshold = threshold;
+        }
+
+        @Override
+        public void run() {
+
+            String[] messages = message.split(",");
+            time = Long.parseLong(messages[1]) - Long.parseLong(messages[0]); //receiveTime - sendTime
+            planId = messages[2];
+            double curVar = 0.0;
+
+            lsInfo tmp;
+
+            if(!varMap.containsKey(planId)){
+                varMap.put(planId,new lsInfo());
+            }
+
+            tmp = varMap.get(planId);
+            tmp.window.add(time);
+            tmp.sumJmx += time;
+
+            if (tmp.window.size() <= winSize) {
+                curVar = (double) tmp.sumJmx / tmp.window.size();
+            } else {
+                tmp.sumJmx -= tmp.window.poll();
+                curVar = (double) tmp.sumJmx / winSize;
+            }
+
+            System.out.println("TAtime: "+time+", planId: "+planId+", preVar: "+tmp.preVar+", curVar: "+curVar+", sum: "+tmp.sumJmx+", var: "+(curVar-tmp.preVar));
+
+            // loadshedding check
+            loadSheddingCheck(threshold, curVar-tmp.preVar, planId);
+            tmp.preVar = curVar;
+
+        }
     }
 }

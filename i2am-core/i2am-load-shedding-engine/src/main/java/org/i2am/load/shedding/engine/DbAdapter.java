@@ -64,8 +64,6 @@ public class DbAdapter {
             while(rs.next()) {
                 String tn = rs.getString("topicName");
                 boolean sv = rs.getBoolean("value");
-                System.out.println("TN: "+tn+", sv: "+sv);
-
                 map.put(tn,sv);
             }
         } catch (Exception e) {

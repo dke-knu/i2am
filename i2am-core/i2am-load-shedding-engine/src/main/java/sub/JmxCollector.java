@@ -1,4 +1,4 @@
-package org.i2am.load.shedding.engine;
+package sub;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
@@ -39,12 +39,15 @@ public class JmxCollector {
         long val = 0;
         long total = 0;
         String mbean = "kafka.server:type=BrokerTopicMetrics,name=Bytes*";
+        String consumerOffset = "kafka.server:type=BrokerTopicMetrics,name=Bytes*,topic=__consumer_offsets";
 
         for (String host : hosts) {
             String connectTo = "service:jmx:rmi:///jndi/rmi://" + host + ":9999/jmxrmi";
             long value = getJmx(connectTo, mbean);
-            total += value;
+            long offset = getJmx(connectTo, consumerOffset);
+            total += (value - offset);
         }
+//        System.out.println("total: "+total);
         return total;
     }
 
@@ -71,13 +74,51 @@ public class JmxCollector {
 
             Object object = connection.getAttribute(objectName, attribute[0].getName());
             tmp = object.toString();
+
             if (count < 1) {
                 count++;
                 val = Long.parseLong(tmp);
-//                System.out.print("bytesInPerSec: "+val);
+//                System.out.print("byteIn: "+val);
             } else {
                 val -= Long.parseLong(tmp);
-//                System.out.println(" | bytesOutPerSec: "+tmp);
+//                System.out.print(", byteOut: "+tmp+", ");
+                break;
+            }
+        }
+        return val;
+    }
+
+    private long getJmx2(String connectTo, String pattern) throws Exception {
+        String url = connectTo;
+        JMXConnector connector;
+        try {
+            connector = JMXConnectorFactory.connect(new JMXServiceURL(url));
+        } catch (NullPointerException e) {
+            return error("Sorry, can't connect to: " + url);
+        }
+
+        MBeanServerConnection connection = connector.getMBeanServerConnection();
+        String objectPattern = pattern != null ? pattern : "*:*";
+        Set<ObjectName> objectNames = new TreeSet<ObjectName>(connection.queryNames(new ObjectName(objectPattern), null)); // metrics저장
+
+        long val = 0;
+        String tmp = "";
+        int count = 0;
+
+        for (ObjectName objectName : objectNames) {
+            MBeanInfo mbeanInfo = connection.getMBeanInfo(objectName);// MBeans 값 get
+            MBeanAttributeInfo[] attribute = mbeanInfo.getAttributes(); //불러온 MBeans의 attribute값 출력
+
+            Object object = connection.getAttribute(objectName, attribute[0].getName());
+            tmp = object.toString();
+
+            if (count < 1) {
+                count++;
+                val = Long.parseLong(tmp);
+                System.out.print(", offsetIn: "+val);
+            } else {
+                val -= Long.parseLong(tmp);
+                System.out.print(", offsetOut: "+tmp+", ");
                 break;
             }
         }

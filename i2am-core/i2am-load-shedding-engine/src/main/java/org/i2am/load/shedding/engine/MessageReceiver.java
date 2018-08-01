@@ -20,7 +20,7 @@ public class MessageReceiver implements Runnable {
     public MessageReceiver(Map jmxTopics, Map conf) throws IOException {
         this.jmxTopics = jmxTopics;
         this.hostname = (String) conf.get("hostname");
-        this.port = Integer.parseInt((String) conf.get("port"));
+        this.port = Integer.parseInt((String) conf.get("mrPort"));
     }
 
     public void run() {
@@ -33,11 +33,11 @@ public class MessageReceiver implements Runnable {
             ServerSocket serverSocket = new ServerSocket();
             serverSocket.bind(new InetSocketAddress(hostname, port));
 
-            while (true) {
-                System.out.println("[연결 기다림]");
-                Socket socket = serverSocket.accept();
-                System.out.println("[연결 수락함]");
+            System.out.println("[연결 기다림]");
+            Socket socket = serverSocket.accept();
+            System.out.println("[연결 수락함]");
 
+            while (true) {
                 bytes = new byte[100];
                 InputStream is = socket.getInputStream();
                 int readByteCount = is.read(bytes);
@@ -62,7 +62,6 @@ public class MessageReceiver implements Runnable {
             this.map = map;
         }
 
-//        @Override
         public void run() {
             // parsing
             try {
