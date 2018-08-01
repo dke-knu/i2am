@@ -14,8 +14,6 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 	private int windowSize;
 	
 	private String preSampleKey;
-		
-	private RemoteStormController storm;
 	
 	public BinaryBernoulliSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
 		
@@ -24,8 +22,6 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 		this.windowSize = windowSize;				
 		
 		this.preSampleKey = super.getRedisKey() + "preSample";		
-		
-		storm = new RemoteStormController();
 	}
 	
 	public int getSampleSize() {
@@ -44,31 +40,6 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 		this.windowSize = windowSize;
 	}
 
-	@Override
-	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.killTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.activateTopology(super.getTopologyName());
-		
-	}
-
-	@Override
-	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.deactivateTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
-		// TODO Auto-generated method stub
-		storm.runTopology(this);		
-	}
-
 	public String getPreSampleKey() {
 		return preSampleKey;
 	}
@@ -76,5 +47,4 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 	public void setPreSampleKey(String preSampleKey) {
 		this.preSampleKey = preSampleKey;
 	}
-
 }

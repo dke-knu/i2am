@@ -22,31 +22,44 @@ public class SourceList {
 	}
 
 	private Map<String, Source> mSources;
+	private Map<String, Thread> runningThreads;
 
 	private SourceList() {
 		mSources = new HashMap<String, Source>();
+		runningThreads = new HashMap<String, Thread>();
 	}
 	
-	public synchronized Source get(String sourceID) {
-		return mSources.get(sourceID);
+	public synchronized Source get(String owner, String sourceName) {
+		
+		String sourceId = owner + sourceName;
+		
+		return mSources.get(sourceId);
 	}
 	
 	public synchronized boolean add(Source source) {
-		if (mSources.containsKey(source.getSourceName())) return false;
-		mSources.put(source.getSourceName(), source);
+		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (mSources.containsKey(srcId)) return false;
+		mSources.put(srcId, source);
 		return true;
 	}
 	
 	public synchronized boolean remove(Source source) {
-		if (!mSources.containsKey(source.getSourceName())) return false;
-		mSources.remove(source.getSourceName());
+		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (!mSources.containsKey(srcId)) return false;
+		mSources.remove(srcId);
 		return true;
 	}
 	
-	public synchronized boolean set(Source source) {		
+	public synchronized boolean set(Source source) {	
 		// 값이 있으면 Update, 없으면 Add 됨..
-		if (!mSources.containsKey(source.getSourceName())) return false;
-		mSources.put(source.getSourceName(), source);		
+		String srcId = source.getOwner() + source.getSourceName();
+		
+		if (!mSources.containsKey(srcId)) return false;
+		mSources.put(srcId, source);		
 		return true;
 	}
 	
@@ -54,18 +67,32 @@ public class SourceList {
 		return mSources.size();
 	}
 	
+	public synchronized boolean addThread(Thread thread) {
+						
+		runningThreads.put(thread.getName(), thread);		
+		return true;
+	}
+	
+	public synchronized Thread getThread(String sourceName) {
+							
+		return runningThreads.get(sourceName);
+	}
+	
 	public synchronized void printSummary() {
-					
-		System.out.println("[Source List Summary]");
-		System.out.println("Map Size: " + mSources.size());
+		
+		System.out.println("\n[Source List Summary]\n");
+		System.out.println("Map Size: " + mSources.size() + "\n");
 				
 		int i = 0;
 		for(String key: mSources.keySet()) {			
-			System.out.println("[Source. " + i);
-			System.out.println("Source Name: " + key);
-			System.out.println("Status: " + mSources.get(key).getStatus());
+			System.out.println("[Source " + i + "]");
+			System.out.println("Source Name: " + mSources.get(key).getSourceName());
+			System.out.println("Source Type: " + mSources.get(key).getSrcType());
 			System.out.println("Thread Name: " + mSources.get(key).getName());
 			System.out.println("Thread Status: " + mSources.get(key).isAlive());
+			System.out.println("Status: " + mSources.get(key).getStatus());		
+			System.out.println("\n");
+			i++;
 		}
 	}
 }

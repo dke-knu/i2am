@@ -1,8 +1,7 @@
 @charset "EUC-KR";
 
 body {
-	background-color: #f6c5c1;
-	font-family:'Malgun Gothic';
+	background-color: #95c3bf;	
 }
 
 /* Container */
@@ -27,25 +26,33 @@ body {
 	padding: 0px;
 	margin: 0px;
 }
-
  
-button {
+.logo {
+	font-size: 48px;
+}
+ 
+.newbutton {
+	
+	margin: 10px 0px 0px 0px;
 	padding: 10px 15px;
 	font-size: 24px;
 	text-align: center;
 	cursor: pointer;
 	outline: none;
-	color: black;
-	background-color: #95c3bf;
-	border: solid;
-	border-radius: 15px;
-	box-shadow: 0 9px black;
+	color: white;
+	background-color: #ff623f;
+	border: solid #ff623f;
+	border-radius: 3px;
+	box-shadow: 0 5px #be4727;	
+	display: inline-block;	
 }
 
-button:hover {background-color: #ceeaea}
+.newbutton:hover {
+	opacity: 0.8;			
+}
 
-button:active {
-  background-color: #ceeaea;
-  box-shadow: 0 5px black;
-  transform: translateY(4px);
+.newbutton:active {
+	opacity: 1;
+	box-shadow: 0 2px #be4727;
+	transform: translateY(3px);
 }

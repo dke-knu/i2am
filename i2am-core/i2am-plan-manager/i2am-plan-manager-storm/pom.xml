@@ -118,5 +118,22 @@
 			<artifactId>mariadb-java-client</artifactId>
 			<version>2.2.0</version>
 		</dependency>
+		
+		<dependency>
+        	<groupId>i2am</groupId>
+			<artifactId>i2am-metadata</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+        </dependency>
+        
+        <dependency>
+        	<groupId>i2am</groupId>
+			<artifactId>i2am-query-parser</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+        </dependency>
+        
 	</dependencies>
 </project>

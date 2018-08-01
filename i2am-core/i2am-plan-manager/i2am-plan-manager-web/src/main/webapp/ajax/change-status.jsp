@@ -3,7 +3,7 @@
 	
 <%
 	String user_id = (String) session.getAttribute("user_id");
-	String commandType = "CHANGE_STATUS_OF_" + request.getParameter("type").toUpperCase();
+	String commandType = "CHANGE_STATUS_OF_" + request.getParameter("type").toUpperCase(); // SRC, DST, PLAN
 	String name = request.getParameter("name");
 	String after = request.getParameter("after");
 

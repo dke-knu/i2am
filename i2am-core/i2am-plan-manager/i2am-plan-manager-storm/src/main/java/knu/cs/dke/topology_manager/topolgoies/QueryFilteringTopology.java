@@ -11,50 +11,19 @@ import org.apache.storm.thrift.transport.TTransportException;
 
 public class QueryFilteringTopology extends ASamplingFilteringTopology {
 
-	private String keywords;		
-	
-	private RemoteStormController storm;
-	
+	private String query;		
+
 	public QueryFilteringTopology(String createdTime, String plan, int index, String topologyType, String keyword) throws TTransportException {
 		super(createdTime, plan, index, topologyType);
 		
-		this.keywords = keyword;		
-		storm = new RemoteStormController();		
-		
+		this.query = keyword;					
 	}
 
-	@Override
-	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.killTopology(super.getTopologyName());
+	public String getQuery() {
+		return query;
 	}
 
-	@Override
-	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.activateTopology(super.getTopologyName());
-		
-	}
-
-	@Override
-	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.deactivateTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {	
-		
-		// Parameter Formatting		
-		storm.runTopology(this);		
-	}
-
-	public String getKeywords() {
-		return keywords;
-	}
-
-	public void setKeywords(String keywords) {
-		this.keywords = keywords;
-	}	
-	
+	public void setQuery(String keywords) {
+		this.query = keywords;
+	}		
 }

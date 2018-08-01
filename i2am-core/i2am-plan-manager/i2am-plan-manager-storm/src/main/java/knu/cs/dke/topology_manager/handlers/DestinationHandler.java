@@ -32,7 +32,7 @@ public class DestinationHandler {
 		switch (commandType) {
 
 		case "CREATE_DST":
-			createDestination();
+			this.createDestination();
 			break;
 
 		case "CHANGE_STATUS_OF_DST":				
@@ -44,14 +44,12 @@ public class DestinationHandler {
 			break;
 
 		case "DESTROY_DST":
+			this.destroySource();
 			break;
 
 		case "ALTER_DST":
 			break;
-
-		case "ACTIVE_DST":
-			break;
-
+		
 		default:
 			System.out.println("[Destination Handler] Command is not exist.");
 			break;			
@@ -82,8 +80,7 @@ public class DestinationHandler {
 
 			destinations.add(destination);
 
-			DbAdapter db = new DbAdapter();
-			db.addDestination(destination);
+			DbAdapter.getInstance().addDestination(destination);
 
 			break;
 
@@ -100,8 +97,7 @@ public class DestinationHandler {
 
 			destinations.add(db_destination);
 
-			DbAdapter dbdb = new DbAdapter();
-			dbdb.addDestination(db_destination);
+			DbAdapter.getInstance().addDestination(db_destination);
 			
 			break;
 			
@@ -110,8 +106,7 @@ public class DestinationHandler {
 			
 			destinations.add(custom_destination);
 			
-			DbAdapter customDb = new DbAdapter();
-			customDb.addDestination(custom_destination);
+			DbAdapter.getInstance().addDestination(custom_destination);
 			
 			break;
 			
@@ -120,45 +115,64 @@ public class DestinationHandler {
 		}
 	}
 
-	public void destroyDestination() { }
-
+	public void destroySource() {
+		
+		// Parse Content!
+		JSONObject content = (JSONObject) command.get("commandContent");
+				
+		// Get Information
+		String planName = (String) content.get("dstName");
+		String owner = (String) content.get("owner");
+				
+		// Delete!
+		Destination temp = destinations.get(owner, planName);				
+		destinations.remove(temp);
+			
+		DbAdapter.getInstance().removeDestination(temp);
+	}
 	public void alterDestination() { }	
 
 	public void activeDestination() {		
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
+		
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("dstName");
+		
 
-		Destination destination = destinations.get(name);
+		Destination destination = destinations.get(owner, name);
 		destination.setStatus("ACTIVE");
 
-		DbAdapter db = new DbAdapter();
-		db.changeDestinationStatus(destination);
+		DbAdapter.getInstance().changeDestinationStatus(destination);
 
 		destinations.set(destination);
 		
 		// Thread Start.
-		destination.start();
-		System.out.println("[Destination Handler] " + destination.getName() + " is Started!");
-				
+		Thread run = new Thread(destination, destination.getDestinationName());
+		destinations.addThread(run);
+		run.start();
+		
+		System.out.println("[Destination Handler] " + destination.getName() + " is Started!");				
 	}
 
 	public void deactiveDestination() {
 
 		// Content.
-		JSONObject content = (JSONObject) command.get("commandContent");
+		JSONObject content = (JSONObject) command.get("commandContent");		
+		String owner = (String) content.get("owner");
 		String name = (String) content.get("dstName");
 
-		Destination destination = destinations.get(name);
+		Destination destination = destinations.get(owner, name);
 		destination.setStatus("DEACTIVE");
-
-		DbAdapter db = new DbAdapter();
-		db.changeDestinationStatus(destination);
 		
-		// Thread Stop.		
-		if(destination.isAlive()) destination.stop();
-		destinations.set(destination);
-	}
+		DbAdapter.getInstance().changeDestinationStatus(destination);
 
+		destinations.set(destination);
+		
+		Thread run = destinations.getThread(destination.getDestinationName());
+		run.interrupt();
+		
+		System.out.println("[Destination Handler]" + destination.getName() + " is stopped! - " + destination.isAlive() );
+	}
 }

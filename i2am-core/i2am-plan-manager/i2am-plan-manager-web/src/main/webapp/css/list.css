@@ -96,6 +96,9 @@
 	background-color: #dd514e;
 }
 
+.monitoring {	
+	background-color: gray;
+}
 
 .status {
     position: relative;
@@ -133,4 +136,15 @@
 
 .status:hover {
 	background-color: gray;
+}
+
+.status-disable {
+	position: relative;
+    display: inline-block;
+    
+    padding: 3px 0px 3px 0px;
+    border-radius: 3px;
+	width: 120px;	
+	font-size: 15px;	
+	background-color: gray;	
 }

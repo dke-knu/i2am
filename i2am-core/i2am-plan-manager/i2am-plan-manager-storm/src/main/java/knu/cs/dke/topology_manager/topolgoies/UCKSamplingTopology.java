@@ -11,9 +11,7 @@ import org.apache.storm.thrift.transport.TTransportException;
 public class UCKSamplingTopology extends ASamplingFilteringTopology {
 
 	private int samplingRate;
-	private double ucUnderBound;	
-	
-	private RemoteStormController storm;
+	private double ucUnderBound;
 	
 	public UCKSamplingTopology(String createdTime, String plan, int index, String topologyType, int samplingRate, double uc) throws TTransportException {
 
@@ -21,32 +19,6 @@ public class UCKSamplingTopology extends ASamplingFilteringTopology {
 
 		this.samplingRate = samplingRate;
 		this.ucUnderBound = uc;
-		
-		storm = new RemoteStormController();
-	}
-
-	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.killTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.activateTopology(super.getTopologyName());
-		
-	}
-
-	@Override
-	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
-		// TODO Auto-generated method stub
-		storm.deactivateTopology(super.getTopologyName());
-	}
-
-	@Override
-	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
-		// TODO Auto-generated method stub
-		storm.runTopology(this);		
 	}
 
 	public int getSamplingRate() {

@@ -58,7 +58,7 @@ public class DeclaringBolt extends BaseRichBolt {
         }
 
         try {
-            targetIndex = DbAdapter.getInstance().getTargetIndex(DbAdapter.getInstance().getTarget(topologyName));
+            targetIndex = DbAdapter.getInstance().getTargetIndex((topologyName));
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -7,6 +7,7 @@ import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.generated.NotAliveException;
 import org.apache.storm.thrift.TException;
+import org.apache.storm.thrift.transport.TTransportException;
 
 public abstract class ASamplingFilteringTopology {
 		
@@ -14,7 +15,7 @@ public abstract class ASamplingFilteringTopology {
 	private String modifiedTime;
 	private String status; // enum;
 	
-	private int index; //	
+	private int index; // 플랜 내의 인덱스
 	private String topologyType; // enum
 	private String plan; // 어느 플랜에 소속되었는지
 		
@@ -22,12 +23,9 @@ public abstract class ASamplingFilteringTopology {
 	private String outputTopic; // 마지막 토폴로지는 Destination의 정보를 읽어서 셋
 		
 	private String topologyName;	
-	private String redisKey; 
+	private String redisKey; 	
 	
-	public abstract void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException;
-	public abstract void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;
-	public abstract void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;
-	public abstract void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException;	
+	private RemoteStormController storm;
 	
 	public ASamplingFilteringTopology(String createdTime, String plan, int index, String topologyType) {
 			
@@ -43,7 +41,41 @@ public abstract class ASamplingFilteringTopology {
 		this.outputTopic = UUID.randomUUID().toString();		
 		this.redisKey = topologyName + "-redis";
 		
+		try {
+			storm = new RemoteStormController();
+		} catch (TTransportException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}	
+	
+	public void submitTopology() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {	
+				
+		storm.runTopology(this);		
+	}
+	
+	public void killTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
+	
+		storm.killTopology(this.topologyName);
+	}
+	
+	public void avtivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException, IOException {
+	
+		if(!storm.isSubmitted(this.topologyName)) {
+			this.submitTopology();
+		}
+		else {
+			this.status = "ACTIVE";
+			storm.activateTopology(this.topologyName);
+		}
+	}
+	
+	public void deactivateTopology() throws NotAliveException, AuthorizationException, TException, InterruptedException {
+			
+		this.status = "DEACTIVE";
+		storm.deactivateTopology(this.topologyName);
+	}	
+	
 	public String getModifiedTime() {
 		return modifiedTime;
 	}
