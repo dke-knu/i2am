@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.sampling;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -14,19 +14,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
+import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 
-
-public class KSampleBolt extends BaseRichBolt {
-    //private int interval;
-    private int samplingRate;
-    //private double randomNumber;
+public class SystematicSamplingBolt extends BaseRichBolt {
+    private int interval;
+    private int randomNumber;
     private long count;
-    private String sampleElement="";
+    private String sampleName = null;
+    private Map<String, String> allParameters;
 
     /* RedisKey */
     private String redisKey = null;
-    private String srKey = "SamplingRate";
+    private String intervalKey = "Interval";
 
     /* Jedis */
     private JedisCommandsInstanceContainer jedisContainer = null;
@@ -36,68 +37,41 @@ public class KSampleBolt extends BaseRichBolt {
     private OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(KSampleBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
 
-    public KSampleBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public SystematicSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
 
     @Override
-    public void prepare(Map map, TopologyContext topologyContext, OutputCollector collector) {
+    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
 
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
-            logger.info("Jedis Connection");
         } else {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
 		/* Get parameters */
-        logger.info("############# KSAMPLEBOLT");
-        logger.info(redisKey);
-        logger.info(srKey);
-
-        logger.info(jedisCommands.hget(redisKey, srKey));
-
-        samplingRate = Integer.parseInt(jedisCommands.hget(redisKey, srKey));
+        interval = Integer.parseInt(jedisCommands.hget(redisKey, intervalKey));
+        randomNumber = (int)(Math.random()*interval);
     }
 
     @Override
     public void execute(Tuple input) {
+        if(count == Long.MAX_VALUE) count = 0; // Overflow Exception
 
-        String data = input.getStringByField("data");
         count++;
-        double slot;
-        double prob=0.0;
-        double randomNumber = 1.0;
+        String data = input.getStringByField("data");
 
-        if ( (count%samplingRate)==0) slot=samplingRate;
-        else slot = count%samplingRate;
-
-        /* KSample */
-        prob=(1.0/slot);
-        randomNumber = Math.random();
-
-        /*
-        logger.info("##########HJKIM Data: " + data);
-        logger.info("##########HJKIM Prob: " + prob);
-        logger.info("##########HJKIM Rand: " + randomNumber);
-        */
-
-        if (prob > randomNumber){
-            sampleElement=data;
+        /* Systematic Sampling */
+        if(count%interval == randomNumber) {
+            collector.emit(new Values(data));
         }
-
-        logger.info("##########HJKIM dataEle: " + sampleElement);
-
-        if(count%samplingRate == 0){
-            collector.emit(new Values(sampleElement));
-        }
-
     }
 
     @Override

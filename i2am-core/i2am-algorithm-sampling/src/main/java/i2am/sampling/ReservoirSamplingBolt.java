@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.sampling;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -15,9 +15,10 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-public class PrioritySamplingBolt extends BaseRichBolt{
+public class ReservoirSamplingBolt extends BaseRichBolt{
     private int sampleSize;
     private int windowSize;
     private String sampleName = null;
@@ -37,9 +38,9 @@ public class PrioritySamplingBolt extends BaseRichBolt{
     private OutputCollector collector;
 
     /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(PrioritySamplingBolt.class);
+    private final static Logger logger = LoggerFactory.getLogger(ReservoirSamplingBolt.class);
 
-    public PrioritySamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public ReservoirSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -60,42 +61,36 @@ public class PrioritySamplingBolt extends BaseRichBolt{
         sampleName = allParameters.get(sampleKey);
         sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
         windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
+        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
     }
 
     @Override
     public void execute(Tuple input) {
         int count = input.getIntegerByField("count");
         String data = input.getStringByField("data");
-        int weight = input.getIntegerByField("weight");
-        double priority = Math.pow(Math.random(), (double)(1/weight));
 
-        /* Priority Sampling */
+        /* Reservoir Sampling */
         if(count <= sampleSize){
-            jedisCommands.zadd(sampleName, priority, data);
+            jedisCommands.rpush(sampleName, data);
         }
         else if(count%windowSize == 0){
-            List<String> sampleList = new ArrayList<String>();
-            Set<String> dataSet = jedisCommands.zrange(sampleName, 0, -1); // Get data set
-            jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
-            Iterator<String> iterator = dataSet.iterator();
-
-            while(iterator.hasNext()){
-                sampleList.add(iterator.next());
-            }
-
+            List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
+            jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
             collector.emit(new Values(sampleList)); // Emit
         }
         else{
-            try {
-                Set<redis.clients.jedis.Tuple> minimumDataSet = jedisCommands.zrangeWithScores(sampleName, 0, 0); // Get data set which has minimum priority
-                if (minimumDataSet.iterator().next().getScore() < priority) {
-                    jedisCommands.zremrangeByRank(sampleName, 0, 0); // Remove data set which has minimum priority
+            int probability = (int)(Math.random()*count);
+
+            if(probability <= sampleSize){
+                /* Index Out Of Range Exception */
+                try{
+                    jedisCommands.lset(sampleName, probability, data);
+                } catch (JedisException je){
+                    je.printStackTrace();
+                    jedisCommands.lpop(sampleName);
+                    jedisCommands.rpush(sampleName, data);
                 }
-            } catch (JedisException je){
-                je.printStackTrace();
             }
-            jedisCommands.zadd(sampleName, priority, data);
         }
     }
 

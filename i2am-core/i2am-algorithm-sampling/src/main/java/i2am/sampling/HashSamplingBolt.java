@@ -1,6 +1,5 @@
-package i2am.Sampling;
+package i2am.sampling;
 
-import i2am.Common.DbAdapter;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
@@ -15,6 +14,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import i2am.sampling.common.DbAdapter;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.UnsupportedEncodingException;

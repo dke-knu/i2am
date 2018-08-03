@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.sampling;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -10,24 +10,22 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.exceptions.JedisException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
-public class BBSCoordinatorBolt extends BaseRichBolt {
+public class PrioritySamplingBolt extends BaseRichBolt{
     private int sampleSize;
     private int windowSize;
     private String sampleName = null;
-    private String preSampleName = null;
     private Map<String, String> allParameters;
 
     /* RedisKey */
     private String redisKey = null;
-    private String roundKey = "Round";
     private String sampleKey = "SampleKey";
-    private String preSampleKey = "PreSampleKey";
     private String sampleSizeKey = "SampleSize";
     private String windowSizeKey = "WindowSize";
 
@@ -38,7 +36,10 @@ public class BBSCoordinatorBolt extends BaseRichBolt {
 
     private OutputCollector collector;
 
-    public BBSCoordinatorBolt(String redisKey, JedisClusterConfig jedisClusterConfig) {
+    /* Logger */
+    private final static Logger logger = LoggerFactory.getLogger(PrioritySamplingBolt.class);
+
+    public PrioritySamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -54,64 +55,52 @@ public class BBSCoordinatorBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        /* Get parameters */
         allParameters = jedisCommands.hgetAll(redisKey);
         sampleName = allParameters.get(sampleKey);
-        preSampleName = allParameters.get(preSampleKey);
         sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
         windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.ltrim(sampleName, 0, -99999);
-        jedisCommands.ltrim(preSampleName, 0, -99999);
-        jedisCommands.hset(redisKey, roundKey, "0");
+        jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
     }
 
     @Override
     public void execute(Tuple input) {
-        String data = input.getStringByField("data");
         int count = input.getIntegerByField("count");
-        int bitNumber = input.getIntegerByField("bitNumber");
+        String data = input.getStringByField("data");
+        int weight = input.getIntegerByField("weight");
+        double priority = Math.pow(Math.random(), (double)(1/weight));
 
-        if(bitNumber == 0){
-            int redisSampleSize = jedisCommands.rpush(sampleName, data).intValue();
+        /* Priority Sampling */
+        if(count <= sampleSize){
+            jedisCommands.zadd(sampleName, priority, data);
+        }
+        else if(count%windowSize == 0){
+            List<String> sampleList = new ArrayList<String>();
+            Set<String> dataSet = jedisCommands.zrange(sampleName, 0, -1); // Get data set
+            jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
+            Iterator<String> iterator = dataSet.iterator();
 
-            if(redisSampleSize == sampleSize){
-                jedisCommands.hincrBy(redisKey, roundKey, 1);
-                distributeSample(redisSampleSize);
+            while(iterator.hasNext()){
+                sampleList.add(iterator.next());
             }
-        }
-        else{
-            jedisCommands.rpush(preSampleName, data);
-        }
-
-        if(count%windowSize == 0){
-            List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
-            List<String> preSampleList = jedisCommands.lrange(preSampleName, 0, -1); // Get presample list
-
-            sampleList.addAll(preSampleList);
 
             collector.emit(new Values(sampleList)); // Emit
-            jedisCommands.ltrim(sampleName, -0, -99999); // Remove sample list
-            jedisCommands.ltrim(preSampleName, -0, -99999);
-            jedisCommands.hset(redisKey, roundKey, "0");
+        }
+        else{
+            try {
+                Set<redis.clients.jedis.Tuple> minimumDataSet = jedisCommands.zrangeWithScores(sampleName, 0, 0); // Get data set which has minimum priority
+                if (minimumDataSet.iterator().next().getScore() < priority) {
+                    jedisCommands.zremrangeByRank(sampleName, 0, 0); // Remove data set which has minimum priority
+                }
+            } catch (JedisException je){
+                je.printStackTrace();
+            }
+            jedisCommands.zadd(sampleName, priority, data);
         }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("sampleList"));
-    }
-
-    public void distributeSample(int redisSampleSize){
-        jedisCommands.ltrim(preSampleName, 0, -99999);
-
-        for(int i = 0; i < redisSampleSize; i++){
-            Random random = new Random();
-            String data = jedisCommands.lpop(sampleName);
-            if(random.nextBoolean()){
-                jedisCommands.rpush(preSampleName, data);
-            }
-            else{
-                jedisCommands.rpush(sampleName, data);
-            }
-        }
     }
 }

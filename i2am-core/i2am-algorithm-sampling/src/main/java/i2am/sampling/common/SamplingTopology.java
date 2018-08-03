@@ -1,14 +1,22 @@
-package i2am.Common;
+package i2am.sampling.common;
 
-import i2am.Declaring.*;
-import i2am.Passing.*;
-import i2am.Sampling.*;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.kafka.*;
+import org.apache.storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.StringScheme;
+import org.apache.storm.kafka.ZkHosts;
 import org.apache.storm.kafka.bolt.KafkaBolt;
 import org.apache.storm.kafka.bolt.mapper.FieldNameBasedTupleToKafkaMapper;
 import org.apache.storm.kafka.bolt.selector.DefaultTopicSelector;
@@ -19,11 +27,22 @@ import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import i2am.sampling.BBSCoordinatorBolt;
+import i2am.sampling.BBSSiteBolt;
+import i2am.sampling.HashSamplingBolt;
+import i2am.sampling.KSampleBolt;
+import i2am.sampling.PrioritySamplingBolt;
+import i2am.sampling.ReservoirSamplingBolt;
+import i2am.sampling.SystematicSamplingBolt;
+import i2am.sampling.UCKSampleBolt;
+import i2am.sampling.declaring.BBSDeclaringBolt;
+import i2am.sampling.declaring.DeclaringBolt;
+import i2am.sampling.declaring.PriorityDeclaringBolt;
+import i2am.sampling.passing.PassingBolt;
+import i2am.sampling.passing.SystematicPassingBolt;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.Protocol;
-
-import java.net.InetSocketAddress;
-import java.util.*;
 
 public class SamplingTopology {
     public static void main(String[] args) throws InvalidTopologyException, AuthorizationException, AlreadyAliveException {

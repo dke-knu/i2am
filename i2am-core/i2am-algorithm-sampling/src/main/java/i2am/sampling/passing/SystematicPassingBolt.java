@@ -1,4 +1,4 @@
-package i2am.Passing;
+package i2am.sampling.passing;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;

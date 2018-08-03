@@ -1,4 +1,4 @@
-package i2am.Declaring;
+package i2am.sampling.declaring;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -10,28 +10,41 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import i2am.sampling.common.DbAdapter;
 import redis.clients.jedis.JedisCommands;
 
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
-public class BBSDeclaringBolt extends BaseRichBolt {
+public class PriorityDeclaringBolt extends BaseRichBolt {
     private int count;
     private int windowSize;
+    private int targetIndex;
+    private String topologyName;
+    private Map<String, Integer> dataMap; // It saves data's weight
 
     /* Redis */
     private String redisKey;
     private String windowSizeKey = "WindowSize";
-    private String roundKey = "Round";
 
     /* Jedis */
-    private JedisClusterConfig jedisClusterConfig = null;
     private JedisCommandsInstanceContainer jedisContainer = null;
+    private JedisClusterConfig jedisClusterConfig = null;
     private JedisCommands jedisCommands = null;
 
     private OutputCollector collector;
 
-    public BBSDeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    /* Logger */
+    private final static Logger logger = LoggerFactory.getLogger(PriorityDeclaringBolt.class);
+
+    public PriorityDeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
+        this.topologyName = topologyName;
+        dataMap = new HashMap<String, Integer>();
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -48,6 +61,12 @@ public class BBSDeclaringBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        try {
+            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         windowSize = Integer.parseInt(jedisCommands.hget(redisKey, windowSizeKey));
     }
 
@@ -55,8 +74,18 @@ public class BBSDeclaringBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         count++;
         String data = input.getString(0);
-        int round = Integer.parseInt(jedisCommands.hget(redisKey, roundKey));
-        collector.emit(new Values(data, count, round));
+        String target = data.split(",")[targetIndex];
+        int weight;
+
+        if(dataMap.containsKey(target)){
+            weight = dataMap.get(target) + 1;
+            dataMap.replace(target, weight);
+        }else{
+            weight = 1;
+            dataMap.put(target, 1);
+        }
+
+        collector.emit(new Values(data, count, weight));
 
         if(count == windowSize){
             count = 0;
@@ -65,6 +94,6 @@ public class BBSDeclaringBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data", "count", "round"));
+        declarer.declare(new Fields("data", "count", "weight"));
     }
 }
