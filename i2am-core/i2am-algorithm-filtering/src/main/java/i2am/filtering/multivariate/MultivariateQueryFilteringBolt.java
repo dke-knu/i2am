@@ -1,4 +1,4 @@
-package i2am.Filtering.Multivariate;
+package i2am.filtering.multivariate;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,7 +1,7 @@
-package i2am.Common;
+package i2am.filtering.common;
 
-import i2am.Declaring.DeclaringBolt;
-import i2am.Filtering.*;
+import i2am.filtering.*;
+import i2am.filtering.declaring.DeclaringBolt;
 
 import java.net.InetSocketAddress;
 import java.util.HashSet;

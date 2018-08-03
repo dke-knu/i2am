@@ -1,4 +1,4 @@
-package i2am.Common;
+package i2am.filtering.declaring;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -7,32 +7,41 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import i2am.filtering.common.DbAdapter;
+
+import java.sql.SQLException;
 import java.util.Map;
 
-public class PassingBolt extends BaseRichBolt {
+public class DeclaringBolt extends BaseRichBolt{
+    private int targetIndex;
+    private String topologyName;
     private OutputCollector collector;
 
-    /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(PassingBolt.class);
-
-    public PassingBolt(){}
+    public DeclaringBolt(String topologyName){
+        this.topologyName = topologyName;
+    }
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
+
+        try {
+            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void execute(Tuple input) {
         String data = input.getString(0);
-        collector.emit(new Values("", data));
+        String target = data.split(",")[targetIndex];
+        collector.emit(new Values(data, target, targetIndex));
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("key", "data"));
+        declarer.declare(new Fields("data", "target", "targetIndex"));
     }
 }

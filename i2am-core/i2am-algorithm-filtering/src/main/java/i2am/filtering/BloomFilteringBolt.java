@@ -1,4 +1,4 @@
-package i2am.Filtering;
+package i2am.filtering;
 
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
@@ -15,7 +15,7 @@ import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import i2am.Common.DbAdapter;
+import i2am.filtering.common.DbAdapter;
 import redis.clients.jedis.JedisCommands;
 
 import java.io.UnsupportedEncodingException;

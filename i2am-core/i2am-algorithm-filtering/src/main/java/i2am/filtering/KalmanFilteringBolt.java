@@ -1,4 +1,4 @@
-package i2am.Filtering;
+package i2am.filtering;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;

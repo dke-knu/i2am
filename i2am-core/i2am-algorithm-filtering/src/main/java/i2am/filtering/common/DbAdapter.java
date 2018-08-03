@@ -1,4 +1,4 @@
-package i2am.Common;
+package i2am.filtering.common;
 
 import i2am.metadata.DbAdmin;
 
