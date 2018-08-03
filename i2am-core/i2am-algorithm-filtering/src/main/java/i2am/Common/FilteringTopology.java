@@ -112,23 +112,22 @@ public class FilteringTopology {
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("KALMAN_FILTERING")){
-            System.out.println("SBPARK@@@@ "+algorithmName);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new KalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
         else if(algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
-            System.out.println("SBPARK@@@@ "+algorithmName);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new NoiseRecKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
+        /* -- IKF 개발중
         else if(algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
-            System.out.println("SBPARK@@@@ "+algorithmName);
             topologyBuilder.setBolt(algorithmName+"_BOLT", new IntelligentKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
+        */
 
         /* PassingBolt and KafkaBolt */
         topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
