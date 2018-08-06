@@ -71,9 +71,6 @@ public class KSampleBolt extends BaseRichBolt {
 
         double slot = (++count%samplingRate)==0)? samplingRate : count%samplingRate ;
 
-//         if ( (++count%samplingRate)==0) slot=samplingRate;
-//         else slot = count%samplingRate;
-
         /* KSample */
         if ((1.0/slot) > Math.random()){
             sampleElement=input.getStringByField("data");
