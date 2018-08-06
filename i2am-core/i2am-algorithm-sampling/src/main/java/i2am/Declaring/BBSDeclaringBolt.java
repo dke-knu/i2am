@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.Declaring;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -10,36 +10,27 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
-import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 
-public class SystematicSamplingBolt extends BaseRichBolt {
-    private int interval;
-    private int randomNumber;
-    private long count;
-    private String sampleName = null;
-    private Map<String, String> allParameters;
+public class BBSDeclaringBolt extends BaseRichBolt {
+    private int count;
+    private int windowSize;
 
-    /* RedisKey */
-    private String redisKey = null;
-    private String intervalKey = "Interval";
+    /* Redis */
+    private String redisKey;
+    private String windowSizeKey = "WindowSize";
+    private String roundKey = "Round";
 
     /* Jedis */
-    private JedisCommandsInstanceContainer jedisContainer = null;
     private JedisClusterConfig jedisClusterConfig = null;
+    private JedisCommandsInstanceContainer jedisContainer = null;
     private JedisCommands jedisCommands = null;
 
     private OutputCollector collector;
 
-    /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(SystematicSamplingBolt.class);
-
-    public SystematicSamplingBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
+    public BBSDeclaringBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
@@ -49,6 +40,7 @@ public class SystematicSamplingBolt extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
 
+        /* Connect to Redis */
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
@@ -56,26 +48,23 @@ public class SystematicSamplingBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
-		/* Get parameters */
-        interval = Integer.parseInt(jedisCommands.hget(redisKey, intervalKey));
-        randomNumber = (int)(Math.random()*interval);
+        windowSize = Integer.parseInt(jedisCommands.hget(redisKey, windowSizeKey));
     }
 
     @Override
     public void execute(Tuple input) {
-        if(count == Long.MAX_VALUE) count = 0; // Overflow Exception
-
         count++;
-        String data = input.getStringByField("data");
+        String data = input.getString(0);
+        int round = Integer.parseInt(jedisCommands.hget(redisKey, roundKey));
+        collector.emit(new Values(data, count, round));
 
-        /* Systematic Sampling */
-        if(count%interval == randomNumber) {
-            collector.emit(new Values(data));
+        if(count == windowSize){
+            count = 0;
         }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data"));
+        declarer.declare(new Fields("data", "count", "round"));
     }
 }
