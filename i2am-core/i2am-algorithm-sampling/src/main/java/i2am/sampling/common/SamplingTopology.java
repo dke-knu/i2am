@@ -84,6 +84,7 @@ public class SamplingTopology {
         String inputTopic = allParameters.get("InputTopic");
         SpoutConfig kafkaSpoutConfig = new SpoutConfig(brokerHosts, inputTopic, "/"+inputTopic, UUID.randomUUID().toString());
         kafkaSpoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+        kafkaSpoutConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaSpoutConfig);
 
         /* Kafka Bolt Configuration */
