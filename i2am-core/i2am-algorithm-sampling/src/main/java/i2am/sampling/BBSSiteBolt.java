@@ -1,4 +1,4 @@
-package i2am.Common;
+package i2am.sampling;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -7,18 +7,14 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import scala.util.Random;
 
 import java.util.Map;
 
-public class PassingBolt extends BaseRichBolt {
+public class BBSSiteBolt extends BaseRichBolt{
     private OutputCollector collector;
 
-    /* Logger */
-    private final static Logger logger = LoggerFactory.getLogger(PassingBolt.class);
-
-    public PassingBolt(){}
+    public BBSSiteBolt(){}
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -27,12 +23,22 @@ public class PassingBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-        String data = input.getString(0);
-        collector.emit(new Values("", data));
+        String data = input.getStringByField("data");
+        int count = input.getIntegerByField("count");
+        int round = input.getIntegerByField("round");
+        int bitNumber = bitGenerate(round);
+
+        if(bitNumber < 2) collector.emit(new Values(data, count, bitNumber)); // Emit
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("key", "data"));
+        declarer.declare(new Fields("data", "count", "bitNumber"));
+    }
+
+    public int bitGenerate(int round){
+        int maxNumber = (int)Math.pow(2 ,round+1);
+
+        return  (int)(Math.random()*maxNumber);
     }
 }

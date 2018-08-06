@@ -1,10 +1,8 @@
-package i2am.Common;
+package i2am.filtering.common;
 
-import i2am.Declaring.DeclaringBolt;
-import i2am.Filtering.BloomFilteringBolt;
-import i2am.Filtering.KalmanFilteringBolt;
-import i2am.Filtering.NoiseRecKalmanFilteringBolt;
-import i2am.Filtering.QueryFilteringBolt;
+import i2am.filtering.*;
+import i2am.filtering.declaring.DeclaringBolt;
+
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,7 +47,7 @@ public class FilteringTopology {
         /* Redis Node Configurations */
         Set<InetSocketAddress> redisNodes = new HashSet<InetSocketAddress>();
         redisNodes.add(new InetSocketAddress("MN", 17000));
-        redisNodes.add(new InetSocketAddress("SN01", 1700));
+        redisNodes.add(new InetSocketAddress("SN01", 17000));
         redisNodes.add(new InetSocketAddress("SN02", 17000));
         redisNodes.add(new InetSocketAddress("SN03", 17000));
         redisNodes.add(new InetSocketAddress("SN04", 17000));
@@ -123,6 +121,13 @@ public class FilteringTopology {
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
+        /* -- IKF 개발중
+        else if(algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
+            topologyBuilder.setBolt(algorithmName+"_BOLT", new IntelligentKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("DECLARING_BOLT")
+                    .setNumTasks(1);
+        }
+        */
 
         /* PassingBolt and KafkaBolt */
         topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
@@ -135,7 +140,7 @@ public class FilteringTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
+        if(algorithmName.equals("KALMAN_FILTERING") || algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING") || algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
             config.setNumWorkers(5);
         }
         else{

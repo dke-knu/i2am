@@ -1,4 +1,4 @@
-package i2am.Filtering;
+package i2am.filtering;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -22,13 +22,19 @@ import java.util.Map;
  * Created by sbpark on 2017-11-30.
  */
 public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
-    private double x = 0, R = 0.5, P = 1000, Q;
-    private int windowSize = 32;
+    private double x, P, Q, A, H, R;
+    private String RecommendationMeasure;
+    private int windowSize = 128;
     List<Double> inputData = new ArrayList<Double>();
 
     /* RedisKey */
     private String redisKey = null;
+    private String initXValueKey = "Init_x_val";
+    private String initPValueKey = "Init_P_val";
+    private String AValueKey = "A_val";
+    private String HValueKey = "H_val";
     private String QValueKey = "Q_val";
+    private String RecMeasureValueKey = "RecMeasure";
 
     /* Jedis */
     private transient JedisCommandsInstanceContainer jedisContainer;
@@ -49,7 +55,7 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
 
-        /* Get Q value from user(redis) */
+        /* Get Parameters from user(redis) */
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
             jedisCommands = jedisContainer.getInstance();
@@ -57,7 +63,12 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        x = Double.parseDouble(jedisCommands.hget(redisKey, initXValueKey));
+        P = Double.parseDouble(jedisCommands.hget(redisKey, initPValueKey));
+        A = Double.parseDouble(jedisCommands.hget(redisKey, AValueKey));
+        H = Double.parseDouble(jedisCommands.hget(redisKey, HValueKey));
         Q = Double.parseDouble(jedisCommands.hget(redisKey, QValueKey));
+        RecommendationMeasure = jedisCommands.hget(redisKey, RecMeasureValueKey);
     }
 
     @Override
@@ -71,11 +82,11 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
             inputData.add(x_present);
         }
 
-        x_next = x;
+        x_next = A * x;
         P_next = P+ Q; 	//Q: white noise --> by environment
-        K = P_next*H / (H*H*P_next + R);	//kalman gain
+        K = P_next * H / (H * H * P_next + R);	//kalman gain
 
-        z = x_present;
+        z = H * x_present;
         x = x_next + K*(z - H*x_next);		// filtered data
         P = (1 - K*H)*P_next;
 
@@ -87,8 +98,8 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
             }
 
             // calculate R
-            RCalculator rCalculator = new RCalculator();
-            R = rCalculator.calcR(inputDataArray, windowSize);
+            RCalculator rCalculator = new RCalculator(inputDataArray, windowSize, RecommendationMeasure);
+            R = rCalculator.calcR();
 
             // clear list
             inputData.clear();
@@ -107,6 +118,7 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
         for(String string: dataArray){
             switchedData = switchedData + "," + string;
         }
+        switchedData = switchedData.replaceFirst(",", "");
         return switchedData;
     }
 
@@ -118,30 +130,59 @@ public class NoiseRecKalmanFilteringBolt extends BaseRichBolt{
 
 class RCalculator{
 
-    public double calcR(double[] DataSet, int winSize){	//sensor and original
-        int f = winSize/4;
+    private double[] DataSet;
+    private int winSize;
+    private String calcMeausre;
+    RCalculator(double[] DataSet, int winSize, String calcMeasure){
+        this.DataSet = DataSet;
+        this.winSize = winSize;
+        this.calcMeausre = calcMeasure;
+    }
+
+    public double calcR(){	//sensor and original
+        int f = this.winSize/4;
         double resultR;
         double sum = 0.0;
-        double[] FWT, inverseFWT;
-        // Estimation of the raw data (= w/o noise)
-        FWT = Daubechies_forward_FWT_1d(winSize, DataSet);
+        double[] denoisedData = null;
 
-        // extract raw data
-        for(int i=0; i<winSize; i++){
-            if(i<f){
-                continue;
-            }else{
-                FWT[i] = 0;
+        if(this.calcMeausre.equals("WT")) {
+            double[] FWT;
+            // Estimation of the raw data (= w/o noise)
+            FWT = Daubechies_forward_FWT_1d(this.winSize, this.DataSet);
+
+            // extract raw data
+            for (int i = 0; i < this.winSize; i++) {
+                if (i < f) {
+                    continue;
+                } else {
+                    FWT[i] = 0;
+                }
             }
+            denoisedData = Daubechies_inverse_FWT_1d(winSize, FWT);
+        } else if(this.calcMeausre.equals("MA")){
+            // Moving Average
+            denoisedData = new double[this.winSize];
+            double windowMean = 0.0;
+            for(int i=0; i<this.winSize; i++){
+                if(i<f){
+                    windowMean += this.DataSet[i] / f ;
+                    denoisedData[i] = windowMean;
+                }else{
+                    windowMean = windowMean + (this.DataSet[i] - this.DataSet[i-f]) / f;
+                    denoisedData[i] = windowMean;
+                }
+            }
+
+        } else {
+            // not "MA" or "WT" print error
+            System.out.println();
         }
 
-        inverseFWT = Daubechies_inverse_FWT_1d(winSize, FWT);
-
-        // Mean Square Error
+        /* Mean Square Error */
         //DataSet - fwt
         for(int i=0; i< DataSet.length; i++){
             //abs(dist)
-            double tmp = DataSet[i] - inverseFWT[i];
+            double tmp = DataSet[i] - denoisedData[i];
             if(tmp<0) tmp *= -1;
 
             sum += tmp;
