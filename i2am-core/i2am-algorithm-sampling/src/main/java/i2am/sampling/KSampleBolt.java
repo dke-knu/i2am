@@ -69,30 +69,15 @@ public class KSampleBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple input) {
 
-        String data = input.getStringByField("data");
-        count++;
-        double slot;
-        double prob=0.0;
-        double randomNumber = 1.0;
+        double slot = (++count%samplingRate)==0)? samplingRate : count%samplingRate ;
 
-        if ( (count%samplingRate)==0) slot=samplingRate;
-        else slot = count%samplingRate;
+//         if ( (++count%samplingRate)==0) slot=samplingRate;
+//         else slot = count%samplingRate;
 
         /* KSample */
-        prob=(1.0/slot);
-        randomNumber = Math.random();
-
-        /*
-        logger.info("##########HJKIM Data: " + data);
-        logger.info("##########HJKIM Prob: " + prob);
-        logger.info("##########HJKIM Rand: " + randomNumber);
-        */
-
-        if (prob > randomNumber){
-            sampleElement=data;
+        if ((1.0/slot) > Math.random()){
+            sampleElement=input.getStringByField("data");
         }
-
-        logger.info("##########HJKIM dataEle: " + sampleElement);
 
         if(count%samplingRate == 0){
             collector.emit(new Values(sampleElement));
