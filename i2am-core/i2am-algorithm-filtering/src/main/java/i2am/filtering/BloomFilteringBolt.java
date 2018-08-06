@@ -121,11 +121,13 @@ class BloomFilter{
     private int bucketSize;
     private String[] hashFunctions;
     private List<Boolean> buckets;
+    private int hashNumber;
     private HashFunction hashFunction = new HashFunction();
 
     BloomFilter(int bucketSize, String[] hashFunctions){
         this.bucketSize = bucketSize;
         this.hashFunctions = hashFunctions;
+        this.hashNumber = 3;
         buckets = new ArrayList<Boolean>();
 
         for(int i = 0; i < bucketSize; i++){
@@ -137,7 +139,7 @@ class BloomFilter{
     void registering(String data) throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         int hashCode = 0;
 
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < hashNumber; i++){
             if(hashFunctions[i].equals("javaHashFunction")){
                 hashCode = hashFunction.javaHashFunction(data);
             }
@@ -156,7 +158,7 @@ class BloomFilter{
         boolean flag = false;
         int hashCode[] = {0, 0, 0};
 
-        for(int i = 0; i < 3; i++){
+        for(int i = 0; i < hashNumber; i++){
             if(hashFunctions[i].equals("javaHashFunction")){
                 hashCode[i] = hashFunction.javaHashFunction(data);
             }
