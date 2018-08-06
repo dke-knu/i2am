@@ -137,28 +137,38 @@ class BloomFilter{
     void registering(String data) throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         int hashCode = 0;
 
-        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[0]).invoke(data);
-        buckets.set(hashCode%bucketSize, true);
-
-        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[1]).invoke(data);
-        buckets.set(hashCode%bucketSize, true);
-
-        hashCode = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[2]).invoke(data);
-        buckets.set(hashCode%bucketSize, true);
+        for(int i = 0; i < 3; i++){
+            if(hashFunctions[i].equals("javaHashFunction")){
+                hashCode = hashFunction.javaHashFunction(data);
+            }
+            else if(hashFunctions[i].equals("xxHash32")){
+                hashCode = hashFunction.xxHash32(data);
+            }
+            else if(hashFunctions[i].equals("jsHash")){
+                hashCode = hashFunction.jsHash(data);
+            }
+            buckets.set(hashCode%bucketSize, true);
+        }
     }
 
     // Filtering
     boolean filtering(String data) throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         boolean flag = false;
-        int hashCode1 = 0;
-        int hashCode2 = 0;
-        int hashCode3 = 0;
+        int hashCode[] = {0, 0, 0};
 
-        hashCode1 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[0]).invoke(data);
-        hashCode2 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[1]).invoke(data);
-        hashCode3 = (int)hashFunction.getClass().getDeclaredMethod(hashFunctions[2]).invoke(data);
+        for(int i = 0; i < 3; i++){
+            if(hashFunctions[i].equals("javaHashFunction")){
+                hashCode[i] = hashFunction.javaHashFunction(data);
+            }
+            else if(hashFunctions[i].equals("xxHash32")){
+                hashCode[i] = hashFunction.xxHash32(data);
+            }
+            else if(hashFunctions[i].equals("jsHash")){
+                hashCode[i] = hashFunction.jsHash(data);
+            }
+        }
 
-        if(buckets.get(hashCode1%bucketSize) && buckets.get(hashCode2%bucketSize) && buckets.get(hashCode3%bucketSize)){
+        if(buckets.get(hashCode[0]%bucketSize) && buckets.get(hashCode[1]%bucketSize) && buckets.get(hashCode[3]%bucketSize)){
             flag = true;
         }
 
