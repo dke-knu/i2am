@@ -4,15 +4,16 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Arrays;
 import java.util.Properties;
+
+//import java.util.Properties;
 
 public class ConsumerExample {
     public static void main(String[] args) throws Exception {
         Properties config = new Properties();
+
+//        config.put("bootstrap.servers", "192.168.56.100:9092");
         config.put("bootstrap.servers", "192.168.56.100:9092,192.168.56.101:9092,192.168.56.102:9092");
         config.put("group.id", "test-consumer-group");
         config.put("session.timeout.ms", "10000");
@@ -21,53 +22,17 @@ public class ConsumerExample {
         config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         config.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
-        // planID 받아오는 코드 필요함
-        String planId = "topic1";
-
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(config);
-        consumer.subscribe(Arrays.asList(planId,"topic2","topic3"));
+        consumer.subscribe(Arrays.asList("topic1", "topic2", "topic3", "topic4"));
+//        consumer.subscribe(Arrays.asList("topic1", "topic2"));
 
-        Socket socket = null;
-        String message = null;
+        ConsumerRecords<String, String> records = consumer.poll(1000);
 
-        int cnt = -1;
-        int interval = 100;
-
-        try {
-            socket = new Socket();
-            System.out.println("[연결 요청]");
-            socket.connect(new InetSocketAddress("localhost", 5005));
-            System.out.println("[연결 성공]");
-            byte[] bytes = null;
-            OutputStream os = socket.getOutputStream();
-
-            while (true) {
-                ConsumerRecords<String, String> records = consumer.poll(1000);
-                long rTime = System.currentTimeMillis();
-
-                for (ConsumerRecord<String, String> record : records) {
-
-                    // 사용자 정의 destination 으로 msg 보내기 - 여기서는 출력함
-                    //System.out.println(record.value().split(",")[0]);
-
-                    // msg 양식 = (sendTime, receiveTime, planId)
-                    message = record.value().split(",")[1] +","+ rTime + "," + record.topic();
-                    cnt += 1;
-
-                    // interval 간격으로 LSM에게 메시지 보냄
-                    if (cnt % interval == 0) {
-                        bytes = message.getBytes("UTF-8");
-                        os.write(bytes);
-                        os.flush();
-                        System.out.println("[데이터 보내기 성공]"+message);
-                        cnt = 1;
-                    }
-                }
+        while (true) {
+            for (ConsumerRecord<String, String> record : records) {
+                System.out.println(record.timestamp() + " | topic: " + record.topic() + ", value: " + record.value());
             }
-        } catch (Exception e) {
-        } finally {
-            consumer.close();
-            socket.close();
+            records = consumer.poll(1000);
         }
     }
 }

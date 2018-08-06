@@ -2,10 +2,10 @@ package sub;
 
 public class ThreadTest {
     public static void main(String args[]) {
-/*        ConsumerThread consumerThread1 = new ConsumerThread("topic1");
+        ConsumerThread consumerThread1 = new ConsumerThread("topic1");
         ConsumerThread consumerThread2 = new ConsumerThread("topic2");
         ConsumerThread consumerThread3 = new ConsumerThread("topic3");
-        ConsumerThread consumerThread4 = new ConsumerThread("topic4");*/
+        ConsumerThread consumerThread4 = new ConsumerThread("topic4");
         /*ConsumerThread consumerThread5 = new ConsumerThread("topic1");
         ConsumerThread consumerThread6 = new ConsumerThread("topic2");
         ConsumerThread consumerThread7 = new ConsumerThread("topic3");
@@ -21,13 +21,9 @@ public class ThreadTest {
 
 
         ProducerThread producerThread1 = new ProducerThread("topic1");
-        ProducerThread producerThread2 = new ProducerThread("topic1");
-       /*  ProducerThread producerThread3 = new ProducerThread("topic1");
-        ProducerThread producerThread4 = new ProducerThread("topic1");
-        ProducerThread producerThread5 = new ProducerThread("topic1");
-*/
-//        ProducerThread producerThread3 = new ProducerThread("topic3");
-//        ProducerThread producerThread4 = new ProducerThread("topic4");
+        ProducerThread producerThread2 = new ProducerThread("topic2");
+        ProducerThread producerThread3 = new ProducerThread("topic3");
+        ProducerThread producerThread4 = new ProducerThread("topic4");
         /*ProducerThread producerThread5 = new ProducerThread("topic1");
         ProducerThread producerThread6 = new ProducerThread("topic2");
         ProducerThread producerThread7 = new ProducerThread("topic3");
@@ -40,10 +36,10 @@ public class ThreadTest {
         /*ConsumerThread consumerThread = new ConsumerThread("test1123");
         ProducerThread producerThread = new ProducerThread("test1123");*/
 
-       /* new Thread(consumerThread1).start();
+        new Thread(consumerThread1).start();
         new Thread(consumerThread2).start();
         new Thread(consumerThread3).start();
-        new Thread(consumerThread4).start();*/
+        new Thread(consumerThread4).start();
         /*new Thread(consumerThread5).start();
         new Thread(consumerThread6).start();
         new Thread(consumerThread7).start();
@@ -63,9 +59,8 @@ public class ThreadTest {
 
             new Thread(producerThread1).start();
             new Thread(producerThread2).start();
-            /*new Thread(producerThread3).start();
+            new Thread(producerThread3).start();
             new Thread(producerThread4).start();
-            new Thread(producerThread5).start();*/
             /*new Thread(producerThread5).start();
             new Thread(producerThread6).start();
             new Thread(producerThread7).start();
