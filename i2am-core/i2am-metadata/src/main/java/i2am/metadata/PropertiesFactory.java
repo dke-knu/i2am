@@ -1,6 +1,11 @@
 package i2am.metadata;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -33,7 +38,7 @@ public class PropertiesFactory {
 		if(props == null) {
 			props = new Properties();
 			try {
-				props.load(getClass().getResourceAsStream("/metadb.properties"));
+				props.load(PropertiesFactory.class.getResourceAsStream("/metadb.properties"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -4,7 +4,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
-import java.io.OutputStream;
+import java.io.DataOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
@@ -39,7 +39,7 @@ public class ConsumerExample {
             socket.connect(new InetSocketAddress("localhost", 5005));
             System.out.println("[연결 성공]");
             byte[] bytes = null;
-            OutputStream os = socket.getOutputStream();
+            DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 
             while (true) {
                 ConsumerRecords<String, String> records = consumer.poll(1000);
@@ -50,17 +50,13 @@ public class ConsumerExample {
                     // 사용자 정의 destination 으로 msg 보내기 - 여기서는 출력함
                     //System.out.println(record.value().split(",")[0]);
 
-                    // msg 양식 = (sendTime, receiveTime, planId)
-                    message = record.value().split(",")[1] +","+ rTime + "," + record.topic();
-                    cnt += 1;
-
                     // interval 간격으로 LSM에게 메시지 보냄
-                    if (cnt % interval == 0) {
-                        bytes = message.getBytes("UTF-8");
-                        os.write(bytes);
+                    if (++cnt % interval == 0) {
+                        message = record.value().split(",")[1] +","+ rTime + "," + record.topic();
+                        os.writeUTF(message);
                         os.flush();
                         System.out.println("[데이터 보내기 성공]"+message);
-                        cnt = 1;
+                        cnt = 0;
                     }
                 }
             }

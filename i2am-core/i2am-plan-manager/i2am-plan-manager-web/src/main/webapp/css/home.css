@@ -1,0 +1,58 @@
+@charset "EUC-KR";
+
+body {
+	background-color: #95c3bf;	
+}
+
+/* Container */
+.outer {	
+	position: relative;	
+	/* border: 1px solid gray; */	
+	border-radius: 2px;
+	width: 80%;
+	margin: auto;
+	margin-top: 100px;	
+	text-align: center;	
+}
+
+.headline {
+	font-size: 72px;
+	padding: 0px;
+	margin: 0px;
+}
+
+.subtitle {
+	font-size: 20px;
+	padding: 0px;
+	margin: 0px;
+}
+ 
+.logo {
+	font-size: 48px;
+}
+ 
+.newbutton {
+	
+	margin: 10px 0px 0px 0px;
+	padding: 10px 15px;
+	font-size: 24px;
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	color: white;
+	background-color: #ff623f;
+	border: solid #ff623f;
+	border-radius: 3px;
+	box-shadow: 0 5px #be4727;	
+	display: inline-block;	
+}
+
+.newbutton:hover {
+	opacity: 0.8;			
+}
+
+.newbutton:active {
+	opacity: 1;
+	box-shadow: 0 2px #be4727;
+	transform: translateY(3px);
+}

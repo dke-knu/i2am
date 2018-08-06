@@ -1,0 +1,492 @@
+@charset "EUC-KR";
+
+* {	
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;    
+}
+
+html {
+	background-color: #186d89;	
+	margin:0;
+    padding:0;
+}
+
+body {
+	background-color: #186d89;	
+	margin:0;
+    padding:0;	
+}
+
+.myRow {	
+	background-color: #186d89;	
+	padding: 15px;
+}
+
+h1 {
+	border-bottom: solid 1px lightgray;
+}
+
+.header {	
+	padding: 15px 20px 20px 20px;	
+	margin: 0px;	
+	font-size: 17px;	
+	background-color: white;	
+	border: solid 1px lightgray;	
+}
+
+.myinput {	
+	font-size: 17px;
+	padding: 4px;
+	font-family: Raleway;
+	border: 1px solid #aaaaaa;	
+}
+
+.mybutton {
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+  padding: 5px 20px;
+  margin: 10px 0px 10px 0px;  
+  font-size: 17px;
+  font-family: Raleway;
+  cursor: pointer;
+}
+
+.mybutton:hover {
+  opacity: 0.8;
+}
+
+.setRules {
+	background-color: #115191;
+	color: #ffffff;
+	border: none;
+	padding: 8px 20px;
+	margin: 0px;  
+  	font-size: 17px;
+  	font-family: Raleway;
+  	cursor: pointer;
+}
+
+.setRules:disabled {
+	background-color: gray;
+}
+
+.setRules:hover {
+	opacity: 0.8;
+}
+
+.cannot {
+	text-align: center;
+	font-size: 17px;
+	color: red;
+	padding: 5px;
+}
+
+.schemenTarget {	
+	margin-bottom: 10px;
+	display: none;
+}
+
+.mySubmit {	
+	margin: 10px;
+	padding: 10px 15px;
+	font-size: 24px;
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	color: white;
+	background-color: #ff623f;
+	border: solid #ff623f;
+	border-radius: 3px;
+	box-shadow: 0 5px #be4727;	
+	display: inline-block;
+	float: right;	
+}
+.mySubmit:hover {
+	opacity: 0.8;			
+}
+.mySubmit:active {
+	opacity: 1;
+	box-shadow: 0 2px #be4727;
+	transform: translateY(3px);
+}
+
+.mySubmitFail {	
+	float: right;
+	font-size: 12px;
+	padding: 10px;
+	margin-right: 10px;
+	width: 360px;
+	height: 80px;
+	background-color: #c6dbd5;
+	border: solid 1px lightgray;	
+	border-radius: 3px;	
+	display: none;	
+	overflow-y: scroll;
+}
+
+.mySubmitFail ul {
+	list-style-type: square;
+}
+
+
+.columnWrap {
+	display: table;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;	
+	
+	border-bottom: solid 2px lightgray;	
+}
+
+.columnWrap:after {
+	content: "";	
+	display: table;
+	clear: both;
+}
+
+.column {	
+	padding: 0px;
+	margin: 0px;
+	display: table-cell;
+	vertical-align: top;	
+}
+
+.left {
+	width: 20%;	
+	margin: 0px;
+	padding: 0px;	
+	background-color: white;				
+}
+
+.right {		
+	width: 80%;	
+	margin: 0px;
+	padding: 0px;
+  	background-color: white;
+  	text-align: center;  
+  	border-left: 1px solid lightgray;
+  	border-right: 1px solid lightgray;
+  	border-bottom: 1px solid lightgray;  	
+}
+
+.lefttitle {	
+	width: 100%;	
+	border-left: 1px solid lightgray;		
+	border-bottom: 1px solid lightgray;
+	background-color: lightgray;
+	text-align: center;	
+	border-top: 1px solid lightgray;
+	border-bottom: 1px solid gray;	
+}
+
+.left .list {
+	width: 100%;	
+	text-align: center;	
+	padding-top: 5px;	
+	background-color: white;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.panel {
+	position: relative;	
+	display: flex;
+	width:100%;	
+	border: solid 3px white;			
+	background-color: #c6dbd5;
+	text-align: center;	
+	z-index:1;
+}
+
+.panel .txt {	
+	margin: auto;
+	vertical-align: middle;
+	text-align: center;
+	color: gray;
+	font-size: 60px;
+	opacity: 0.5;		
+}
+
+.itemWrap {	
+	position: relative;
+	width: 95%;	
+	max-width: 400px;
+	padding: 0px;			
+	margin: auto;
+	margin-top: 3px;
+	margin-bottom: 5px;	
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 2px;	
+	box-shadow: 0 2px lightgray;
+	
+	z-index: 3;		
+}
+
+.itemWrap:hover {
+	transform: scale(1.01);
+}
+
+.item {		
+	display: table;
+	text-align: left;
+	width: 100%;
+	
+}
+
+.jtk-connector { 
+	z-index:10;
+	opacity: 0.8;
+}
+
+.item:after {
+	content: "";	
+	clear: both;
+	display: none;
+}
+
+.item:hover {
+	opacity: 0.9;	
+}
+
+.source {	
+	border-color: darkorange;
+	background-color: white; 
+}
+
+.destination {	
+	border-color: #007700;
+	background-color: white;
+}
+
+.topology {
+	border-color: #115191;
+	background-color: white;
+}
+
+.item .type {		
+	padding: 0px 10px 0px 10px;
+	margin: 0px;
+	display: table-cell;
+	font-size: 16px;
+	vertical-align:middle;		
+	width: 3%;	
+	text-align: center;
+	
+}
+
+.sourceType {
+	border: solid 2px darkorange;		   
+	background-color: darkorange; 
+	color: white;	
+	
+}
+
+.destinationType {
+	border: solid 2px #007700;	
+	background-color: #007700;
+	color: white;
+}
+
+.topologyType {
+	border: solid 2px #115191;	
+	background-color: #115191;
+	color: white;	
+}
+
+.item .name {	
+	display: table-cell;
+	vertical-align:middle;
+	width: 75%;
+	font-size: 16px;
+	padding: 8px 0px 8px 12px;
+		
+}
+
+.item .control {
+	position: relative;	
+	float: right;	
+	text-align: center;
+	font-size: 17px;	
+	margin-top: 9px;
+	margin-right: 10px;		
+	
+}
+
+.params {	
+	text-align: left;
+	display: none;
+	position:relative;
+	width: 100%;
+	max-width: 400px;
+	background-color: white;		
+	padding: 10px 30px 10px 30px;
+	border-top: 1px solid lightgray;
+}
+
+.paramsInputs {
+	width:95%;
+	margin: auto;	
+}
+
+.paramInputLabel {
+	font-size: 17px;
+	padding: 4px;
+	display: inline-block;
+	width: 40%;	
+	text-align: right;
+	margin-right: 5px;
+}
+
+.paramInput {	
+	width: 45%;	
+	font-size: 17px;
+	padding: 4px;
+	font-family: Raleway;
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
+	margin-bottom: 5px;
+}
+
+.selectLabel {
+	font-size: 17px;
+	padding: 4px;	
+	width: 70%;	
+	text-align: left;	
+	margin-left: 24px;
+}
+
+.mySelect {	
+	width: 70%;
+	font-size: 17px;
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
+	margin-bottom: 5px;	
+}
+
+.recommendation {
+	width: 90%;
+	margin: auto;	
+	font-size: 15px;
+	padding: 20px 10px 10px 10px;
+	text-align: center;	
+}
+
+.recommended {	
+	transform: scale(2.5);
+	border: 3px solid #ffeb60;	
+	animation: shake 2s; 
+	animation-iteration-count: infinite; 
+}
+
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); border-color: orange; }
+    10% { transform: translate(0px, 0px) rotate(-1deg); }
+    20% { transform: translate(-1px, 0px) rotate(1deg) border-color: #ffeb60; }
+    30% { transform: translate(1px, 0px) rotate(0deg); }
+    40% { transform: translate(0px, 1px) rotate(1deg);  border-color: orange; }
+    50% { transform: translate(0px, 1px) rotate(-1deg); }
+    60% { transform: translate(-1px, 0px) rotate(0deg); border-color: #ffeb60;}
+    70% { transform: translate(1px, 0px) rotate(0deg); }
+    80% { transform: translate(0px, 0px) rotate(0deg); border-color: orange;}
+    90% { transform: translate(0px, 0px) rotate(0deg); }
+    100% { transform: translate(0px, 0px) rotate(0deg); border-color: #ffeb60; }
+}
+
+.target {
+	background-color: #fed385;
+}
+
+.query {
+	text-align: center;
+}
+
+.myTooltip .myTooltiptext {
+			
+	float: right;
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    
+    position: absolute;    
+    bottom: 175%;
+    left: 50%;
+    margin-left: -60px;
+    
+    opacity: 0;
+    transition: opacity 0.3s;	
+    
+}
+
+.myTooltip .myTooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;    
+}
+
+.myTooltip:hover .myTooltiptext {	
+    visibility: visible;
+    opacity: 1;    
+}
+
+.filterWrap {
+	display: inline-block;	
+	background-color: #ececec;
+	text-align: center;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	border-bottom: 1px solid gray;	
+}
+
+.filterWrap:after {
+	content: "";	
+	display: inline;
+	clear: both;
+}
+
+.filter {	
+	display: inline-block;
+	padding: 5px 10px 5px 10px ;
+	margin: 0px;
+	font-size: 15px;			
+	text-align: center;	
+	opacity: 1;		
+}
+
+.filter:hover {
+	background-color: gray;
+	color: white;
+}
+
+.filterActive {
+	background-color: gray;
+	color: white;
+}
+
+table {
+	width: 100%;
+}
+
+td, th {	
+	border-bottom: 1px solid #dddddd;
+	text-align: center;	
+	padding: 5px;
+}
+
+th {
+	background-color: #ebebeb;
+}

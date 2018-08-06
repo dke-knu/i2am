@@ -1,6 +1,7 @@
 package sub;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.io.IOException;
@@ -20,12 +21,12 @@ public class ProducerExample {
         String message = null;
 
         byte[] bytes = new byte[100];
-        for (int j = 0; j < 1000; j++) {
+        for (int j = 0; j < 500; j++) {
             long time = System.currentTimeMillis();
             message = new String(bytes) + "," + String.valueOf(time);
             producer.send(new ProducerRecord<String, String>("topic1", message));
-            producer.send(new ProducerRecord<String, String>("topic2", message));
-            producer.send(new ProducerRecord<String, String>("topic3", message));
+//            producer.send(new ProducerRecord<String, String>("topic2", message));
+//            producer.send(new ProducerRecord<String, String>("topic3", message));
             System.out.println(j+", 보냄");
         }
         producer.flush();

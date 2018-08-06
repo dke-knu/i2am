@@ -1,0 +1,162 @@
+@charset "EUC-KR";
+
+* {
+	box-sizing: border-box;		
+}
+
+html {
+	height: 100%;	
+}
+
+body {	
+	margin: 0;		
+	height: 100%;	
+}
+
+hr {
+	border-color: #fff;
+}
+
+/* Header/Logo Title */
+.header {
+	padding: 10px;
+	text-align: center;
+	background: #9fd888;
+	color: black;
+}
+
+.header h1 {
+	font-size: 40px;
+}
+
+/* Navigator */
+#navbar {
+    overflow: hidden;
+    background-color: #333;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#navbar a {
+    float: left;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+#dropdown {
+    float: left;
+    overflow: hidden;
+}
+
+#dropdown #dropbtn {
+    font-size: 16px;    
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: #333;
+    font-family: inherit;
+    margin: 0;
+}
+
+#navbar a:hover, #dropdown:hover #dropbtn {
+    color: black;
+    background-color: #ddd;
+}
+
+#dropdown-content {
+    display: none;
+    position: fixed;    
+    background-color: #f9f9f9;
+    min-width: 115px; 
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+#dropdown-content a {
+    float: none;
+    color: black;
+    width: inherit;
+    padding: 14px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+#dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+#dropdown:hover #dropdown-content {
+    display: block;
+}
+
+
+/* Column container */
+.row {  
+    display: -ms-flexbox; /* IE10 */
+    display: flex;
+    -ms-flex-wrap: wrap; /* IE10 */
+    flex-wrap: wrap;
+}
+
+.side {
+    -ms-flex: 30%; /* IE10 */
+    flex: 30%;
+    background-color: #f1f1f1;
+    padding: 20px;
+}
+
+.content {
+  padding: 16px;
+}
+
+/* scroll menu */
+.sticky {
+  position: fixed;
+  top: 0;
+  width: 100%
+}
+
+.sticky + .content {
+  padding-top: 60px;
+}
+
+
+/* Main column */
+.main {   
+    -ms-flex: 70%; /* IE10 */
+    flex: 70%;
+    background-color: white;
+    padding: 20px;    
+    margin-bottom: 50px;  
+}
+
+/* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+@media (max-width: 700px) {
+    .row {   
+        flex-direction: column;
+    }
+}
+
+/* Responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
+@media (max-width: 400px) {
+    .navbar a {
+        float: none;
+        width: 100%;
+    }
+}
+
+/* Footer */
+.footer {	
+	
+	position: relative;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	padding: 20px;
+    text-align: center;
+    background: #ddd;
+}
