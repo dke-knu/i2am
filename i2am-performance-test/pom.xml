@@ -24,5 +24,6 @@
   </dependencies>
   <modules>
     <module>benchmark-storm-and-spark</module>
+    <module>tta-test</module>
   </modules>
 </project>
