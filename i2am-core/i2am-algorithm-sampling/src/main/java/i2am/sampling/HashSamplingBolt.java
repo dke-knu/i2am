@@ -1,6 +1,6 @@
-package i2am.Sampling;
+package i2am.sampling;
 
-import i2am.Common.DbAdapter;
+import i2am.sampling.common.DbAdapter;
 import net.jpountz.xxhash.XXHash32;
 import net.jpountz.xxhash.XXHashFactory;
 import org.apache.storm.redis.common.config.JedisClusterConfig;

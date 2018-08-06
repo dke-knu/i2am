@@ -1,4 +1,4 @@
-package i2am.Sampling;
+package i2am.sampling;
 
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
@@ -15,13 +15,14 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
 import java.util.Map;
+import java.util.Random;
 
 
 public class KSampleBolt extends BaseRichBolt {
     //private int interval;
     private int samplingRate;
     //private double randomNumber;
-    private long count;
+    private int count = 0;
     private String sampleElement="";
 
     /* RedisKey */
@@ -39,7 +40,6 @@ public class KSampleBolt extends BaseRichBolt {
     private final static Logger logger = LoggerFactory.getLogger(KSampleBolt.class);
 
     public KSampleBolt(String redisKey, JedisClusterConfig jedisClusterConfig){
-        count = 0;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
     }
@@ -68,18 +68,21 @@ public class KSampleBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
-
-        double slot = (++count%samplingRate)==0)? samplingRate : count%samplingRate ;
+    	count = increaseToLimit(count, samplingRate);
 
         /* KSample */
-        if ((1.0/slot) > Math.random()){
-            sampleElement=input.getStringByField("data");
+        if ( (1.0/count) > new Random().nextDouble() ) {
+            sampleElement = input.getStringByField("data");
         }
 
-        if(count%samplingRate == 0){
+        if (count == samplingRate) {
             collector.emit(new Values(sampleElement));
         }
 
+    }
+    
+    private int increaseToLimit(int count, int limit) {
+    	return ++count > limit ? 1 : count;
     }
 
     @Override

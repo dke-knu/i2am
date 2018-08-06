@@ -1,8 +1,5 @@
 package i2am.filtering.common;
 
-import i2am.filtering.*;
-import i2am.filtering.declaring.DeclaringBolt;
-
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,6 +28,11 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import i2am.filtering.BloomFilteringBolt;
+import i2am.filtering.KalmanFilteringBolt;
+import i2am.filtering.NoiseRecKalmanFilteringBolt;
+import i2am.filtering.QueryFilteringBolt;
+import i2am.filtering.declaring.DeclaringBolt;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.Protocol;
 
