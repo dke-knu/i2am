@@ -75,12 +75,14 @@ public class ProducerThread implements Runnable {
         //for load-shedding
         //switch == false -> longshedding off & switch == true -> load shedding on
         if (!mod.getDbSwitch()) {
-            producer.send(new ProducerRecord<String, String>(this.topicName, message));
+            byte[] bytes = new byte[10000];
+            long time = System.currentTimeMillis();
+            message =   new String(bytes)+ "," +String.valueOf(time);
+            producer.send(new ProducerRecord<String, String>("topic1", message));
         }
     }
 
     public void run() {
-        int i = 0;
         byte[] bytes = null;
         String message = "hello";
 

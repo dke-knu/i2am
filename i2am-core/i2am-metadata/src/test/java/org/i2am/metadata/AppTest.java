@@ -34,5 +34,7 @@ public class AppTest
      */
     public void testApp()
     {
+    	int nOfUsers = DbAdapter.getInstance().getUserCounts();
+        assertTrue( nOfUsers>0 );
     }
 }
