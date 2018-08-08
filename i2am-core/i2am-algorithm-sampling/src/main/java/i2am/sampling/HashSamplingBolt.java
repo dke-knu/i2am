@@ -54,12 +54,12 @@ public class HashSamplingBolt extends BaseRichBolt{
         this.topologyName = topologyName;
         this.redisKey = redisKey;
         this.jedisClusterConfig = jedisClusterConfig;
-        hashFunctionClass = new HashFunction();
     }
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
+        hashFunctionClass = new HashFunction();
 
         if (jedisClusterConfig != null) {
             this.jedisContainer = JedisCommandsContainerBuilder.build(jedisClusterConfig);
