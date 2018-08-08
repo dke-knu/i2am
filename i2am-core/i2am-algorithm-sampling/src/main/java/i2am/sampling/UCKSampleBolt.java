@@ -75,7 +75,7 @@ public class UCKSampleBolt extends BaseRichBolt{
         double rand;
         int wLength;
         int sLength;
-        String element = input.getStringByField("data");
+        String element = input.getString(0);
         count++;
 
         if((count%samplingRate)==0) sLength=samplingRate;
