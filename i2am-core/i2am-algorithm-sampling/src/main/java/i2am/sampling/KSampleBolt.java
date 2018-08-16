@@ -72,7 +72,7 @@ public class KSampleBolt extends BaseRichBolt {
 
         /* KSample */
         if ( (1.0/count) > new Random().nextDouble() ) {
-            sampleElement = input.getString(0);;
+            sampleElement = input.getString(0);
         }
 
         if (count == samplingRate) {

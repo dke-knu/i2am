@@ -92,12 +92,16 @@ public class HashSamplingBolt extends BaseRichBolt{
 
         int hashCode = 0;
         try {
-            hashCode = ((int) hashFunctionClass.getClass().getDeclaredMethod(hashFunction).invoke(target))%bucketSize;
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
+            if(hashFunction.equals("javaHashFunction")){
+                hashCode = ((int)hashFunctionClass.javaHashFunction(data))%bucketSize;
+            }
+            else if(hashFunction.equals("xxHash32")){
+                hashCode = ((int)hashFunctionClass.xxHash32(data))%bucketSize;
+            }
+            else if(hashFunction.equals("jsHash")) {
+                hashCode = ((int)hashFunctionClass.jsHash(data))%bucketSize;
+            }
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 

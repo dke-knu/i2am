@@ -170,7 +170,7 @@ class BloomFilter{
             }
         }
 
-        if(buckets.get(hashCode[0]%bucketSize) && buckets.get(hashCode[1]%bucketSize) && buckets.get(hashCode[3]%bucketSize)){
+        if(buckets.get(hashCode[0]%bucketSize) && buckets.get(hashCode[1]%bucketSize) && buckets.get(hashCode[2]%bucketSize)){
             flag = true;
         }
 
