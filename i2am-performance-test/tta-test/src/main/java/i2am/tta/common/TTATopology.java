@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import i2am.tta.bloom.BloomFilteringBolt;
+import i2am.tta.ksample.KSampleBolt;
 import i2am.tta.query.MultivariateQueryFilteringBolt;
 import i2am.tta.simulation.TTASimulationTopology;
 import i2am.tta.systematic.SystematicSamplingBolt;
@@ -40,15 +41,18 @@ public class TTATopology {
 
         if (algorithmName.equals("k-sampling")){
         	/* SamplingBolt */
+        	BoltDeclarer samplingBolt = builder.setBolt("sampling-or-filtering-bolt", new KSampleBolt(), 5)
+        			.setNumTasks(5);
+        	setGrouping(samplingBolt, groupingType, "random-tuple-spout");
         } else if (algorithmName.equals("systematic-sampling")){
         	/* SamplingBolt */
-        	BoltDeclarer samplingBolt = builder.setBolt("sampling-or-filtering-bolt", new SystematicSamplingBolt(), 3)
-        			.setNumTasks(3);
+        	BoltDeclarer samplingBolt = builder.setBolt("sampling-or-filtering-bolt", new SystematicSamplingBolt(), 5)
+        			.setNumTasks(5);
         	setGrouping(samplingBolt, groupingType, "random-tuple-spout");
         } else if(algorithmName.equals("query-filtering")){
         	/* FilteringBolt */
-        	BoltDeclarer filteringBolt = builder.setBolt("sampling-or-filtering-bolt", new MultivariateQueryFilteringBolt(), 3)
-                    .setNumTasks(3);
+        	BoltDeclarer filteringBolt = builder.setBolt("sampling-or-filtering-bolt", new MultivariateQueryFilteringBolt(), 5)
+                    .setNumTasks(5);
         	setGrouping(filteringBolt, groupingType, "random-tuple-spout");
         } else if(algorithmName.equals("bloom-filtering")){
             /* DeclaringBolt */
@@ -56,8 +60,8 @@ public class TTATopology {
                     .setNumTasks(1);
         	setGrouping(declaringBolt, groupingType, "random-tuple-spout");
         	/* FilteringBolt */
-        	BoltDeclarer filteringBolt = builder.setBolt("sampling-or-filtering-bolt", new BloomFilteringBolt(), 3)
-                    .setNumTasks(3);
+        	BoltDeclarer filteringBolt = builder.setBolt("sampling-or-filtering-bolt", new BloomFilteringBolt(), 4)
+                    .setNumTasks(4);
         	setGrouping(filteringBolt, groupingType, "declaring-bolt");
         }
 
@@ -72,7 +76,7 @@ public class TTATopology {
     	setGrouping(loggingBolt, groupingType, "passing-bolt");
 
         Config config = new Config();
-        config.setNumWorkers(7);
+        config.setNumWorkers(8);
 
 		/* Submit topology to cluster */
 		try{
@@ -92,8 +96,7 @@ public class TTATopology {
     
     private static void setGrouping(BoltDeclarer bolt, String groupingType, String senderName) {
 		if ("locality-aware".equals(groupingType)) {
-//			String zkConnect = "MN:2181,SN01:2181,SN02:2181,SN03:2181,SN04:2181,SN05:2181,SN06:2181,SN07:2181,SN08:2181";
-			String zkConnect = "MN:2181,SN01:2181,SN02:2181,SN04:2181,SN05:2181,SN06:2181,SN07:2181,SN08:2181";
+			String zkConnect = "MN:2181,SN01:2181,SN02:2181,SN03:2181,SN04:2181,SN05:2181,SN06:2181,SN07:2181,SN08:2181";
 			bolt.customGrouping(senderName, new LocalityAwareGrouping(zkConnect));
 		} else if ("shuffle".equals(groupingType)) {
 			bolt.shuffleGrouping(senderName);
