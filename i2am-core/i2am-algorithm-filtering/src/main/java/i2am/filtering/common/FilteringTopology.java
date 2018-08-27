@@ -77,6 +77,8 @@ public class FilteringTopology {
         SpoutConfig kafkaSpoutConfig = new SpoutConfig(brokerHosts, inputTopic, "/"+inputTopic, UUID.randomUUID().toString());
         kafkaSpoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaSpoutConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+        kafkaSpoutConfig.ignoreZkOffsets = true;
+        kafkaSpoutConfig.maxOffsetBehind = 0;
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaSpoutConfig);
 
         /* Kafka Bolt Configuration */

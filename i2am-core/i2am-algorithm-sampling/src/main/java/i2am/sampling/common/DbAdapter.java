@@ -15,7 +15,7 @@ public class DbAdapter {
     private volatile static DbAdapter instance;
 
     private static final String GETTARGETINDEXQUERY = "SELECT COLUMN_INDEX FROM tbl_src_csv_schema WHERE IDX = (SELECT F_TARGET FROM tbl_intelligent_engine WHERE F_SRC = (SELECT F_SRC FROM tbl_plan WHERE IDX = (SELECT F_PLAN FROM tbl_topology WHERE TOPOLOGY_NAME = ?)))";
-    private static final String GETHASHFUNCTIONQUERY = "SELECT HASH_FUNCTION FROM tbl_params_hash_sampling WHERE IDX = (SELECT IDX FROM tbl_topology WHERE TOPOLOGY_NAME = ?)";
+    private static final String GETHASHFUNCTIONQUERY = "SELECT HASH_FUNCTION FROM tbl_params_hash_sampling WHERE F_TOPOLOGY = (SELECT IDX FROM tbl_topology WHERE TOPOLOGY_NAME = ?)";
 
     private DbAdapter(){
         dbAdmin = DbAdmin.getInstance();
@@ -38,7 +38,9 @@ public class DbAdapter {
         preparedStatement = connection.prepareStatement(GETTARGETINDEXQUERY);
         preparedStatement.setString(1, topologyName);
         resultSet = preparedStatement.executeQuery();
-        int targetIndex = resultSet.getInt("COLUMN_INDEX");
+        int targetIndex = 0;
+        if(resultSet.next())
+            targetIndex = resultSet.getInt("COLUMN_INDEX");
         preparedStatement.close();
         resultSet.close();
         connection.close();
@@ -50,7 +52,9 @@ public class DbAdapter {
         preparedStatement = connection.prepareStatement(GETHASHFUNCTIONQUERY);
         preparedStatement.setString(1, topologyName);
         resultSet = preparedStatement.executeQuery();
-        String hashFunction = resultSet.getString("HASH_FUNCTION");
+        String hashFunction = null;
+        if(resultSet.next())
+            hashFunction = resultSet.getString("HASH_FUNCTION");
         preparedStatement.close();
         resultSet.close();
         connection.close();

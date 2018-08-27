@@ -85,6 +85,8 @@ public class SamplingTopology {
         SpoutConfig kafkaSpoutConfig = new SpoutConfig(brokerHosts, inputTopic, "/"+inputTopic, UUID.randomUUID().toString());
         kafkaSpoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         kafkaSpoutConfig.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
+        kafkaSpoutConfig.ignoreZkOffsets = true;
+        kafkaSpoutConfig.maxOffsetBehind = 0;
         KafkaSpout kafkaSpout = new KafkaSpout(kafkaSpoutConfig);
 
         /* Kafka Bolt Configuration */
@@ -166,7 +168,7 @@ public class SamplingTopology {
         }
 
         /* PassingBolt and KafkaBolt */
-        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLING") || algorithmName.equals("UC_K_SAMPLING")){
             topologyBuilder.setBolt("PASSING_BOLT", new SystematicPassingBolt(), 1)
                     .shuffleGrouping(algorithmName+"_BOLT")
                     .setNumTasks(1);
@@ -184,7 +186,7 @@ public class SamplingTopology {
         Config config = new Config();
         config.setDebug(true);
 
-        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLE_SAMPLE") || algorithmName.equals("UC_K_SAMPLE")){
+        if(algorithmName.equals("SYSTEMATIC_SAMPLING") || algorithmName.equals("K_SAMPLING") || algorithmName.equals("UC_K_SAMPLING")){
             config.setNumWorkers(7);
         }
         else if(algorithmName.equals("BINARY_BERNOULLI_SAMPLING")){
