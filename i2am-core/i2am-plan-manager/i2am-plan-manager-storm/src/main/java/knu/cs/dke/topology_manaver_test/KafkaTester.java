@@ -69,7 +69,7 @@ public class KafkaTester {
 			currentTime = new Date();
 			mTime = mSimpleDateFormat.format(currentTime);
 			System.out.println(mTime);
-			producer.send(new ProducerRecord<String, String>("topic-in", mTime));
+			producer.send(new ProducerRecord<String, String>("topic0725", mTime));
 			Thread.sleep(1000);
 			
 		}		

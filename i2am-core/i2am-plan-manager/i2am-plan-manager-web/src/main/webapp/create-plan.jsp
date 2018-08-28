@@ -60,7 +60,7 @@ function getSourceList() {
 						'<div class="item">' +			
 							'<i class="fa fa-filter type sourceType"></i>' +
 								'<div class="name">' + obj.NAME + '</div>' +						
-								//'<div class="control myTooltip"> ? <span class="myTooltiptext">ï¿½ï¿½ï¿½ï¿½</span></div>' +
+								//'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
 								'<div class="control"> </div>' +
 							'</div>' +
 						'<div class="params">' +		 								
@@ -186,7 +186,7 @@ function getDestinationList() {
 						'<div class="item">' +			
 						'<i class="fa fa-database type destinationType"></i>' +
 							'<div class="name">' + obj.NAME + '</div>' +						
-							//'<div class="control myTooltip"> ? <span class="myTooltiptext">ï¿½ï¿½ï¿½ï¿½</span></div>' +
+							//'<div class="control myTooltip"> ? <span class="myTooltiptext">¼³¶ò</span></div>' +
 							'<div class="control"></div>' +
 						/* '</div>' +
 						 '<div class="params">' +
@@ -238,7 +238,7 @@ $(document).ready(function() {
 	
 	plumb.bind("connection", function(info) {
 		
-		// ï¿½ï¿½ï¿½ï¿½ DIVï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ $()
+		// Á÷Á¢ DIV¿¡ Á¢±ÙÇÏ·Á¸é $()
 		var source = $(info.source);
 		var target = $(info.target);		
 		
@@ -247,25 +247,25 @@ $(document).ready(function() {
 		var hasSource = false;
 		var srcName = "";		
 		
-		// ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã¼Å© > ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ > ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ñ´Ù±ï¿½ï¿½ï¿½ï¿½ï¿½!!
-		if( source.hasClass("source") ) { // ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½,			
+		// ¼Ò½º Á¤º¸¸¦ °¡Áö°í ÀÖ´ÂÁö Ã¼Å© > °¡Áö°í ÀÖ´Ù¸é > ±× Á¤º¸¸¦ µÚ¿¡µµ Àü´ÞÀü´ÞÇØ¾ßÇÑ´Ù±¸¤¾¤¾!!
+		if( source.hasClass("source") ) { // ¼Ò½º¶û ¿¬°á µÇ¾úÀ» ¶§,			
 			hasSource = true;
 			srcName = source.attr("name");
 			// $(target).removeAttr("source", srcName);
 			$(target).attr("source", srcName);
 		}
-		else if( typeof source.attr("source") != "undefined" && source.attr("source") != "") { // ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½,			
+		else if( typeof source.attr("source") != "undefined" && source.attr("source") != "") { // ¼Ò½º¸¦ °¡Áø ÅäÆú·ÎÁö¿Í ¿¬°áµÇ¾úÀ» ¶§,			
 			hasSource = true;
 			srcName = $(source).attr("source");
 			// $(target).removeAttr("source", srcName);
 			$(target).attr("source", srcName);
 		}	
 				
-		// ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¸¦ Ã£ï¿½Æ¾ï¿½ ï¿½Ñ´ï¿½...!
+		// ¼Ò½º°¡ ÀÖ´ë. Àü´ÞÇØ¾ßÇÒ ´ÙÀ½ ³ëµå¸¦ Ã£¾Æ¾ß ÇÑ´Ù...!
 		if ( hasSource ) {
 			
 			do {
-				// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½!
+				// Áö±Ý Å¸°ÙÀÌ Äõ¸®ÇÊÅÍ¸µÀÎÁö ¸ÕÀú °Ë»çÇØ¾ßÁö!
 				if( $(target).attr("name") == 'qf' ) {					
 					
 					var columns = [];
@@ -322,7 +322,7 @@ $(document).ready(function() {
 					//target.find(".schemenTarget").show();
 				}
 				
-				// Å¸ï¿½ï¿½ ï¿½Ê¿ï¿½ --> ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+				// Å¸°Ù ÇÊ¿ä --> ¼ýÀÚ, ¹®ÀÚ
 				if( $(target).attr("name") == 'bf' || $(target).attr("name") == 'hs' || $(target).attr("name") == 'ps' ) {
 					
 					var columns = [];
@@ -359,7 +359,7 @@ $(document).ready(function() {
 					target.find(".schemenTarget").show();					
 				}
 				
-				// Å¸ï¿½ï¿½ ï¿½Ê¿ï¿½ --> ï¿½ï¿½ï¿½ï¿½
+				// Å¸°Ù ÇÊ¿ä --> ¼ýÀÚ
 				if( $(target).attr("name") == 'kf' || $(target).attr("name") == 'nrkf' || $(target).attr("name") == 'ikf' ) {
 					
 					var columns = [];
@@ -401,17 +401,17 @@ $(document).ready(function() {
 				$(target).attr("source", srcName);				
 				if( $(target).hasClass("destination") ) return;
 				
-				// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!
+				// ÇöÀç Å¸°ÙÀÇ ¿À¸¥ÂÊ Á¡!
 				var targetPoint = plumb.getEndpoints(target).filter( function(item) {			
 					if( item.isSource ) return item;			
 				});
-				targetPoint = targetPoint[0];	// ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½...	
+				targetPoint = targetPoint[0];	// ÇÏ³ª¹Û¿¡ ¾øÀ¸¸é¼­ ¹è¿­·Î ¸®ÅÏµÊ...	
 				
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+				// ¿À¸¥ÂÊÀÇ ¿¬°áÀÌ ÀÖ´ÂÁö È®ÀÎÇÕ´Ï´Ù.
 				var hasConnection  = true;				
 				if( typeof targetPoint.connections[0] == "undefined" ) hasConnection = false;
 							
-				// ï¿½Ö´Ù¸ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½!
+				// ÀÖ´Ù¸é Å¸°ÙÀ» ´ÙÀ½À¸·Î ÀÌµ¿!
 				if ( hasConnection ) {					
 					var nextConnection = targetPoint.connections[0];
 					target = nextConnection.target;
@@ -425,29 +425,29 @@ $(document).ready(function() {
 		
 		var target = $(info.target);
 		
-		// ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½Ì¸ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
+		// µ¥½ºÆ¼³×ÀÌ¼ÇÀÌ¸é ¾Æ¹«°Íµµ ÇÒ ÇÊ¿ä°¡ ¾ø¼Ò.
 		if( $(target).hasClass("destination") ) return;
 				
-		// ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¾ß°Ú¼ï¿½.		
+		// ¼Ò½º¸¦ °¡Áö°í ÀÖ´ÂÁö È®ÀÎÇØ¾ß°Ú¼Ò.		
 		var hasSource = false;		
-		if( typeof target.attr("source") != "undefined" ) { // ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!			
+		if( typeof target.attr("source") != "undefined" ) { // ¼Ò½º Á¤º¸°¡ ÀÖ´Ù¸é Áö¿öÁà¾ßÇà!			
 			hasSource = true;			
 		}		
-		if( !hasSource ) return; // ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½!
+		if( !hasSource ) return; // ¼Ò½º°¡ ¾øÀ¸¸é ±×³É ²÷À¸¸é µÈ´Ù!
 		
-		// ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½Ú·ï¿½ ï¿½ï¿½È¸ï¿½Ï¸é¼­ ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
+		// ¼Ò½º°¡ ÀÖ´Ù¸é µÚ·Î ¼øÈ¸ÇÏ¸é¼­ ¼Ò½º Á¤º¸¸¦ »èÁ¦ÇØ¾ßÇÔ
 		do {
 			
 			$(target).attr("source", "");
 			
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù±ï¿½!
-			if( $(target).attr("name") == "qf" ) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù±ï¿½!
+			// Äõ¸® ÇÊÅÍ¸µÀÌ¸é ºñÈ°¼ºÈ­ ÇØÁà¾ßÇÑ´Ù±¸!
+			if( $(target).attr("name") == "qf" ) { // Äõ¸®ÇÊÅÍ¸µÀÌ¶ó¸é ºñÈ°¼ºÈ­ ÇØÁà¾ßÇÑ´Ù±¸!
 					$(".setRules").attr("disabled", true);
 					target.find(".cannot").show();
 					target.find(".schemenTarget").hide();
 			}			
 			
-			// Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ 
+			// Å¸°ÙÀÌ ÀÖ´Â »ùÇÃ¸µ ºñÈ°¼ºÈ­ 
 			if( $(target).attr("name") == "bf" || $(target).attr("name") == "hs" || $(target).attr("name") == "kf"
 					|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" || $(target).attr("name") == "ikf" ) {				
 							
@@ -455,22 +455,22 @@ $(document).ready(function() {
 				target.find(".schemenTarget").hide();				
 			}
 						
-			// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!
+			// ÇöÀç Å¸°ÙÀÇ ¿À¸¥ÂÊ Á¡!
 			var targetPoint = plumb.getEndpoints(target);						
 			targetPoint = plumb.getEndpoints(target).filter( function(item) {			
 				if( item.isSource ) return item;			
 			});
-			targetPoint = targetPoint[0];	// ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½...			
+			targetPoint = targetPoint[0];	// ÇÏ³ª¹Û¿¡ ¾øÀ¸¸é¼­ ¹è¿­·Î ¸®ÅÏµÊ...			
 			
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ´ÙÀ½ ¿¬°á Á¤º¸
 			var hasConnection  = false;			
-			if( typeof targetPoint != "undefined" ) { // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.				
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+			if( typeof targetPoint != "undefined" ) { // Á¡ÀÌ ÀÖ´Ù.				
+				// ¿À¸¥ÂÊÀÇ ¿¬°áÀÌ ÀÖ´ÂÁö È®ÀÎÇÕ´Ï´Ù.
 				if( typeof targetPoint.connections[0] != "undefined" ) hasConnection = true;
 			}
 			else return;
 			
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï¶ï¿½
+			// ¿À¸¥ÂÊ ¿¬°áÀÌ ÀÖÀ¸¸é ÀÌµ¿ÇÏ¶ó
 			if( hasConnection ) {				
 				var nextConnection = targetPoint.connections[0];
 				target = nextConnection.target;
@@ -485,29 +485,29 @@ $(document).ready(function() {
 		
 		//console.log(target);
 		
-		// ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½Ì¸ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½.
+		// µ¥½ºÆ¼³×ÀÌ¼ÇÀÌ¸é ¾Æ¹«°Íµµ ÇÒ ÇÊ¿ä°¡ ¾ø¼Ò.
 		if( $(target).hasClass("destination") ) return;
 				
-		// ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ø¾ß°Ú¼ï¿½.		
+		// ¼Ò½º¸¦ °¡Áö°í ÀÖ´ÂÁö È®ÀÎÇØ¾ß°Ú¼Ò.		
 		var hasSource = false;		
-		if( typeof target.attr("source") != "undefined" ) { // ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!			
+		if( typeof target.attr("source") != "undefined" ) { // ¼Ò½º Á¤º¸°¡ ÀÖ´Ù¸é Áö¿öÁà¾ßÇà!			
 			hasSource = true;			
 		}		
-		if( !hasSource ) return; // ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½!
+		if( !hasSource ) return; // ¼Ò½º°¡ ¾øÀ¸¸é ±×³É ²÷À¸¸é µÈ´Ù!
 		
-		// ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½Ú·ï¿½ ï¿½ï¿½È¸ï¿½Ï¸é¼­ ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
+		// ¼Ò½º°¡ ÀÖ´Ù¸é µÚ·Î ¼øÈ¸ÇÏ¸é¼­ ¼Ò½º Á¤º¸¸¦ »èÁ¦ÇØ¾ßÇÔ
 		do {
 			
 			$(target).attr("source", "");
 			
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù±ï¿½!
-			if( $(target).attr("name") == "qf" ) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù±ï¿½!
+			// Äõ¸® ÇÊÅÍ¸µÀÌ¸é ºñÈ°¼ºÈ­ ÇØÁà¾ßÇÑ´Ù±¸!
+			if( $(target).attr("name") == "qf" ) { // Äõ¸®ÇÊÅÍ¸µÀÌ¶ó¸é ºñÈ°¼ºÈ­ ÇØÁà¾ßÇÑ´Ù±¸!
 					target.find(".setRules").attr("disabled", true);
 					target.find(".cannot").show();
 					target.find(".schemenTarget").hide();
 			}
 			
-			// Å¸ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½È­
+			// Å¸°Ù ºñÈ°¼ºÈ­
 			if( $(target).attr("name") == "bf" || $(target).attr("name") == "hs" || $(target).attr("name") == "kf"
 				|| $(target).attr("name") == "nrkf" || $(target).attr("name") == "ps" || $(target).attr("name") == "ikf" ) {				
 						
@@ -515,22 +515,22 @@ $(document).ready(function() {
 					target.find(".schemenTarget").hide();				
 			}			
 						
-			// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!
+			// ÇöÀç Å¸°ÙÀÇ ¿À¸¥ÂÊ Á¡!
 			var targetPoint = plumb.getEndpoints(target);						
 			targetPoint = plumb.getEndpoints(target).filter( function(item) {			
 				if( item.isSource ) return item;			
 			});
-			targetPoint = targetPoint[0];	// ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½...			
+			targetPoint = targetPoint[0];	// ÇÏ³ª¹Û¿¡ ¾øÀ¸¸é¼­ ¹è¿­·Î ¸®ÅÏµÊ...			
 			
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ´ÙÀ½ ¿¬°á Á¤º¸
 			var hasConnection  = false;			
-			if( typeof targetPoint != "undefined" ) { // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.				
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+			if( typeof targetPoint != "undefined" ) { // Á¡ÀÌ ÀÖ´Ù.				
+				// ¿À¸¥ÂÊÀÇ ¿¬°áÀÌ ÀÖ´ÂÁö È®ÀÎÇÕ´Ï´Ù.
 				if( typeof targetPoint.connections[0] != "undefined" ) hasConnection = true;
 			}
 			else return;
 			
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï¶ï¿½
+			// ¿À¸¥ÂÊ ¿¬°áÀÌ ÀÖÀ¸¸é ÀÌµ¿ÇÏ¶ó
 			if( hasConnection ) {				
 				var nextConnection = targetPoint.connections[0];
 				target = nextConnection.target;
@@ -644,7 +644,7 @@ $(document).ready(function() {
 	});
 	
 	
-	// ï¿½Ì¸ï¿½ Ã¼Å©
+	// ÀÌ¸§ Ã¼Å©
 	$(".mybutton").on('click', function(event) {
 		
 		var name = $('.myinput').val();
@@ -675,7 +675,7 @@ $(document).ready(function() {
 		});
 	});
 	
-	// ï¿½ï¿½ï¿½ï¿½ï¿½!
+	// ¼­ºê¹Ô!
 	$(document).on("click", ".mySubmit", function() {
 		
 		var valid = true;
@@ -683,62 +683,62 @@ $(document).ready(function() {
 		var source = $(".panel").find(".source");		
 		var destination = $(".panel").find(".destination");
 		
-		var message = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.<ul>";
+		var message = "´ÙÀ½°ú °°Àº ÀÌÀ¯·Î ÇÃ·£ »ý¼º¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù.<ul>";
 		var messagePanel = $(".mySubmitFail");		
 						
-		// ï¿½Ì¸ï¿½ Ã¼Å©
+		// ÀÌ¸§ Ã¼Å©
 		if( typeof planNameFlag == "undefined" || planNameFlag == false ) {
-			message = message + "<li>ï¿½Ã·ï¿½ ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>ÇÃ·£ ÀÌ¸§ ¿À·ù</li>";
 			valid = false;
 		}
 		
-		// ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
+		// ¿¬°á Ã¼Å©
 		if( connections.length == 0 ) {
-			message = message + "<li>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>¿¬°áÀÌ ¾øÀ½</li>";
 			valid = false;
 		}				
-		// ï¿½Ò½ï¿½ Ã¼Å©
+		// ¼Ò½º Ã¼Å©
 		if( source.length == 0 ) {			
-			message = message + "<li>ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>¼Ò½º°¡ ¾øÀ½</li>";
 			valid = false;
 		} 
 		else if ( source.length != 1 ) {
-			message = message + "<li>ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>¼Ò½º°¡ ¸¹À½</li>";
 			valid = false;
 		}		
-		// ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ Ã¼Å©
+		// µ¥½ºÆ¼³×ÀÌ¼Ç Ã¼Å©
 		if( destination.length == 0 ) {			
-			message = message + "<li>ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>µ¥½ºÆ¼³×ÀÌ¼ÇÀÌ ¾øÀ½</li>";
 			valid = false;
 		} 
 		else if ( destination.length != 1 ) {
-			message = message + "<li>ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+			message = message + "<li>µ¥½ºÆ¼³×ÀÌ¼ÇÀÌ ¸¹À½</li>";
 			valid = false;
 		}		
 				
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!		
+		// ¸¸Á·ÇÏÁö ¾ÊÀ¸¸é ¸Þ½ÃÁö¿Í ÇÔ²² Ãë¼ÒÇÑ´Ù!		
 		if( !valid ) {				
 			message = message + "</ul>";
 			messagePanel.show(500);
 			messagePanel.html(message);
 			return ;
 		} else {	
-			message = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.<ul>";
+			message = "´ÙÀ½°ú °°Àº ÀÌÀ¯·Î ÇÃ·£ »ý¼º¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù.<ul>";
 			messagePanel.hide();
 			messagePanel.html(message);
 		}		
 		
-		var start = source; // ï¿½ï¿½ï¿½ DIV ï¿½è¿­, ï¿½Ï³ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½.		
+		var start = source; // ¾ê´Â DIV ¹è¿­, ÇÏ³ª¹Û¿¡ ¾øÀ½.		
 		var hasNext = true;
 		var next;
 		
-		// ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ //		
+		// ÇÃ·£ »ý¼º¿¡ ÇÊ¿äÇÑ Á¤º¸ //		
 		var planName = $(".myinput").val();
 		var srcName = source.attr("name");
 		var dstName = destination.attr("name");
 		
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½ï¿½...ï¿½ï¿½
-		var topologies = new Array(); // Topology ï¿½è¿­		
+		// ÅäÆú·ÎÁö ¹è¿­·Î ³Ñ±âÀð...¡Ù
+		var topologies = new Array(); // Topology ¹è¿­		
 		var index = 0;	
 		
 		while( hasNext ) {
@@ -749,10 +749,10 @@ $(document).ready(function() {
 			
 			if( typeof nextPoint[0] != "undefined" ) {
 								
-				next = nextPoint[0].connections[0].target; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
-				// console.log($(next).attr("class")); // nextï¿½ï¿½ DIV ï¿½Ì¹Ç·ï¿½ Ã³ï¿½ï¿½ï¿½Ï¸ï¿½È´ï¿½!
+				next = nextPoint[0].connections[0].target; // ´ÙÀ½ ³ëµå¸¦ °¡Á®¿Â´Ù.
+				// console.log($(next).attr("class")); // next°¡ DIV ÀÌ¹Ç·Î Ã³¸®ÇÏ¸éµÈ´Ù!
 								
-				if($(next).hasClass("topology")) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+				if($(next).hasClass("topology")) { // °¢°¢ÀÇ ÅäÆú·ÎÁöÀÇ ÀÎÇ²À» °¡Á®¿Â´Ù.
 										
 					var parameters = new Object();
 					
@@ -763,7 +763,7 @@ $(document).ready(function() {
 						  if ($.isEmptyObject(query)) {
 							//alert("Query is empty!");
 							//$('#queryBuilderModal').modal('show');
-							message = message + "<li>ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ï¿½</li>";
+							message = message + "<li>Äõ¸® ÇÊÅÍ¸µ ÀÔ·Â ¾øÀ½</li>";
 							valid = false;
 							break;
 						  }
@@ -777,18 +777,18 @@ $(document).ready(function() {
 					else if( $(next).attr("name") == "bf" || $(next).attr("name") == "hs" || $(next).attr("name") == "kf"
 						|| $(next).attr("name") == "nrkf" || $(next).attr("name") == "ps" || $(next).attr("name") == "ikf") {
 												
-						// ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½
+						// ¶óµð¿À ¹Ú½º
 						var radioName = $(next).find(".radioTarget").attr("name");
 						var target = $(next).find("input[name='"+ radioName + "']:checked");												
-						var targetIndex = target.attr("value"); // String ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½...
+						var targetIndex = target.attr("value"); // String ÇüÅÂ·Î µÊ...
 									
-						// ï¿½Ô·ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½
+						// ÀÔ·Â ÆÄ¶ó¹ÌÅÍ
 						var inputs = $(next).find(".paramInput");						
 						
 						if( target.length == 0 ) {
 							
 							valid = false;
-							message = message + "<li>Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</li>"
+							message = message + "<li>Å¸°ÙÀÌ ¼³Á¤µÇÁö ¾ÊÀ½</li>"
 							break;
 						}						
 						
@@ -796,7 +796,7 @@ $(document).ready(function() {
 							
 							if( $(inputs[i]).val() == "" || $(inputs[i]).val() == null ) {																
 								valid = false;
-								message = message + "<li>ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ï¿½</li>"
+								message = message + "<li>ÆÄ¶ó¹ÌÅÍ ÀÔ·Â ¾øÀ½</li>"
 								break;
 								
 							} else {
@@ -821,7 +821,7 @@ $(document).ready(function() {
 							
 							if( $(inputs[i]).val() == "" || $(inputs[i]).val() == null ) {																
 								valid = false;
-								message = message + "<li>ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ï¿½</li>"
+								message = message + "<li>ÆÄ¶ó¹ÌÅÍ ÀÔ·Â ¾øÀ½</li>"
 								break;
 								
 							} else {
@@ -839,9 +839,9 @@ $(document).ready(function() {
 					topologies[index] = topology;
 				}
 								
-				if($(next).hasClass("destination")) hasNext = false; // ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!		
+				if($(next).hasClass("destination")) hasNext = false; // µ¥½ºÆ¼³×ÀÌ¼ÇÀ» ¸¸³ª¸é Á¾·á!		
 				
-				if( typeof next != "undefined" ) { // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½! ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!			
+				if( typeof next != "undefined" ) { // ´ÙÀ½À¸·Î ÀÌµ¿! ÀÎµ¦½ºµµ Áõ°¡!			
 					start = next;
 					hasNext = true;
 					index = index + 1;
@@ -851,7 +851,7 @@ $(document).ready(function() {
 			}			
 		}		
 		
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô²ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½!		
+		// ¸¸Á·ÇÏÁö ¾ÊÀ¸¸é ¸Þ½ÃÁö¿Í ÇÔ²² Ãë¼ÒÇÑ´Ù!		
 		if( !valid ) {				
 			message = message + "</ul>";
 			messagePanel.show(500);
@@ -863,7 +863,7 @@ $(document).ready(function() {
 			messagePanel.html(message);
 		}
 		
-		// ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ÇÃ·£ ±¸¼º
 		var newPlan = {
 				planName: planName,
 				srcName: srcName,
@@ -874,7 +874,7 @@ $(document).ready(function() {
 		console.log(newPlan);
 		alert(newPlan);
 		
-		// ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ > Ajax
+		// ÇÃ·£ Àü¼Û > Ajax
 		$.ajax({
 			  type: "POST", 
 			  url: "ajax/create-plan.jsp",			  
@@ -915,7 +915,7 @@ function recommendedAlgorithm(algorithmName) {
 	//console.log($(algorithmName).text());
 	if( algorithmName == null ) {
 		
-		alert("ï¿½ï¿½ï¿½ï¿½");
+		alert("¾øÀ½");
 		return;
 	}	
 	
@@ -950,12 +950,12 @@ function recommendedAlgorithm(algorithmName) {
 		<div class="header">
 			<h1>New Plan</h1>			
 			<button class="mySubmit" type="button">Submit</button>
-			<div class="mySubmitFail"> ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  </div>
+			<div class="mySubmitFail"> »ý¼º ½ÇÆÐ  </div>
 			Plan name<br>	
 			<input placeholder=" input plan name" class="myinput"><button class="mybutton" type="button">Check</button>				
 		</div>										
 		<div class="columnWrap">		
-			<!-- Source Plan Destination ï¿½ï¿½ï¿½ï¿½Æ® Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½  -->
+			<!-- Source Plan Destination ¸®½ºÆ® Ç¥½ÃÇÏ´Â °÷  -->
 			<div class="column left">						 
 			 	<div class="lefttitle"> 
 			 		<h2> Algorithms </h2>
@@ -1194,7 +1194,7 @@ function recommendedAlgorithm(algorithmName) {
 	<!-- Modal -->
 	<div id="queryBuilderModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="queryBuilderModalLabel" aria-hidden="true" style="width: 1000px; margin-left: -500px;">
 	  <div class="modal-header">
-	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">ï¿½ï¿½</button>
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">¡¿</button>
 	    <h3 id="queryBuilderModalLabel">Build Query</h3>
 	  </div>
 	  <div class="modal-body">
@@ -1223,14 +1223,14 @@ function itemFilter() {
 	topologies.hide();
 	destinations.hide();	
 	
-	if(selected.hasClass("filterActive")) {	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if(selected.hasClass("filterActive")) {	// ÇÊÅÍ ÇØÁ¦
 		selected.removeClass("filterActive");
 		sources.show();
 		topologies.show();
 		destinations.show();		
 	}
 	else {		
-		$(".filterActive").removeClass("filterActive"); // ï¿½Ì¹ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+		$(".filterActive").removeClass("filterActive"); // ÀÌ¹Ì Ã¼Å©µÈ ¾Ö ÇØÁ¦.
 		selected = $(this).addClass("filterActive");		
 		var filter = selected.attr('id');			
 		//console.log(filter);

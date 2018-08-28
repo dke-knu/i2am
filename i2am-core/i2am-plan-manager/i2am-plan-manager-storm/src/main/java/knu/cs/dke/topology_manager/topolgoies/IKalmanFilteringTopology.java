@@ -9,6 +9,8 @@ public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 	private double h_val;
 	private double x_val;
 	private double p_val;	
+	//private double r_val;
+	
 	
 	private int target;
 	
@@ -21,7 +23,9 @@ public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 		this.h_val = h_val;
 		this.x_val = x_val;
 		this.p_val = p_val;		
-				
+		//this.r_val = 0.5;
+		
+		
 		this.target = target;	
 	}
 

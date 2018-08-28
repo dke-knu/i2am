@@ -77,15 +77,13 @@ function changeState(type, name, after) {
 		  name: name,
 		  after: after
 		}),
-		success : function(response) {
-			  //alert(response.trim());
-			  console.log(response.trim());
-			  if (response.trim() == "true") {
+		success : function(response) {			 
+			  /* if (response.trim() == "true") {
 				  window.open("./list_plan.jsp", "_self");
 			  } else {				  
-				  window.location.reload();
-				  // 
-			  }
+				  window.location.reload();				 
+			  } */
+			  loadTblDst();
 		} 
 	});
 }
@@ -96,7 +94,7 @@ function remove(type, name) {
 
 	alert("Remove: " + type + ", " + name);
 	
-	// ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½1: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ¿¹¿ÜÃ³¸®1: ¸¸¾à µ¿ÀÛÁßÀÌ¸é »èÁ¦ÇÒ ¼ö ¾øµµ·Ï
 	
 	$.ajax({
 		type: 'post',
@@ -106,12 +104,13 @@ function remove(type, name) {
 			name: name
 		}), 
 		success: function(response) {
-			console.log(response.trim());
+/* 			console.log(response.trim());
 			if(response.trim() == "true") {
 				window.open("./home.jsp", "_self");
 			} else {
 				window.location.reload();
-			}
+			} */
+			loadTblDst();
 		}
 	});
 }

@@ -244,10 +244,10 @@ public class TopologyHandler {
 
 		// Plan to DB ...
 		DbAdapter.getInstance().addPlan(plan);
+		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is created.");
 
 		// Topology Params to Redis ...
-		// RedisAdapter redis = new RedisAdapter();
-		// redis.addPlanParams(plan);	
+		RedisAdapter.getInstance().addPlanParams(plan);	
 
 	}
 
@@ -266,6 +266,7 @@ public class TopologyHandler {
 		plans.remove(temp);
 		
 		DbAdapter.getInstance().removePlan(temp);		
+		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is destroyed.");
 	}
 
 	private void changeStatus() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
@@ -298,9 +299,20 @@ public class TopologyHandler {
 		// 만약 상태가 active로 바뀐다면!
 		if ( status.equals("ACTIVE") ) {						
 			temp.activateTopologies();
+			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is activated.");
+			
+			// 지능형 칼만 필터링이 포함되어 있으면, 메시지 전송
+			for(ASamplingFilteringTopology i: temp.getTopologies()) {
+				
+				if(i.getTopologyType() == "I_KALMAN_FILTERING") {
+					MessageSender ms = new MessageSender();
+					ms.sendToIntelligentKalman("activate-plan", owner, plan);
+				}
+			}
 		} 
 		else if ( status.equals("DEACTIVE") ) {
 			temp.deactivateTopologies();
+			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is dectivated.");
 		}
 		else
 			System.out.println("[Topology Handler] Status Type Error.");		

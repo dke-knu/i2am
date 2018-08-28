@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <script src="./js/jquery-3.3.1.min.js"></script>
+<script src="./js/jquery-ui.js"></script>
 <script src="./js/my.js"></script>
 
 <script>
@@ -36,9 +37,49 @@ function getUserId() {
 </script>
 
 <script>
+function getLogs() {
+	
+	var list = null;	
+	var logs = $(".logs_content");
+	logs.html("");
+	
+	$.ajax({
+		type: 'post',
+		url: './ajax/get-log.jsp',
+		data: ({}),
+		async: false,
+		cache: false,
+		success: function(data) {
+			data = data.replace(/(^\s*)|(\s*$)/gi, "");
+			list = data;
+		}		
+	});
+	
+	if(list == null) {
+		alert("Logs cannot load.");
+		return ;
+	}
+	
+	var arr = JSON.parse(list);
+	
+	while( arr.length > 0 ) {
+		
+		var obj = arr.pop();
+		
+		logs.html(logs.html() + 
+			"[" + obj.LOGGING_TIME + "] " +			
+			" <div class='logs_type " + obj.LOGGING_TYPE + "'>" + obj.LOGGING_TYPE + "</div>  " +
+			obj.LOGGING_MESSAGE	+ "<br>"
+		);		
+	}	
+}
+</script>
+
+<script>
 $(document).ready(function() {
 		
 	checkLogin();
+	getLogs();
 	
 	var user_name = getUserId();
 		
@@ -67,6 +108,31 @@ $(document).ready(function() {
 		$(".main").load("list_destination.jsp").trigger("create");
 		return false;
 	});	
+	
+	$(".logs_header").click(function() {
+				
+		if( $(".logs_control").hasClass("up") ) { // 최소화 된 상태
+
+			$(".logs_content").slideDown(500);
+			$(".logs_control").removeClass("up");
+			$(".logs_control").addClass("down");
+			
+			$(".logs_control").find(".fa").removeClass("fa-angle-double-up");
+			$(".logs_control").find(".fa").addClass("fa-angle-double-down");
+		}
+		else {
+			
+			$(".logs_content").slideUp(500);
+			$(".logs_control").removeClass("down");
+			$(".logs_control").addClass("up");
+			
+			$(".logs_control").find(".fa").removeClass("fa-angle-double-down");
+			$(".logs_control").find(".fa").addClass("fa-angle-double-up");
+		}	
+		
+	});
+
+	
 });
 </script>
 
@@ -78,7 +144,8 @@ $(document).ready(function() {
 
 	<div class="header">
 		<h1> Plan Manager </h1>
-		<p> Create a plan </p>
+		<h3>I2AM</h3>
+		Kangwon Univ.<br>		
 	</div>
 
 
@@ -115,13 +182,19 @@ $(document).ready(function() {
 	
 	</div>
 
-	<div class="footer">
-		<h3>I2AM</h3>
-		Kangwon Univ.
+	<div class="logs">
+		<div class="logs_header">
+			<div class="logs_title"> Command logs</div>
+			<div class="logs_control up"><i class="fa fa-angle-double-up"></i></div>		
+		</div>
+		
+		<div class="logs_content">			
+		
+		</div>
 	</div>
-
-
 	
+</body>
+
 	<script>
 		window.onscroll = function() {myFunction()};
 
@@ -136,7 +209,5 @@ $(document).ready(function() {
   			}
 		}
 	</script>	
-	
-</body>
 
 </html>

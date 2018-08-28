@@ -135,5 +135,23 @@
 			<scope>compile</scope>
         </dependency>
         
+		<dependency>
+        	<groupId>i2am</groupId>
+			<artifactId>i2am-algorithm-filtering</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+        </dependency>
+        
+		<dependency>
+        	<groupId>i2am</groupId>
+			<artifactId>i2am-algorithm-sampling</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+        </dependency>
+        
+        
+        
 	</dependencies>
 </project>

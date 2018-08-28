@@ -259,12 +259,7 @@ $(document).ready(function() {
 				
 				
 			<div class="checkEngine">
-			<label class="container">
-				Concept Drift Engine
-				<input type="checkbox" name="chk_cd" value="cd">
-				<span class="checkmark"></span>			
-			</label>
-			
+					
 			<label class="container">
 				Load Shedding
 				<input type="checkbox" name="chk_ls" value="ls">
@@ -272,11 +267,12 @@ $(document).ready(function() {
 			</label>
 			
 			<label class="container">
-				Intelligent Recommendation Engine
+				Concept Drift & Intelligent Recommendation Engine
 				<input type="checkbox" name="chk_ir" value="ir" id="intengine">
 				<span class="checkmark"></span>			
 			</label>				
-			</div>			
+			</div>	
+					
 			<div class="divCenter useint">
 				
 				<h3>Select Target Column</h3><hr>	
@@ -500,7 +496,8 @@ $(document).ready(function() {
 			dataScheme: scheme,
 		
 			// Smart Engine
-			useConceptDriftEngine: $("input[name='chk_cd']").is(":checked"),
+			// useConceptDriftEngine: $("input[name='chk_cd']").is(":checked"),
+			useConceptDriftEngine: useIntelligentEngine,
 			useLoadShedding: $("input[name='chk_ls']").is(":checked"),
 			useIntelligentEngine: useIntelligentEngine,
 		
@@ -630,7 +627,7 @@ $("#intengine").change(function() {
 								
 				if( type == "NUMERIC" ) {
 					
-					// target valueï¿½ï¿½ indexï¿½ï¿½ ï¿½Ò±ï¿½?ï¿½ï¿½?ï¿½ï¿½ï¿½ï¿½
+					// target value¸¦ index·Î ÇÒ±î?¤µ?¤¾¤¾
 					target.append("<label class='radiocontainer'>" + 
 							"<div class='radiolabelleft'>" + name + "</div>" +		
 							// "<div class='radiolabelright'>" + type + "</div>" +																			 

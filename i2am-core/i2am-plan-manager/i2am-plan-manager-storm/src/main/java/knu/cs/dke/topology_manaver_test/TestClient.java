@@ -51,6 +51,9 @@ public class TestClient {
 				
 		write.close();
 		socket.close();
+		
+		String s = "test";
+		
 	}	
 }
 

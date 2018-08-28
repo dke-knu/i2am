@@ -1,5 +1,7 @@
 package knu.cs.dke.topology_manager.handlers;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import org.apache.storm.shade.org.eclipse.jetty.util.thread.ThreadPool;
@@ -27,7 +29,7 @@ public class SourceHandler {
 		this.command = (JSONObject) jsonParser.parse(command);			
 	}
 	
-	public void excute() throws ParseException, InterruptedException {		
+	public void excute() throws ParseException, InterruptedException, UnknownHostException, IOException {		
 
 		String commandType = (String) command.get("commandType");
 		System.out.println("[Source Handler] Command Type: " + commandType);		
@@ -63,7 +65,7 @@ public class SourceHandler {
 		sources.printSummary();
 	}
 
-	public void createSource() {
+	public void createSource() throws UnknownHostException, IOException {
 		
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
@@ -167,66 +169,19 @@ public class SourceHandler {
 			System.out.println("[Source Handler] Source Type Error.");
 			break;
 		}		
+		
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is created.");
+		
 
-//		// 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
-//		// Concept Drift 엔진에 전송
+		// 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
+		// Concept Drift 엔진에 전송
 //		if(intelliEngine.equals("Y")) {
 //
-//			// "user-id", "src-name"
-//			// String message = source.getOwner() + "," + source.getSourceName();
-//
-//			// JSON
-//			JSONObject message = new JSONObject();
-//			message.put("message", "new-src");
-//			message.put("user-id", source.getOwner());
-//			message.put("src-name", source.getSourceName());			
-//
-//			Socket socket = null;
-//			OutputStream os = null;
-//			OutputStreamWriter osw = null;
-//			BufferedWriter bw = null;
-//
-//			Socket socket2 = null;
-//			OutputStream os2 = null;
-//			OutputStreamWriter osw2 = null;
-//			BufferedWriter bw2 = null;
-//
-//			try {
-//				// Intelligent Engine.
-//				socket = new Socket("MN", 7979);
-//				os = socket.getOutputStream();
-//				osw = new OutputStreamWriter(os);
-//				bw = new BufferedWriter(osw);
-//				bw.write(message.toJSONString());
-//
-//				// Concept Drift.
-//				// 165.132.214.219 39393
-//				socket2 = new Socket("165.132.214.219", 39393);
-//				os2 = socket2.getOutputStream();
-//				osw2 = new OutputStreamWriter(os2);
-//				bw2 = new BufferedWriter(osw2);
-//				bw2.write(message.toJSONString());
-//			}
-//			catch (Exception e ) {
-//				e.printStackTrace();
-//			}
-//			finally {
-//				try {
-//					bw.close();
-//					osw.close();
-//					os.close();
-//					socket.close();
-//
-//					bw2.close();
-//					osw2.close();
-//					os2.close();
-//					socket2.close();
-//				}
-//				catch(Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}		
+//			MessageSender ms = new MessageSender();			
+//			ms.sendToConceptDrift("new-src", source.getOwner(), source.getSourceName());
+//			ms.sendToIntelligentEngine("new-src", source.getOwner(), source.getSourceName());
+//			
+//		}	
 	}
 
 	public void destroySource() throws InterruptedException {
@@ -244,15 +199,17 @@ public class SourceHandler {
 		// Delete!
 		Source temp = sources.get(owner, srcName);				
 		sources.remove(temp);
-			
-		DbAdapter.getInstance().removeSource(temp); 
+				
+		DbAdapter.getInstance().removeSource(temp);
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is destroyed.");
+		
 	}
 
 	public void alterSource() {
 		// Parameter 업데이트만 하는 것으로...ㅎ
 	}
 
-	public void activeSource() {		
+	public void activeSource() throws UnknownHostException, IOException {		
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
@@ -268,49 +225,19 @@ public class SourceHandler {
 
 		sources.set(source);
 
-		// Send to Concept Drift
-		// JSON
-		/*
-		JSONObject message = new JSONObject();
-		message.put("message", "activate-src");
-		message.put("user-id", source.getOwner());
-		message.put("src-name", source.getSourceName());			
-
-		Socket socket = null;
-		OutputStream os = null;
-		OutputStreamWriter osw = null;
-		BufferedWriter bw = null;
-		
-		try {
-			// Concept Drift
-			socket = new Socket("165.132.214.219", 39393);
-			os = socket.getOutputStream();
-			osw = new OutputStreamWriter(os);
-			bw = new BufferedWriter(osw);
-			bw.write(message.toJSONString());
-		}
-		catch (Exception e ) {
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				bw.close();
-				osw.close();
-				os.close();
-				socket.close();
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
-		*/
+//		컨셉 드리프트 사용 시, 소스가 실행 되면 메시지 전송
+//		if(source.getUseConceptDrift() == "Y") {			
+//			MessageSender ms = new MessageSender();			
+//			ms.sendToConceptDrift("activate-src", source.getOwner(), source.getSourceName());			
+//		}		
 
 		// Thread Start.
 		Thread run = new Thread(source, source.getSourceName());		
 		sources.addThread(run);
 		run.start();		
-		
+				
 		System.out.println("[Source Handler]" + source.getName() + " is started! - " + source.isAlive() );
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is activated.");
 	}
 	
 /*	public void updateRecommendation() {
@@ -342,6 +269,8 @@ public class SourceHandler {
 		run.interrupt();		
 		
 		System.out.println("[Source Handler]" + source.getName() + " is stopped! - " + source.isAlive() );
+		
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is deactivated.");
 	}
 
 	public void sendToConceptDrift() {

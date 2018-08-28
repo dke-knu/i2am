@@ -16,6 +16,25 @@ $(document).on("click", ".newbutton", function(){
 </script>
 
 <script>
+function conceptDriftStatus() {
+
+	var cds = $(".cd");
+
+	for( var i=0; i<cds.length; i++ ) {	
+		
+		if ( $(cds[i]).text() == "Waiting..." ) {
+			
+			var temp = $(cds[i]).parent().find(".status");
+					
+			temp.addClass("status-disable");
+			temp.removeClass("status");
+			//temp.prop('onclick', null).off('click');
+		}
+	}	
+}
+</script>
+
+<script>
 function loadTblSrc() {
 	
 	var list = null;	
@@ -91,7 +110,7 @@ function loadTblSrc() {
 	}	
   }
 loadTblSrc();
-
+conceptDriftStatus();
 </script>
 
 <script>
@@ -101,7 +120,7 @@ function changeState(type, name, after, conceptdrift) {
 		
 	if(conceptdrift == "WAITING") {
 		
-		alert("ï¿½ï¿½ï¿½ï¿½ï¿½å¸®ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð½ï¿½ï¿½ï¿½ ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½");		
+		alert("ÄÁ¼Áµå¸®ÇÁÆ® ¿£ÁøÀÌ ÇÐ½ÀÁß ÀÌ¹Ç·Î ½ÇÇàÇÒ ¼ö ¾øÀ½");		
 		return false;
 	}
 		
@@ -113,14 +132,14 @@ function changeState(type, name, after, conceptdrift) {
 		  name: name,
 		  after: after
 		}),
-		success : function(response) {
-			  //alert(response.trim());
-			  console.log(response.trim());
-			  if (response.trim() == "true") {
-				  window.open("./home.jsp", "_self");
+		success : function(response) {			  
+			  /* if (response.trim() == "true") {
+				  window.open("./list_plan.jsp", "_self");
 			  } else {				  
-				  window.location.reload();				   
-			  }
+				  window.location.reload();			   
+			  } */
+			  loadTblSrc();
+			  conceptDriftStatus();
 		} 
 	});
 }
@@ -131,7 +150,7 @@ function remove(type, name) {
 
 	alert("Remove: " + type + ", " + name);
 	
-	// ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½1: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ¿¹¿ÜÃ³¸®1: ¸¸¾à µ¿ÀÛÁßÀÌ¸é »èÁ¦ÇÒ ¼ö ¾øµµ·Ï
 	
 	$.ajax({
 		type: 'post',
@@ -141,30 +160,16 @@ function remove(type, name) {
 			name: name
 		}), 
 		success: function(response) {
-			console.log(response.trim());
+			/* console.log(response.trim());
 			if(response.trim() == "true") {
 				window.open("./home.jsp", "_self");
 			} else {
 				window.location.reload();
-			}
+			} */
+			loadTblSrc();
+			conceptDriftStatus();
 		}
 	});
-}
-</script>
-
-<script>
-var cds = $(".cd");
-
-for( var i=0; i<cds.length; i++ ) {	
-	
-	if ( $(cds[i]).text() == "Waiting..." ) {
-		
-		var temp = $(cds[i]).parent().find(".status");
-				
-		temp.addClass("status-disable");
-		temp.removeClass("status");
-		//temp.prop('onclick', null).off('click');
-	}
 }
 </script>
 

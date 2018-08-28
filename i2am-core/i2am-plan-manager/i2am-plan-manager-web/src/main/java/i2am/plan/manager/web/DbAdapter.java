@@ -416,4 +416,35 @@ public class DbAdapter {
 		}
 		return null;
 	}
+	
+	public JSONArray getUserLogs(String owner) {
+		
+		Connection con = null;
+		Statement stmt = null;
+		String sql = null;
+		try {
+			con = ds.getConnection();
+			stmt = con.createStatement();
+			
+			sql = "SELECT * FROM tbl_log "
+					+ "WHERE F_USER = (SELECT idx FROM tbl_user WHERE id ='" + owner + "')";
+						
+			return getJSONArray(stmt.executeQuery(sql));
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally { 
+			try {
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;		
+	}
 }

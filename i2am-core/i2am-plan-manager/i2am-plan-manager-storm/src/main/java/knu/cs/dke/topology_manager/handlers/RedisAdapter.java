@@ -1,7 +1,5 @@
 package knu.cs.dke.topology_manager.handlers;
 
-import java.net.InetSocketAddress;
-import java.sql.Connection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +9,7 @@ import knu.cs.dke.topology_manager.topolgoies.ASamplingFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.BinaryBernoulliSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.BloomFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.HashSamplingTopology;
+import knu.cs.dke.topology_manager.topolgoies.IKalmanFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.KSamplingTopology;
 import knu.cs.dke.topology_manager.topolgoies.KalmanFilteringTopology;
 import knu.cs.dke.topology_manager.topolgoies.NRKalmanFilteringTopology;
@@ -231,11 +230,20 @@ public class RedisAdapter {
 				
 				String kalman_redisKey = kalman.getRedisKey();
 				
+				String xValue = String.valueOf(kalman.getX_val());
+				String pValue = String.valueOf(kalman.getP_val());
+				String aValue = String.valueOf(kalman.getA_val());
+				String hValue = String.valueOf(kalman.getH_val());
 				String qValue = String.valueOf(kalman.getQ_val());
 				String rValue = String.valueOf(kalman.getR_val());
+				
 				String kalman_inputTopic = kalman.getInputTopic();
 				String kalman_outputTopic = kalman.getOutputTopic();
 								
+				jedisCn.hset(kalman_redisKey, "Init_x_val", xValue);
+				jedisCn.hset(kalman_redisKey, "Init_P_val", pValue);				
+				jedisCn.hset(kalman_redisKey, "A_val", aValue);
+				jedisCn.hset(kalman_redisKey, "H_val", hValue);
 				jedisCn.hset(kalman_redisKey, "Q_val", qValue);
 				jedisCn.hset(kalman_redisKey, "R_val", rValue);				
 				jedisCn.hset(kalman_redisKey, "InputTopic", kalman_inputTopic);
@@ -249,15 +257,54 @@ public class RedisAdapter {
 				
 				String nr_kalman_redisKey = nr_kalman.getRedisKey();
 				
+				String nr_xValue = String.valueOf(nr_kalman.getX_val());
+				String nr_pValue = String.valueOf(nr_kalman.getP_val());
+				String nr_aValue = String.valueOf(nr_kalman.getA_val());
+				String nr_hValue = String.valueOf(nr_kalman.getH_val());
 				String nr_qValue = String.valueOf(nr_kalman.getQ_val());
+				String recMeasure = String.valueOf(nr_kalman.getMeasure());
+				
 				String nr_kalman_inputTopic = nr_kalman.getInputTopic();
 				String nr_kalman_outputTopic = nr_kalman.getOutputTopic();
 				
+				jedisCn.hset(nr_kalman_redisKey, "Init_x_val", nr_xValue);
+				jedisCn.hset(nr_kalman_redisKey, "Init_P_val", nr_pValue);				
+				jedisCn.hset(nr_kalman_redisKey, "A_val", nr_aValue);
+				jedisCn.hset(nr_kalman_redisKey, "H_val", nr_hValue);
 				jedisCn.hset(nr_kalman_redisKey, "Q_val", nr_qValue);
+				jedisCn.hset(nr_kalman_redisKey, "RecMeasure", recMeasure);		
+				
 				jedisCn.hset(nr_kalman_redisKey, "InputTopic", nr_kalman_inputTopic);
 				jedisCn.hset(nr_kalman_redisKey, "OutputTopic", nr_kalman_outputTopic);
 				
 				break;
+				
+			case "I_KALMAN_FILTERING":
+				
+				IKalmanFilteringTopology i_kalman = (IKalmanFilteringTopology) topology;
+				
+				String i_kalman_redisKey = i_kalman.getRedisKey();
+				
+				String i_xValue = String.valueOf(i_kalman.getX_val());
+				String i_pValue = String.valueOf(i_kalman.getP_val());
+				String i_aValue = String.valueOf(i_kalman.getA_val());
+				String i_hValue = String.valueOf(i_kalman.getH_val());
+				String i_qValue = String.valueOf(i_kalman.getQ_val());				
+				
+				String i_kalman_inputTopic = i_kalman.getInputTopic();
+				String i_kalman_outputTopic = i_kalman.getOutputTopic();
+								
+				jedisCn.hset(i_kalman_redisKey, "Init_x_val", i_xValue);
+				jedisCn.hset(i_kalman_redisKey, "Init_P_val", i_pValue);				
+				jedisCn.hset(i_kalman_redisKey, "A_val", i_aValue);
+				jedisCn.hset(i_kalman_redisKey, "H_val", i_hValue);
+				jedisCn.hset(i_kalman_redisKey, "Q_val", i_qValue);
+				//jedisCn.hset(i_kalman_redisKey, "R_val", i_rValue);
+				
+				jedisCn.hset(i_kalman_redisKey, "InputTopic", i_kalman_inputTopic);
+				jedisCn.hset(i_kalman_redisKey, "OutputTopic", i_kalman_outputTopic);
+				
+				break;				
 				
 			case "UC_K_SAMPLING":
 				

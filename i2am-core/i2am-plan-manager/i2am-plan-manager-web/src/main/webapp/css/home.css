@@ -1,4 +1,9 @@
 @charset "EUC-KR";
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+* {
+	font-family: 'Roboto', sans-serif;
+}
 
 body {
 	background-color: #95c3bf;	

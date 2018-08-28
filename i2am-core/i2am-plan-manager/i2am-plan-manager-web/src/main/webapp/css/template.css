@@ -1,6 +1,8 @@
 @charset "EUC-KR";
+@import url('https://fonts.googleapis.com/css?family=Roboto');
 
 * {
+	font-family: 'Roboto', sans-serif;
 	box-sizing: border-box;		
 }
 
@@ -19,7 +21,7 @@ hr {
 
 /* Header/Logo Title */
 .header {
-	padding: 10px;
+	padding: 10px 10px 20px 10px;
 	text-align: center;
 	background: #9fd888;
 	color: black;
@@ -100,6 +102,7 @@ hr {
     display: flex;
     -ms-flex-wrap: wrap; /* IE10 */
     flex-wrap: wrap;
+    margin-bottom: 50px;
 }
 
 .side {
@@ -150,13 +153,59 @@ hr {
 }
 
 /* Footer */
-.footer {	
+.logs {	
 	
-	position: relative;
+	position: fixed;
 	left: 0;
 	bottom: 0;
-	width: 100%;
-	padding: 20px;
+	width: 100%;	
+	padding: 10px 10px 10px 10px;    
+    color: white;
+    background-color: #333;
     text-align: center;
-    background: #ddd;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.logs_title {	
+	font-size: 16px;
+	margint-top: 5px;
+	margin: auto;
+	display: inline-block;
+}
+
+.logs_control {
+	float: right;	
+	margin-right: 30px;
+	font-size: 20px;
+}
+
+.logs_content {	
+	text-align: left;
+	font-size: 15px;	
+	margin: 10px;
+	height: 250px;
+	padding: 10px 10px 10px 30px;
+	background-color: #222;
+	display: none;
+	overflow-y: scroll;
+}
+
+.logs_type {	
+	display: inline-block;
+	width: 60px;
+	font-size: 14px;
+	margin: 1px 3px 1px 1px;
+	text-align: right;
+}
+
+.WARN {
+	color: #ffec00;
+}
+
+.ERROR {
+	color: tomato;
+}
+
+.INFO {
+	color: #02c669;
 }
