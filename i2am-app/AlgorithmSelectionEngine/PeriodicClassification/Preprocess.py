@@ -2,19 +2,19 @@ import numpy as np
 from PeriodicClassification import ModelConfig as myConfig
 """
     Parameters
-        path: user's sample data(1024, 1)
+        path: user's sample data(1024, n)
+        column_idx: program's target
         final's shape: (1, 1024) --> (#data, input_size)   
 """
-def _reader(path):
+def _reader(path, column_idx=0):
     list = []
     with open(path, 'r') as ifp:
         for i, line in enumerate(ifp):
-            item = line.replace("\n", "")
+            item = line.split(',')[column_idx]
             list.append(float(item))
         final = [list]
 
     return final
-
 
 """
     Parameters

@@ -8,6 +8,7 @@ from PeriodicClassification import CNN as DL
 from kafka import KafkaConsumer as KC
 from kafka import TopicPartition as TP
 from collections import OrderedDict
+from ASEConfig import DB_INFO, QUERY_DIC
 
 print(' _______  ___      _______  _______  ______    ___   _______  __   __  __   __')
 print('|   _   ||   |    |       ||       ||    _ |  |   | |       ||  | |  ||  |_|  |')
@@ -48,26 +49,27 @@ def samplingAlgorithmSelect(clientSocket, address):
     print("Data Received")
     data = data.decode()
     jsonData = json.loads(data)
+    userID = jsonData['user-id']
+    sourceName = jsonData['src-name']
+
     if jsonData['message'] == 'new-src':
-        userID = jsonData['user-id']
-        sourceName = jsonData['src-name']
         print("User ID: " + str(userID))
         print("Source Name: " + str(sourceName))
         filePath = getFilePath(sourceName, userID)
 
     elif jsonData['message'] == 'concept-drift':
-        sourceName = jsonData['src-name']
-        userID = jsonData['user-id']
         partition = jsonData['partition']
         offset = jsonData['offset']
         print("src-name:", sourceName, "user-id:", userID, "partition:", partition, "offset:", offset)
         topic = getTopicName(sourceName, userID)
         filePath = getStreamDataFromKafka(topic, partition, offset)
 
-    flag = DL._CNN_main(filePath)
+    target_index = get_target_index(user_id=userID, src_name=sourceName)
+
+    flag = DL._CNN_main(filePath, target_index)
 
     if flag:
-        selectedAlgorithm = SAE.run(1000, 200, filePath)
+        selectedAlgorithm = SAE.run(1000, 200, filePath, target_index)
         if selectedAlgorithm == 'RESERVOIR_SAMPLING':
             print('############### Recommendation Algorithm #################')
             print('#                                                        #')
@@ -102,7 +104,7 @@ def samplingAlgorithmSelect(clientSocket, address):
 
 def connectToDB():
     print("Connect To MariaDB")
-    db = pymysql.connect(host='114.70.235.43', port=3306, user='plan-manager', passwd='dke214', db='i2am', charset='utf8', autocommit=True)  # Connect MariaDB
+    db = pymysql.connect(host=DB_INFO['HOST'], port=DB_INFO['PORT'], user=DB_INFO['USER'], passwd=DB_INFO['PASSWD'], db=DB_INFO['DB'], charset='utf8', autocommit=True)  # Connect MariaDB
     cursor = db.cursor()
     print("Connected Succeeded")
     return cursor
@@ -110,8 +112,7 @@ def connectToDB():
 def getFilePath(sourceName, userID):
     print("Get File Path from DB")
     cursor = connectToDB()
-    getFilePathSQL = "SELECT FILE_PATH FROM tbl_src_test_data WHERE IDX = ( SELECT F_TEST_DATA FROM tbl_src WHERE NAME = %s AND F_OWNER = ( SELECT IDX FROM tbl_user WHERE ID = %s))"
-    cursor.execute(getFilePathSQL, (sourceName, userID))
+    cursor.execute(QUERY_DIC['GET_FILE_PATH'], (sourceName, userID))
     filePath = cursor.fetchone()
     print("File Path: " + str(filePath).split("'")[1])
     cursor.close()
@@ -120,8 +121,7 @@ def getFilePath(sourceName, userID):
 def getTopicName(sourceName, userID):
     print("Get Topic Name from DB")
     cursor = connectToDB()
-    getTopicNameSQL = "SELECT TRANS_TOPIC FROM tbl_src WHERE (NAME = %s) AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
-    cursor.execute(getTopicNameSQL, (sourceName, userID))
+    cursor.execute(QUERY_DIC['GET_TOPIC_NAME'], (sourceName, userID))
     topicName = cursor.fetchone()
     print("Topic Name:", topicName[0])
     cursor.close()
@@ -129,10 +129,8 @@ def getTopicName(sourceName, userID):
 
 def putSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
     print("Put Selected Algorithm")
-    db = pymysql.connect(host='114.70.235.43', port=3306, user='plan-manager', passwd='dke214', db='i2am', charset='utf8', autocommit=True)  # Connect MariaDB
-    cursor = db.cursor()
-    putSelectedAlgorithmSQL = "UPDATE tbl_src SET RECOMMENDED_SAMPLING = %s WHERE NAME = %s AND F_OWNER = (SELECT IDX FROM tbl_user WHERE ID = %s)"
-    cursor.execute(putSelectedAlgorithmSQL, (selectedAlgorithm, sourceName, userID))
+    cursor = connectToDB()
+    cursor.execute(QUERY_DIC['PUT_SELECTED_ALGO'], (selectedAlgorithm, sourceName, userID))
     print("Put Recommended Algorithm to DB")
     cursor.close()
 
@@ -183,6 +181,17 @@ def sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
         print("Send Failed")
         return False
 
+def get_target_index(user_id, src_name):
+    cursor = connectToDB()
+    try:
+        cursor.execute(QUERY_DIC['GET_TARGET_IDX'], (src_name, user_id))
+        target_idx = cursor.fetchone()[0]
+    except Exception as e:
+        target_idx = 1
+        print("Target not found. Initialized 1")
+
+    return target_idx - 1    # target_idx value: user's idx, target_idx - 1: program's idx
+
 while True:
     clientSocket, address = serverSocket.accept() # Connect
     print("Connected by", address)
@@ -190,7 +199,16 @@ while True:
     thread.start()
 
 # Test Mode
+print(' TEST MODE '.center(30, '#'))
+userID = 'sbpark@kangwon.ac.kr'
+sourceName = 'sb_test'
+
+target_index = get_target_index(user_id=userID, src_name=sourceName)
+
 testWindowSize = sys.argv[1]
 testSampleSize = sys.argv[2]
 testFilePath = sys.argv[3]
-SAE.run(testWindowSize, testSampleSize, testFilePath)
+
+DL._CNN_main(testFilePath, target_index)
+
+SAE.run(testWindowSize, testSampleSize, testFilePath, target_index)

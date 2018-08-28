@@ -3,7 +3,7 @@ INPUT_SIZE = 1024
 HIDDEN_SIZE = 500
 OUTPUT_SIZE = 2
 
-# Paths
+# Paths --> MUST set the ABSOLUTE PATH!
 # FFNN
 SAVED_MODEL_PATH = "./save_test/mytest.ckpt.meta"
 CHECKPOINT_PATH = "./save_test"

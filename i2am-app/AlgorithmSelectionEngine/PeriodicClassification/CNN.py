@@ -48,9 +48,9 @@ def _classification(hypothesis):
     return h_predict
 
 
-def _CNN_main(USER_DATA_PATH):
+def _CNN_main(USER_DATA_PATH, column_idx=0):
     _start_msg()
-    list_time_series = pre._reader(USER_DATA_PATH)
+    list_time_series = pre._reader(USER_DATA_PATH, column_idx)
     time_series = pre._resize(list_time_series)
     time_series = time_series.reshape(-1, myConfig.INPUT_SIZE, 1)
 
@@ -95,4 +95,5 @@ def _load_model_msg(sleep_time):
     time.sleep(sleep_time)
     print(" The classification model was successfully imported!")
 
+# TEST
 # _CNN_main("D:/DKE/data/period_classification/시연데이터/line95.csv")
