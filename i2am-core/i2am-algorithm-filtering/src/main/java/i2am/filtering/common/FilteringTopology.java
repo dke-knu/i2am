@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import i2am.filtering.*;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
@@ -28,10 +29,6 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import i2am.filtering.BloomFilteringBolt;
-import i2am.filtering.KalmanFilteringBolt;
-import i2am.filtering.NoiseRecKalmanFilteringBolt;
-import i2am.filtering.QueryFilteringBolt;
 import i2am.filtering.declaring.DeclaringBolt;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.Protocol;
@@ -126,13 +123,11 @@ public class FilteringTopology {
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
-        /* -- IKF 개발중
         else if(algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new IntelligentKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
-        */
 
         /* PassingBolt and KafkaBolt */
         topologyBuilder.setBolt("PASSING_BOLT", new PassingBolt(), 1)
