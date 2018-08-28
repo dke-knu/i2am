@@ -4,7 +4,7 @@ from SamplingAccuracyEvaluation import PrintGraph as PG
 from SamplingAccuracyEvaluation import StatisticalCalculation as SC
 import operator
 
-def populationListGenerate(filePath):
+def populationListGenerate(filePath, target):
     print('Generate Population List')
     populationList = []
     populationFile = open(filePath, 'r')
@@ -12,7 +12,8 @@ def populationListGenerate(filePath):
     while True:
         line = populationFile.readline()
         if not line: break
-        populationList.append(line[:-1])
+        line_data = line.split(',')
+        populationList.append(line_data[target])
 
     populationFile.close()
 
@@ -28,7 +29,7 @@ def calculateScore(evalList):
 
     return score
 
-def run(windowSize, sampleSize, filePath):
+def run(windowSize, sampleSize, filePath, target=0):
     print('############## Sampling Accuracy Evaluation ##############')
     count = 1
     numOfTrials = 1
@@ -38,7 +39,7 @@ def run(windowSize, sampleSize, filePath):
     print('Sample Size: ' ,sampleSize)
     print('JSD Piece Count: ' ,jSDPieceCount)
     print('PAA Piece Count: ' ,pAAPieceCount)
-    populationList =  populationListGenerate(filePath)
+    populationList = populationListGenerate(filePath, target)
     windowList = []
 
     accuracyMeasureCount = 3
