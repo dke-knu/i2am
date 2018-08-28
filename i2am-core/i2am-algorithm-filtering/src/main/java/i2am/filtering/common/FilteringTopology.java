@@ -118,12 +118,12 @@ public class FilteringTopology {
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
-        else if(algorithmName.equals("NOISE_RECOMMENDATION_KALMAN_FILTERING")){
+        else if(algorithmName.equals("NR_KALMAN_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new NoiseRecKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
         }
-        else if(algorithmName.equals("INTELLIGENT_KALMAN_FILTERING")){
+        else if(algorithmName.equals("I_KALMAN_FILTERING")){
             topologyBuilder.setBolt(algorithmName+"_BOLT", new IntelligentKalmanFilteringBolt(redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("DECLARING_BOLT")
                     .setNumTasks(1);
