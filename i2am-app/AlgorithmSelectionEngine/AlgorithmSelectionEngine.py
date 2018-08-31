@@ -98,7 +98,7 @@ def samplingAlgorithmSelect(clientSocket, address):
         print('##########################################################')
 
     if jsonData['message'] == 'new-src':
-        putSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
+        putSelectedAlgorithm(sourceName, target_index, selectedAlgorithm)
     elif jsonData['message'] == 'concept-drift':
         sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
 
@@ -127,10 +127,10 @@ def getTopicName(sourceName, userID):
     cursor.close()
     return topicName[0]
 
-def putSelectedAlgorithm(sourceName, userID, selectedAlgorithm):
+def putSelectedAlgorithm(sourceName, target, selectedAlgorithm):
     print("Put Selected Algorithm")
     cursor = connectToDB()
-    cursor.execute(QUERY_DIC['PUT_SELECTED_ALGO'], (selectedAlgorithm, sourceName, userID))
+    cursor.execute(QUERY_DIC['PUT_SELECTED_ALGO'], (selectedAlgorithm, target, sourceName))
     print("Put Recommended Algorithm to DB")
     cursor.close()
 
