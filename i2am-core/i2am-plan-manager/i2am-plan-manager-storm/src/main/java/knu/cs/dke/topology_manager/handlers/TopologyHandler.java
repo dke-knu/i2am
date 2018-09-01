@@ -207,7 +207,7 @@ public class TopologyHandler {
 				temp = new IKalmanFilteringTopology(createdTime, planName, i, "I_KALMAN_FILTERING", i_aValue, i_qValue, i_hValue, i_xValue, i_pValue, i_kalman_target);
 				break;
 
-			case "UC_K_SAMPLING":
+			case "ucks":
 				JSONObject uc_k_params = (JSONObject) algorithm.get("topology_params");
 				int uc_k_sampleRate = ((Number) uc_k_params.get("sample_rate")).intValue();
 				double uc = ((Number) uc_k_params.get("uc_under_bound")).doubleValue();

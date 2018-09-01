@@ -206,9 +206,7 @@ public class DbAdapter {
 				DBSource bs = (DBSource) source;
 				String insertDB = "INSERT INTO tbl_src_database_info " + "VALUES (" + "'0'," + "'" + bs.getIp() + "',"
 						+ "'" + bs.getPort() + "'," + "'" + bs.getUserId() + "'," + "'" + bs.getUserPassword() + "',"
-						+ "'" + bs.getDbName() + "'," + "'" + bs.getQuery() + "'," + "'" + sourceNumber + "'" // 마지막 idx
-																												// 값을
-																												// 외래키로
+						+ "'" + bs.getDbName() + "'," + "'" + bs.getQuery() + "'," + "'" + sourceNumber + "'"
 						+ ")";
 
 				ResultSet db = stmt.executeQuery(insertDB);
@@ -236,18 +234,20 @@ public class DbAdapter {
 
 			// tbl_intelligent_engine 추가
 			// user 테이블에서 [이름]으로 [IDX]가져오기
-			if (source.getUseIntelliEngine() == "Y") {
+			if (source.getUseIntelliEngine().equals("Y")) {
 
 				System.out.println("?");
 
 				String target = source.getTarget();
-				String targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE COLUMN_NAME = '" + target + "'";
+				String targetQuery = "SELECT IDX FROM tbl_src_csv_schema WHERE COLUMN_NAME = '" + target + "' AND F_SRC='" + sourceNumber + "'";
+				
 				ResultSet targetIdx = stmt.executeQuery(targetQuery);
 				targetIdx.next();
-				int targetNumber = ((Number) targetIdx.getRow()).intValue();
+				int targetNumber = targetIdx.getInt("IDX");
 
-				String intelli_params = "INSERT INTO tbl_intelligent_engine " + "VALUES (" + "'0'," + "'" + sourceNumber
-						+ "'," + "'" + targetNumber + "'," + "null" + ")";
+				String intelli_params = "INSERT INTO tbl_intelligent_engine (F_SRC, F_TARGET)" + "VALUES ("						 
+						+ "'" + sourceNumber + "',"
+						+ "'" + targetNumber + "')";						
 
 				ResultSet intelliResult = stmt.executeQuery(intelli_params);
 			}
@@ -328,6 +328,7 @@ public class DbAdapter {
 			System.out.println("[DBAdapter] Topology to DB !");
 
 			for (int i = 0; i < topologies.size(); i++) {
+				
 				// 토폴로지 단 하나!
 				ASamplingFilteringTopology topology = topologies.get(i);
 
@@ -393,10 +394,16 @@ public class DbAdapter {
 					targetIdx.next();
 					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
 
-					String i_kalman_query = "INSERT INTO tbl_params_intelligent_kalman_filtering " + "VALUES (" + "'0',"
-							+ "'" + topologyNumber + "'," + "'" + targetNumber + "'," + "'" + ikft.getA_val() + "',"
-							+ "'" + ikft.getQ_val() + "'," + "'" + ikft.getH_val() + "'," + "'" + ikft.getX_val() + "',"
-							+ "'" + ikft.getP_val() + "'" + ")";
+					String i_kalman_query = "INSERT INTO tbl_params_intelligent_kalman_filtering "
+							+ "VALUES (" + "'0'," 							
+							+ "'" + topologyNumber + "',"
+							+ "'" + targetNumber + "',"
+							+ "'" + ikft.getA_val() + "',"
+							+ "'" + ikft.getQ_val() + "',"
+							+ "'" + ikft.getH_val() + "',"
+							+ "'" + ikft.getX_val() + "',"
+							+ "'" + ikft.getP_val() + "',"
+							+ "'" + ikft.getR_val() + "')";
 					ResultSet ikalman_paramsResult = stmt.executeQuery(i_kalman_query);
 					break;
 
@@ -501,10 +508,17 @@ public class DbAdapter {
 					targetIdx.next();
 					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
 
-					String nr_kalman_query = "INSERT INTO tbl_params_noise_recommend_kalman_filtering " + "VALUES ("
-							+ "'0'," + "'" + topologyNumber + "'," + "'" + targetNumber + "'," + "'" + nrkf.getA_val()
-							+ "'," + "'" + nrkf.getQ_val() + "'," + "'" + nrkf.getH_val() + "'," + "'" + nrkf.getX_val()
-							+ "'," + "'" + nrkf.getP_val() + ",'" + "'" + nrkf.getMeasure() + "'" + ")";
+					String nr_kalman_query = "INSERT INTO tbl_params_noise_recommend_kalman_filtering "
+							+ "VALUES ("
+							+ "'0',"
+							+ "'" + topologyNumber + "'," 
+							+ "'" + targetNumber + "',"
+							+ "'" + nrkf.getA_val() + "',"
+							+ "'" + nrkf.getQ_val() + "',"
+							+ "'" + nrkf.getH_val() + "',"
+							+ "'" + nrkf.getX_val()	+ "',"
+							+ "'" + nrkf.getP_val() + "',"
+							+ "'" + nrkf.getMeasure() + "'" + ")";
 					ResultSet nr_kalman_paramsResult = stmt.executeQuery(nr_kalman_query);
 					break;
 

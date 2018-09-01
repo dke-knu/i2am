@@ -28,10 +28,10 @@ public class RemoteStormController {
 	private Map storm_conf;	
 
 	private String sampling_jarDirectory = "$STORM_HOME/Topologies/Sampling.jar";
-	private String sampling_class = "i2am.Common.SamplingTopology";
+	private String sampling_class = "i2am.sampling.common.SamplingTopology";
 
 	private String filtering_jarDirectory = "$STORM_HOME/Topologies/Filtering.jar";
-	private String filtering_class = "i2am.Common.FilteringTopology";
+	private String filtering_class = "i2am.filtering.common.FilteringTopology";
 
 	public RemoteStormController() throws TTransportException  {
 		// Storm Conf.
@@ -39,8 +39,9 @@ public class RemoteStormController {
 		conf = new Config();		
 		conf.put(Config.NIMBUS_SEEDS, "114.70.235.43"); // NIMBUS_HOSTS > NIMBUS_SEEDS
 		storm_conf = Utils.readStormConfig();		
-		storm_conf.put("nimbus.seeds", Arrays.asList("114.70.235.43")); // nimbus.host > nimbus.seeds
-		NimbusClient nimbus = new NimbusClient(storm_conf, "114.70.235.43", 6627);	
+		storm_conf.put("nimbus.seeds", Arrays.asList("114.70.235.43")); // nimbus.host > nimbus.seeds		
+		//NimbusCilent nimbus = new NimbusClient(storm_conf, "114.70.235.43", 6627);
+		nimbus = new NimbusClient(storm_conf, "114.70.235.43", 6627);	
 	}
 	
 	public boolean isSubmitted(String topologyName) throws AuthorizationException, TException {

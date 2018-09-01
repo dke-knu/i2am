@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import i2am.filtering.declaring.DeclaringBolt;
+import i2am.filtering.multivariate.MultivariateQueryFilteringBolt;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.Protocol;
 
@@ -98,14 +99,17 @@ public class FilteringTopology {
                 .setNumTasks(1);
 
         /* DeclaringBolt */
-        topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName), 1)
-                .shuffleGrouping("KAFKA_SPOUT")
-                .setNumTasks(1);
+        if(!algorithmName.equals("QUERY_FILTERING")) {        
+        	topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName), 1)
+            .shuffleGrouping("KAFKA_SPOUT")
+            .setNumTasks(1);        	
+        }        
 
         /* FilteringBolt */
         if(algorithmName.equals("QUERY_FILTERING")){
-            topologyBuilder.setBolt(algorithmName+"_BOLT", new QueryFilteringBolt(redisKey, jedisClusterConfig), 4)
-                    .shuffleGrouping("DECLARING_BOLT")
+            //topologyBuilder.setBolt(algorithmName+"_BOLT", new QueryFilteringBolt(redisKey, jedisClusterConfig), 4)
+        	topologyBuilder.setBolt(algorithmName+"_BOLT", new MultivariateQueryFilteringBolt(topologyName), 4)
+                    .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(4);
         }
         else if(algorithmName.equals("BLOOM_FILTERING")){

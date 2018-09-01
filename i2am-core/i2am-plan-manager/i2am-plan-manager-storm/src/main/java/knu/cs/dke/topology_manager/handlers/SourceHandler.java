@@ -45,7 +45,7 @@ public class SourceHandler {
 			String after = (String) content.get("after");
 
 			if (after.equals("ACTIVE")) {								
-				this.activeSource();			
+				this.activeSource();
 			}
 			else if (after.equals("DEACTIVE")) this.deactiveSource();
 			break;
@@ -173,15 +173,14 @@ public class SourceHandler {
 		DbAdapter.getInstance().addLog(owner, "INFO", "Source is created.");
 		
 
-		// 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
-		// Concept Drift 엔진에 전송
-//		if(intelliEngine.equals("Y")) {
-//
-//			MessageSender ms = new MessageSender();			
-//			ms.sendToConceptDrift("new-src", source.getOwner(), source.getSourceName());
-//			ms.sendToIntelligentEngine("new-src", source.getOwner(), source.getSourceName());
-//			
-//		}	
+		 // 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
+		 // Concept Drift 엔진에 전송
+		if(intelliEngine.equals("Y")) {
+
+			MessageSender ms = new MessageSender();			
+			ms.sendToConceptDrift("new-src", source.getOwner(), source.getSourceName());
+			ms.sendToIntelligentEngine("new-src", source.getOwner(), source.getSourceName());			
+		}	
 	}
 
 	public void destroySource() throws InterruptedException {
@@ -225,16 +224,18 @@ public class SourceHandler {
 
 		sources.set(source);
 
-//		컨셉 드리프트 사용 시, 소스가 실행 되면 메시지 전송
-//		if(source.getUseConceptDrift() == "Y") {			
-//			MessageSender ms = new MessageSender();			
-//			ms.sendToConceptDrift("activate-src", source.getOwner(), source.getSourceName());			
-//		}		
-
-		// Thread Start.
-		Thread run = new Thread(source, source.getSourceName());		
-		sources.addThread(run);
-		run.start();		
+		if(source.getSrcType() != "CUSTOM") {		
+			// Thread Start.
+			Thread run = new Thread(source, source.getSourceName());		
+			sources.addThread(run);
+			run.start();			
+		}				
+		
+		// 컨셉 드리프트 사용 시, 소스가 실행 되면 메시지 전송
+		if(source.getUseIntelliEngine().equals("Y")) {			
+			MessageSender ms = new MessageSender();			
+			ms.sendToConceptDrift("activate-src", source.getOwner(), source.getSourceName());			
+		}		
 				
 		System.out.println("[Source Handler]" + source.getName() + " is started! - " + source.isAlive() );
 		DbAdapter.getInstance().addLog(owner, "INFO", "Source is activated.");
@@ -264,9 +265,12 @@ public class SourceHandler {
 		DbAdapter.getInstance().changeSourceStatus(source);
 
 		sources.set(source);
-					
-		Thread run = sources.getThread(source.getSourceName());
-		run.interrupt();		
+
+		if(source.getSrcType() != "CUSTOM") {		
+			Thread run = sources.getThread(source.getSourceName());
+			run.interrupt();			
+		}
+				
 		
 		System.out.println("[Source Handler]" + source.getName() + " is stopped! - " + source.isAlive() );
 		

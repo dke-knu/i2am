@@ -67,7 +67,7 @@ function getSourceList() {
 		 					'<table class="schema"><tr><th>#</th><th>name</th><th>type</th></tr></table>'
 	 					'</div>';
 	 					
-	 	if(obj.IS_RECOMMENDATION == "Y") {
+	 	if(obj.IS_RECOMMENDATION == "Y" && obj.RECOMMENDED_SAMPLING != null ) {
 	 		
 	 		source = source + '<div class="recommendation"><i class="fa fa-thumbs-o-up"></i> ' + obj.RECOMMENDED_SAMPLING.replace("_", " ") + '</div>';
 	 		
@@ -368,10 +368,10 @@ $(document).ready(function() {
 						
 						if( schema[i].NAME == srcName ) {
 							
-							if( schema[i].COLUMN_TYPE == "NUMERIC" ) {
+							//if( schema[i].COLUMN_TYPE == "NUMERIC" ) {
 							
 								columns.push(schema[i]);
-							}
+							//}
 						}
 					}
 					
@@ -383,8 +383,11 @@ $(document).ready(function() {
 					for( var i=0; i<columns.length; i++ ) {						
 						var col = columns[i];
 						var index = parseInt(col.COLUMN_INDEX) + 1;
-						table = table + "<tr><td class='targetIndex'>" + index + "</td><td>" + col.COLUMN_NAME + "</td><td>" + col.COLUMN_TYPE + "</td>"
-										+ "<td><input type='radio' class='radioTarget' name='" + "name" + randomName + "' value='" + i + "'></td></tr>";						
+						
+						if( col.COLUMN_TYPE == "NUMERIC" ) {						
+							table = table + "<tr><td class='targetIndex'>" + index + "</td><td>" + col.COLUMN_NAME + "</td><td>" + col.COLUMN_TYPE + "</td>"
+							+ "<td><input type='radio' class='radioTarget' name='" + "name" + randomName + "' value='" + i + "'></td></tr>";							
+						}												
 					}
 					
 					table = table + "</table>";
@@ -800,7 +803,7 @@ $(document).ready(function() {
 								break;
 								
 							} else {
-								parameters[$(inputs[i]).attr("parameter")] = parseInt($(inputs[i]).val());	
+								parameters[$(inputs[i]).attr("parameter")] = parseFloat($(inputs[i]).val());	
 							}							
 						}						
 						parameters["target"] = parseInt(targetIndex);	
@@ -808,10 +811,7 @@ $(document).ready(function() {
 						if($(next).attr("name") == "nrkf") {														
 							var selected = $(".mySelect option:selected").val();
 							parameters["measure"] = selected;
-						}
-						
-						
-						
+						}						
 					}
 					else {
 						
@@ -1149,8 +1149,8 @@ function recommendedAlgorithm(algorithmName) {
 					 			<div class="selectLabel">Recommended Measure</div>
 					 				<center>
 					 				<select class="mySelect">
-					 					<option value="wt" selected>Wavelet Transform</option>
-					 					<option value="ma">Moving Average</option>
+					 					<option value="WT" selected>Wavelet Transform</option>
+					 					<option value="MA">Moving Average</option>
 					 				</select>
 					 				</center>					 			
 					 							 		

@@ -1,11 +1,16 @@
 package knu.cs.dke.topology_manaver_test;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -15,7 +20,7 @@ public class KafkaTester {
 	public static void main(String[] args) throws InterruptedException {
 
 
-		String topic = "topic-in";
+		String topic = "fb9a3ebb-16d7-40cf-b2e9-68f37288fbc3";
 		String groupId = UUID.randomUUID().toString(); 
 
 		String server = "114.70.235.43:19092";
@@ -24,14 +29,14 @@ public class KafkaTester {
 				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
 
 		// Consumer Props
-		/*Properties consume_props = new Properties();
+		Properties consume_props = new Properties();
 		consume_props.put("bootstrap.servers", servers);
 		consume_props.put("group.id", groupId);
 		consume_props.put("enable.auto.commit", "true");
 		consume_props.put("auto.offset.reset", "earliest");
 		consume_props.put("auto.commit.interval.ms", "1000");
 		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");*/
+		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
 		// Producer Props
 		Properties produce_props = new Properties();
@@ -48,19 +53,22 @@ public class KafkaTester {
 		//KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consume_props);
 		Producer<String, String> producer = new KafkaProducer<>(produce_props);
 
-		//consumer.subscribe(Arrays.asList(topic));
 		
-//		while (true) {
-//			ConsumerRecords<String, String> records = consumer.poll(100);
-//			for (ConsumerRecord<String, String> record : records) {
-//				
-//				System.out.println(record.value());
-//				producer.send(new ProducerRecord<String, String>("topic-out", record.value()));
-//			}
-//				
-//		}
+		Consumer<String, String> consumer = new KafkaConsumer<>(consume_props);
+		consumer.subscribe(Arrays.asList(topic));
 		
-		SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat ( "yyyy.MM.dd HH:mm:ss", Locale.KOREA );
+		while (true) {
+			ConsumerRecords<String, String> records = consumer.poll(100);
+			for (ConsumerRecord<String, String> record : records) {
+				
+				System.out.println(record.value());
+				producer.send(new ProducerRecord<String, String>("5ece46bb-7668-44e6-9b8e-3a1cd2621959", record.value()));
+				//Thread.sleep(1000);
+			}
+				
+		}
+		
+		/*SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat ( "yyyy.MM.dd HH:mm:ss", Locale.KOREA );
 		Date currentTime;
 		String mTime;
 		
@@ -72,7 +80,7 @@ public class KafkaTester {
 			producer.send(new ProducerRecord<String, String>("topic0725", mTime));
 			Thread.sleep(1000);
 			
-		}		
+		}	*/	
 
 	}
 }

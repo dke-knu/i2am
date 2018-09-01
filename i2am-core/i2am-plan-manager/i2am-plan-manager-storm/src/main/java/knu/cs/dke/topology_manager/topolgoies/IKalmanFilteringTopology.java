@@ -1,7 +1,5 @@
 package knu.cs.dke.topology_manager.topolgoies;
 
-import org.apache.storm.thrift.transport.TTransportException;
-
 public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	private double a_val;
@@ -9,13 +7,13 @@ public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 	private double h_val;
 	private double x_val;
 	private double p_val;	
-	//private double r_val;
+	private double r_val;
 	
 	
 	private int target;
 	
 	public IKalmanFilteringTopology(String createdTime, String plan, int index, String topologyType,
-			Double a_val, Double q_val, Double h_val, Double x_val, Double p_val, int target) throws TTransportException {
+			Double a_val, Double q_val, Double h_val, Double x_val, Double p_val, int target) {
 		super(createdTime, plan, index, topologyType);
 
 		this.a_val = a_val;
@@ -23,8 +21,7 @@ public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 		this.h_val = h_val;
 		this.x_val = x_val;
 		this.p_val = p_val;		
-		//this.r_val = 0.5;
-		
+		this.r_val = 0.5; // Initial value		
 		
 		this.target = target;	
 	}
@@ -75,5 +72,13 @@ public class IKalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	public void setP_val(double p_val) {
 		this.p_val = p_val;
+	}
+
+	public double getR_val() {
+		return r_val;
+	}
+
+	public void setR_val(double r_val) {
+		this.r_val = r_val;
 	}
 }

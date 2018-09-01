@@ -1,13 +1,5 @@
 package knu.cs.dke.topology_manager.topolgoies;
 
-import java.io.IOException;
-
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.generated.NotAliveException;
-import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
-
 public class KalmanFilteringTopology extends ASamplingFilteringTopology {
 
 	private double a_val;
@@ -20,7 +12,7 @@ public class KalmanFilteringTopology extends ASamplingFilteringTopology {
 	private int target;
 	
 	public KalmanFilteringTopology(String createdTime, String plan, int index, String topologyType,
-			Double a_val, Double q_val, Double h_val, Double x_val, Double p_val, Double r_val, int target) throws TTransportException {
+			Double a_val, Double q_val, Double h_val, Double x_val, Double p_val, Double r_val, int target) {
 		super(createdTime, plan, index, topologyType);
 
 		this.a_val = a_val;

@@ -17,12 +17,12 @@ public class MessageSender {
 	
 	// Intelligent Recommendation Engine
 	// IP -> MN
-	static final String INTELLIGENT_ENGINE_IP = "114.70.234.191";
+	static final String INTELLIGENT_ENGINE_IP = "114.70.235.43";
 	static final int INTELLIGENT_ENGINE_PORT = 7979;
 	
 	// Intelligent Kalman Filtering
 	// IP -> MN
-	static final String INTELLIGENT_KALMAN_IP = "114.70.234.191";
+	static final String INTELLIGENT_KALMAN_IP = "114.70.235.43";
 	static final int INTELLIGENT_KALMAN_PORT = 40523;
 		
 

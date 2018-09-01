@@ -1,21 +1,12 @@
 package knu.cs.dke.topology_manager.topolgoies;
 
-import java.io.IOException;
-
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.generated.NotAliveException;
-import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
-
 public class HashSamplingTopology extends ASamplingFilteringTopology{
 		
 	private int sampleSize;
 	private int windowSize;
 	private int target;
 	
-	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize,
-			int target) throws TTransportException {
+	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize, int target) {
 
 		super(createdTime, plan, index, topologyType);
 		

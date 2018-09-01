@@ -1,13 +1,5 @@
 package knu.cs.dke.topology_manager.topolgoies;
 
-import java.io.IOException;
-
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.generated.NotAliveException;
-import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
-
 public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology {
 
 	private int sampleSize;
@@ -15,7 +7,7 @@ public class BinaryBernoulliSamplingTopology extends ASamplingFilteringTopology 
 	
 	private String preSampleKey;
 	
-	public BinaryBernoulliSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) throws TTransportException {
+	public BinaryBernoulliSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize) {
 		
 		super(createdTime, plan, index, topologyType);
 		this.sampleSize = sampleSize;

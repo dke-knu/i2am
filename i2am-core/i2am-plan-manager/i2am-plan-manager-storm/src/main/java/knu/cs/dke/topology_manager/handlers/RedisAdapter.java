@@ -47,14 +47,14 @@ public class RedisAdapter {
 
 		Set<HostAndPort> redisNodes = new HashSet<HostAndPort>();
 		redisNodes.add(new HostAndPort("MN", 17000));
-		redisNodes.add(new HostAndPort("SN01", 17001));
-		redisNodes.add(new HostAndPort("SN02", 17002));
-		redisNodes.add(new HostAndPort("SN03", 17003));
-		redisNodes.add(new HostAndPort("SN04", 17004));
-		redisNodes.add(new HostAndPort("SN05", 17005));
-		redisNodes.add(new HostAndPort("SN06", 17006));
-		redisNodes.add(new HostAndPort("SN07", 17007));
-		redisNodes.add(new HostAndPort("SN08", 17008));		
+		redisNodes.add(new HostAndPort("SN01", 17000));
+		redisNodes.add(new HostAndPort("SN02", 17000));
+		redisNodes.add(new HostAndPort("SN03", 17000));
+		redisNodes.add(new HostAndPort("SN04", 17000));
+		redisNodes.add(new HostAndPort("SN05", 17000));
+		redisNodes.add(new HostAndPort("SN06", 17000));
+		redisNodes.add(new HostAndPort("SN07", 17000));
+		redisNodes.add(new HostAndPort("SN08", 17000));		
 
 		this.jedis = new JedisCluster(redisNodes);	
 
@@ -290,6 +290,7 @@ public class RedisAdapter {
 				String i_aValue = String.valueOf(i_kalman.getA_val());
 				String i_hValue = String.valueOf(i_kalman.getH_val());
 				String i_qValue = String.valueOf(i_kalman.getQ_val());				
+				String i_rValue = String.valueOf(i_kalman.getR_val());
 				
 				String i_kalman_inputTopic = i_kalman.getInputTopic();
 				String i_kalman_outputTopic = i_kalman.getOutputTopic();
@@ -299,7 +300,7 @@ public class RedisAdapter {
 				jedisCn.hset(i_kalman_redisKey, "A_val", i_aValue);
 				jedisCn.hset(i_kalman_redisKey, "H_val", i_hValue);
 				jedisCn.hset(i_kalman_redisKey, "Q_val", i_qValue);
-				//jedisCn.hset(i_kalman_redisKey, "R_val", i_rValue);
+				jedisCn.hset(i_kalman_redisKey, "R_val", i_rValue);
 				
 				jedisCn.hset(i_kalman_redisKey, "InputTopic", i_kalman_inputTopic);
 				jedisCn.hset(i_kalman_redisKey, "OutputTopic", i_kalman_outputTopic);

@@ -1,21 +1,13 @@
 package knu.cs.dke.topology_manager.topolgoies;
 
-import java.io.IOException;
-
-import org.apache.storm.generated.AuthorizationException;
-import org.apache.storm.generated.InvalidTopologyException;
-import org.apache.storm.generated.NotAliveException;
-import org.apache.storm.thrift.TException;
-import org.apache.storm.thrift.transport.TTransportException;
-
-public class BloomFilteringTopology extends ASamplingFilteringTopology{
+public class BloomFilteringTopology extends ASamplingFilteringTopology {
 
 	// Parameters
 	private int bucketSize;
 	private String keywords;
 	private int target;	
 	
-	public BloomFilteringTopology(String createdTime, String plan, int index, String topologyType, int bucketSize, String keywords, int target) throws TTransportException {
+	public BloomFilteringTopology(String createdTime, String plan, int index, String topologyType, int bucketSize, String keywords, int target) {
 
 		super(createdTime, plan, index, topologyType);
 		
