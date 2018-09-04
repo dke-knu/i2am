@@ -64,7 +64,7 @@ def samplingAlgorithmSelect(clientSocket, address):
         topic = getTopicName(sourceName, userID)
         filePath = getStreamDataFromKafka(topic, partition, offset)
 
-    target_index = get_target_index(user_id=userID, src_name=sourceName)
+    target_index, csv_schema_idx = get_target_index(user_id=userID, src_name=sourceName)
 
     flag = DL._CNN_main(filePath, target_index)
 
@@ -97,10 +97,8 @@ def samplingAlgorithmSelect(clientSocket, address):
         print('#                                                        #')
         print('##########################################################')
 
-    if jsonData['message'] == 'new-src':
-        putSelectedAlgorithm(sourceName, target_index, selectedAlgorithm)
-    elif jsonData['message'] == 'concept-drift':
-        sendSelectedAlgorithm(sourceName, userID, selectedAlgorithm)
+    putSelectedAlgorithm(sourceName, csv_schema_idx, selectedAlgorithm)
+    logger(jsonData, selectedAlgorithm)
 
 def connectToDB():
     print("Connect To MariaDB")
@@ -185,12 +183,25 @@ def get_target_index(user_id, src_name):
     cursor = connectToDB()
     try:
         cursor.execute(QUERY_DIC['GET_TARGET_IDX'], (src_name, user_id))
-        target_idx = cursor.fetchone()[0]
+        target_info = cursor.fetchone()
     except Exception as e:
-        target_idx = 1
+        target_info = (1, 1)
         print("Target not found. Initialized 1")
 
-    return target_idx - 1    # target_idx value: user's idx, target_idx - 1: program's idx
+    return target_info[1] - 1, target_info[0]    # target_idx value: user's idx, target_idx - 1: program's idx
+
+def logger(json_data, selected_algorithm):
+    cursor = connectToDB()
+    try:
+        if json_data['message'] == 'new-src':
+            log_msg = '[INTELLIGENT ENGINE] {} is recommended.'.format(selected_algorithm)
+        elif json_data['message'] == 'concept-drift':
+            log_msg = '[INTELLIGENT ENGINE] The sampling algorithm has been changed to {}.'.format(selected_algorithm)
+
+        cursor.execute(QUERY_DIC['WRITE_LOG'], (json_data['user-id'], 'INFO', log_msg))
+    except Exception as e:
+        print("Logging failed.")
+        print(str(e))
 
 while True:
     clientSocket, address = serverSocket.accept() # Connect
@@ -203,7 +214,8 @@ print(' TEST MODE '.center(30, '#'))
 userID = 'sbpark@kangwon.ac.kr'
 sourceName = 'sb_test'
 
-target_index = get_target_index(user_id=userID, src_name=sourceName)
+target_index, idx = get_target_index(user_id=userID, src_name=sourceName)
+print("TARGET IDX: {} and CSV_IDX: {}".format(target_index, idx))
 
 testWindowSize = sys.argv[1]
 testSampleSize = sys.argv[2]

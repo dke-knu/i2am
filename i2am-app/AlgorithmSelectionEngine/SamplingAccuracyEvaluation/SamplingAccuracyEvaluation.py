@@ -53,28 +53,28 @@ def run(windowSize, sampleSize, filePath, target=0):
         windowList.append(data)
         if count == windowSize:
             print('################## ' + str(numOfTrials) + ' Evaluation Start ####################')
-            if numOfTrials == 1: PG.printGraph(windowList, 'Population', numOfTrials)
+            # if numOfTrials == 1: PG.printGraph(windowList, 'Population', numOfTrials)
             print()
 
             print(str(numOfTrials)+'_ReservoirSampling')
             sampleList = SA.sortedReservoirSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(reservoirEvalList, tempEvalList)
-            if numOfTrials == 1: PG.printGraph(sampleList, 'Reservoir', numOfTrials)
+            # if numOfTrials == 1: PG.printGraph(sampleList, 'Reservoir', numOfTrials)
             print()
 
             print(str(numOfTrials)+'_HashSampling')
             sampleList = SA.hashSam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(hashEvalList, tempEvalList)
-            if numOfTrials == 1: PG.printGraph(sampleList, 'Hash', numOfTrials)
+            # if numOfTrials == 1: PG.printGraph(sampleList, 'Hash', numOfTrials)
             print()
 
             print(str(numOfTrials)+'_PrioritySampling')
             sampleList = SA.sortedPrioritySam(sampleSize, windowList)
             tempEvalList = AE.run(windowList, sampleList, jSDPieceCount, pAAPieceCount)
             SC.sumPerIndex(priorityEvalList, tempEvalList)
-            if numOfTrials == 1: PG.printGraph(sampleList, 'Priority', numOfTrials)
+            # if numOfTrials == 1: PG.printGraph(sampleList, 'Priority', numOfTrials)
             print()
 
             numOfTrials = numOfTrials + 1
