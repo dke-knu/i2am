@@ -1,7 +1,9 @@
 package org.i2am.load.shedding.engine;
 
 import java.io.DataInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,7 +12,22 @@ import java.util.*;
 public class LoadSheddingManager {
     public static Map<String, Boolean> jmxTopics = Collections.synchronizedMap(new HashMap<String, Boolean>());
     private static Map<String, String> conf = new HashMap<String, String>();
-    public Map<String, LSInfo> varMap = new HashMap<String, LSInfo>();
+    public Map<String, LSInfo> varMap = Collections.synchronizedMap(new HashMap<String, LSInfo>());
+
+//    FileWriter fw = new FileWriter("D:\\대학원\\11.LoadShedding\\정보처리학회논문\\실험2\\ex01_1.csv");
+
+//    public void writeFile(String msg, String srcName) throws IOException {
+//        if(srcName.equals("hajin_src1")){
+//            fw1.write(msg+"\n");
+//            fw1.flush();
+//        }else if(srcName.equals("hajin_src2")){
+//            fw2.write(msg+"\n");
+//            fw2.flush();
+//        }else if(srcName.equals("hajin_src3")){
+//            fw3.write(msg+"\n");
+//            fw3.flush();
+//        }
+//    }
 
     // 생성자
     public LoadSheddingManager(Map conf) throws IOException {
@@ -18,27 +35,29 @@ public class LoadSheddingManager {
     }
 
     public static void main(String args[]) throws Exception {
-
         LoadSheddingManager lsm = new LoadSheddingManager(conf);
         lsm.setConf();
+
         // 초기화 후 시작
         lsm.initJmxTopics();
         lsm.start();
     }
 
     //configuration information
-    public void setConf(){
+    public void setConf() {
         // for socket connection
         conf.put("hostname", "localhost");
         conf.put("mrPort", "5004");
-        conf.put("lsmPort", "5005");
-        // for DB connection
+        conf.put("lsmPort", "5006");
+
+        // 우리 시스템 DB
         conf.put("driverName", "org.mariadb.jdbc.Driver");
-        conf.put("url", "jdbc:mariadb://localhost:3306/tutorial");
-        conf.put("user", "root");
-        conf.put("password", "1234");
+        conf.put("url", "jdbc:mariadb://114.70.235.43:3306/i2am");
+        conf.put("user", "plan-manager");
+        conf.put("password", "dke214");
+
         // for loadshedding
-        conf.put("threshold", "300");
+        conf.put("threshold", "5000");
         conf.put("windowSize", "4");
     }
 
@@ -48,28 +67,22 @@ public class LoadSheddingManager {
     }
 
     // 각 플랜(토픽)별 로드쉐딩 조건 체크하여 jmxTopics 값 변경
-    public void loadSheddingCheck(double threshold, double var, String planId) {
-        if (var > threshold && !jmxTopics.get(planId)) {
+    public void loadSheddingCheck(double var, String srcName, double threshold) throws IOException {
+        if (var > threshold && !jmxTopics.get(srcName)) {
             System.out.println("[LOADSHEDDING ON!]");
-            DbAdapter.getInstance(conf).setSwicthValue(planId, "true");
-            jmxTopics.put(planId, true);
+            DbAdapter.getInstance(conf).setSwicthValue(srcName, "Y");
+            jmxTopics.put(srcName, true);
         }
-        if (var < threshold && jmxTopics.get(planId)) {
+        if (var <= threshold && jmxTopics.get(srcName)) {
             System.out.println("[LOADSHEDDING OFF!]");
-            DbAdapter.getInstance(conf).setSwicthValue(planId, "false");
-            jmxTopics.put(planId, false);
+            DbAdapter.getInstance(conf).setSwicthValue(srcName, "N");
+            jmxTopics.put(srcName, false);
         }
     }
 
     public void start() throws Exception {
-        double threshold = Double.parseDouble(conf.get("threshold"));
-        int winSize = Integer.parseInt(conf.get("windowSize"));
-
         MessageReceiver messageReceiver = new MessageReceiver(jmxTopics, conf);
         new Thread(messageReceiver).start();
-
-        byte[] bytes = null;
-        String message=null;
 
         String hostname = conf.get("hostname");
         int port = Integer.parseInt(conf.get("lsmPort"));
@@ -77,44 +90,73 @@ public class LoadSheddingManager {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(hostname, port));
 
-        Socket socket = null;
-        try {
-            System.out.println("[LSM 연결 기다림]");
-            socket = serverSocket.accept();
-            System.out.println("[LSM 연결 수락함]");
+        while (true) {
+            Socket clientSocket = null;
+            try {
+                System.out.println("[LSM 연결 기다림]");
+                clientSocket = serverSocket.accept();
+                InetAddress ia = clientSocket.getInetAddress();
 
-            while (true) {
-                DataInputStream is = new DataInputStream(socket.getInputStream());
-                message = is.readUTF();
-                System.out.println("[LSM 메시지받음] " + message);
+                System.out.println("[LSM 연결 수락함]"+clientSocket);
 
-                calculateVar(message, winSize, threshold);
+                new Thread(new MsgSendingThread(clientSocket)).start();
+
+            } catch (Exception e) {
+                System.out.println(e);
             }
-        } catch (Exception e) {
-            System.out.println(e);
-        } finally {
-            serverSocket.close();
-            socket.close();
         }
     }
 
-    // 각 플랜별 이동평균 계산을 위한 클래스 - eoanswkfh
+    public class MsgSendingThread implements Runnable {
+        private Socket clientSocket;
+
+        public MsgSendingThread(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
+            boolean check = true;
+            do {
+                try {
+                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
+                    String message = is.readUTF();
+                    check = calculateVar(message);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } while (check);
+            try {
+                this.clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // 각 플랜별 이동평균 계산을 위한 클래스
     public class LSInfo {
-        Queue<Long> window = new LinkedList<Long>();
-        double preVar = 0.0;
-        long sumJmx = 0;
+        Queue<Long> window;
+        double preVar;
+        long sumJmx;
+
+        public LSInfo(){
+            this.preVar=0.0;
+            this.sumJmx=0;
+            this.window = new LinkedList<Long>();
+        }
     }
 
-    public double movingAverage(String planId, int winSize, long time){
-
+    public double movingAverage(String srcName, int winSize, long time) {
         double curVar = 0.0;
-        double var=0;
+        double var = 0;
 
-        if (!varMap.containsKey(planId)) {
-            varMap.put(planId, new LSInfo());
+        if (!varMap.containsKey(srcName)) {
+            varMap.put(srcName, new LSInfo());
         }
 
-        LSInfo tmp = varMap.get(planId);
+        LSInfo tmp = varMap.get(srcName);
         tmp.window.add(time);
         tmp.sumJmx += time;
 
@@ -125,24 +167,36 @@ public class LoadSheddingManager {
             curVar = (double) tmp.sumJmx / winSize;
         }
 
-//        System.out.println("TAtime: " + time + ", planId: " + planId + ", preVar: " + tmp.preVar + ", curVar: " + curVar + ", sum: " + tmp.sumJmx + ", var: " + (curVar - tmp.preVar));
+//        System.out.println("TAtime: " + time + ", srcName: " + srcName + ", preVar: " + tmp.preVar + ", curVar: " + curVar + ", sum: " + tmp.sumJmx + ", var: " + (curVar - tmp.preVar));
         var = (curVar - tmp.preVar);
         tmp.preVar = curVar;
 
         return var;
     }
 
-    public void calculateVar(String message, int winSize, double threshold) {
-        String planId;
+    public boolean  calculateVar(String message) throws IOException {
+        String srcName;
         long time;
+
+        int winSize = Integer.parseInt(conf.get("windowSize"));
+        double threshold = Double.parseDouble(conf.get("threshold"));
 
         String[] messages = message.split(",");
         time = Long.parseLong(messages[1]) - Long.parseLong(messages[0]); //receiveTime - sendTime
-        planId = messages[2];
-
-        double var = movingAverage(planId, winSize, time);
+        srcName = messages[2];
 
         // loadshedding check
-        loadSheddingCheck(threshold, var, planId);
+        if(jmxTopics.containsKey(srcName)) {
+            //이동평균 변화량 로드 쉐딩
+//            double var = movingAverage(srcName, winSize, time);
+//            loadSheddingCheck(var, srcName, threshold);
+
+//            System.out.println("time: "+time);
+            //지연시간 로드 쉐딩
+            loadSheddingCheck(time, srcName, threshold);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

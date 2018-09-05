@@ -21,6 +21,7 @@ public class ConsumerExample {
         config.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         config.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
+
         // planID 받아오는 코드 필요함
         String planId = "topic1";
 
@@ -38,7 +39,6 @@ public class ConsumerExample {
             System.out.println("[연결 요청]");
             socket.connect(new InetSocketAddress("localhost", 5005));
             System.out.println("[연결 성공]");
-            byte[] bytes = null;
             DataOutputStream os = new DataOutputStream(socket.getOutputStream());
 
             while (true) {

@@ -55,16 +55,16 @@ public class DbAdapter {
         PreparedStatement pstmt = null;
         String sql = null;
 
-        boolean switchValue = false;
-
         try {
             con = this.getConnection();
-            pstmt = con.prepareStatement("SELECT * FROM SWITCH");
+            pstmt = con.prepareStatement("SELECT * FROM tbl_src WHERE USES_LOAD_SHEDDING='Y'");
+
             ResultSet rs = pstmt.executeQuery();
             while(rs.next()) {
-                String tn = rs.getString("topicName");
-                boolean sv = rs.getBoolean("value");
-                map.put(tn,sv);
+                String srcName = rs.getString("NAME");
+                boolean value =  rs.getString("SWITCH_MESSAGING").equals("N")? false : true;
+                map.put(srcName,value);
+                System.out.println("src: "+srcName+", value: "+value);
             }
         } catch (Exception e) {
 
@@ -72,60 +72,18 @@ public class DbAdapter {
         }
     }
 
-    public boolean getSwtichValue(final String topic) {
+    public void setSwicthValue(String srcName, String switchValue) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = null;
-
-        boolean switchValue = false;
 
         try {
             con = this.getConnection();
-            pstmt = con.prepareStatement("SELECT value FROM SWITCH WHERE topicName=?");
-            pstmt.setString(1, topic);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                switchValue = rs.getBoolean("value");
-                return switchValue;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return switchValue;
-    }
-
-    //method Overloading
-    public void setSwitchValue(String switchValue) {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        String sql = null;
-        try {
-            con = this.getConnection();
-            pstmt = con.prepareStatement("UPDATE switch SET value=?");
+            pstmt = con.prepareStatement("UPDATE tbl_src SET SWITCH_MESSAGING=? WHERE NAME=?");
             pstmt.setString(1, switchValue);
-            pstmt.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setSwicthValue(String topic, String switchValue) {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        String sql = null;
-
-        try {
-            con = this.getConnection();
-            pstmt = con.prepareStatement("UPDATE switch SET value=? WHERE topicName=?");
-            pstmt.setString(1, switchValue);
-            pstmt.setString(2, topic);
+            pstmt.setString(2, srcName);
             pstmt.executeQuery();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-
-
-
 }
