@@ -74,7 +74,7 @@ public class PrioritySamplingBolt extends BaseRichBolt{
         if(count <= sampleSize){
             jedisCommands.zadd(sampleName, priority, data);
         }
-        else if(count%windowSize == 0){
+        else if(count == windowSize){
             List<String> sampleList = new ArrayList<String>();
             Set<String> dataSet = jedisCommands.zrange(sampleName, 0, -1); // Get data set
             jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
@@ -91,11 +91,11 @@ public class PrioritySamplingBolt extends BaseRichBolt{
                 Set<redis.clients.jedis.Tuple> minimumDataSet = jedisCommands.zrangeWithScores(sampleName, 0, 0); // Get data set which has minimum priority
                 if (minimumDataSet.iterator().next().getScore() < priority) {
                     jedisCommands.zremrangeByRank(sampleName, 0, 0); // Remove data set which has minimum priority
+                    jedisCommands.zadd(sampleName, priority, data);
                 }
             } catch (JedisException je){
                 je.printStackTrace();
             }
-            jedisCommands.zadd(sampleName, priority, data);
         }
     }
 
