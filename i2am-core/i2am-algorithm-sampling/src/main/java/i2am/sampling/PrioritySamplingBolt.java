@@ -92,6 +92,7 @@ public class PrioritySamplingBolt extends BaseRichBolt{
                 if (minimumDataSet.iterator().next().getScore() < priority) {
                     jedisCommands.zremrangeByRank(sampleName, 0, 0); // Remove data set which has minimum priority
                     jedisCommands.zadd(sampleName, priority, data);
+                    
                 }
             } catch (JedisException je){
                 je.printStackTrace();
