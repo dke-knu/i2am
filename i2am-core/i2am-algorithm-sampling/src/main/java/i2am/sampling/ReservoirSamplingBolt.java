@@ -84,11 +84,10 @@ public class ReservoirSamplingBolt extends BaseRichBolt{
             if(probability <= sampleSize){
                 /* Index Out Of Range Exception */
                 try{
-                    jedisCommands.lset(sampleName, probability, data);
+                    jedisCommands.ltrim(sampleName, -probability, -probability);
+                    jedisCommands.rpush(sampleName, data);
                 } catch (JedisException je){
                     je.printStackTrace();
-                    jedisCommands.lpop(sampleName);
-                    jedisCommands.rpush(sampleName, data);
                 }
             }
         }
