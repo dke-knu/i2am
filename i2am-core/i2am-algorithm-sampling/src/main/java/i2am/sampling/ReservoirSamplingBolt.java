@@ -15,8 +15,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ReservoirSamplingBolt extends BaseRichBolt{
     private int sampleSize;
@@ -61,7 +60,7 @@ public class ReservoirSamplingBolt extends BaseRichBolt{
         sampleName = allParameters.get(sampleKey);
         sampleSize = Integer.parseInt(allParameters.get(sampleSizeKey)); // Get sample size
         windowSize = Integer.parseInt(allParameters.get(windowSizeKey)); // Get window size
-        jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+        jedisCommands.zremrangeByRank(sampleName, 0, -99999); // Remove sample list
     }
 
     @Override
@@ -71,11 +70,18 @@ public class ReservoirSamplingBolt extends BaseRichBolt{
 
         /* Reservoir Sampling */
         if(count <= sampleSize){
-            jedisCommands.rpush(sampleName, data);
+            jedisCommands.zadd(sampleName, count, data);
         }
         else if(count%windowSize == 0){
-            List<String> sampleList = jedisCommands.lrange(sampleName, 0, -1); // Get sample list
-            jedisCommands.ltrim(sampleName, 0, -99999); // Remove sample list
+            List<String> sampleList = new ArrayList<String>();
+            Set<String> dataSet = jedisCommands.zrange(sampleName, 0, -1); // Get data set
+            jedisCommands.zremrangeByRank(sampleName, 0, -1); // Remove sample list
+            Iterator<String> iterator = dataSet.iterator();
+
+            while(iterator.hasNext()){
+                sampleList.add(iterator.next());
+            }
+
             collector.emit(new Values(sampleList)); // Emit
         }
         else{
@@ -84,8 +90,8 @@ public class ReservoirSamplingBolt extends BaseRichBolt{
             if(probability <= sampleSize){
                 /* Index Out Of Range Exception */
                 try{
-                    jedisCommands.ltrim(sampleName, -probability, -probability);
-                    jedisCommands.rpush(sampleName, data);
+                    jedisCommands.zremrangeByRank(sampleName, probability+1, probability+1);
+                    jedisCommands.zadd(sampleName, count, data);
                 } catch (JedisException je){
                     je.printStackTrace();
                 }
