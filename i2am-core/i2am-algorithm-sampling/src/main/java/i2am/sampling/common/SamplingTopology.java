@@ -161,7 +161,7 @@ public class SamplingTopology {
                 topologyBuilder.setBolt(algorithmName + "_SITE_BOLT", new BBSSiteBolt(redisKey, jedisClusterConfig), 4)
                         .shuffleGrouping("DECLARING_BOLT")
                         .setNumTasks(4);
-                topologyBuilder.setBolt(algorithmName + "COORDINATOR_BOLT", new BBSCoordinatorBolt(redisKey, jedisClusterConfig), 2)
+                topologyBuilder.setBolt(algorithmName + "_BOLT", new BBSCoordinatorBolt(redisKey, jedisClusterConfig), 2)
                         .shuffleGrouping(algorithmName + "_SITE_BOLT")
                         .setNumTasks(2);
                 break;
