@@ -62,7 +62,7 @@ public class PriorityDeclaringBolt extends BaseRichBolt {
         }
 
         try {
-            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName);
+            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName, "HASH_SAMPLING");
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import i2am.sampling.declaring.HashDeclaringBolt;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
@@ -109,8 +110,13 @@ public class SamplingTopology {
                 .setNumTasks(1);
 
         /* DeclaringBolt */
-        if(algorithmName.equals("RESERVOIR_SAMPLING") || algorithmName.equals("HASH_SAMPLING")){
+        if(algorithmName.equals("RESERVOIR_SAMPLING")){
             topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
+                    .shuffleGrouping("KAFKA_SPOUT")
+                    .setNumTasks(1);
+        }
+        else if(algorithmName.equals("HASH_SAMPLING")){
+            topologyBuilder.setBolt("DECLARING_BOLT", new HashDeclaringBolt(topologyName, redisKey, jedisClusterConfig), 1)
                     .shuffleGrouping("KAFKA_SPOUT")
                     .setNumTasks(1);
         }

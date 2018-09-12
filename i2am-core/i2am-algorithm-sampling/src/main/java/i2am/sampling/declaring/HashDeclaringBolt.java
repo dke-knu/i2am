@@ -1,5 +1,6 @@
 package i2am.sampling.declaring;
 
+import i2am.sampling.common.DbAdapter;
 import org.apache.storm.redis.common.config.JedisClusterConfig;
 import org.apache.storm.redis.common.container.JedisCommandsContainerBuilder;
 import org.apache.storm.redis.common.container.JedisCommandsInstanceContainer;
@@ -13,9 +14,10 @@ import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
+import java.sql.SQLException;
 import java.util.Map;
 
-public class DeclaringBolt extends BaseRichBolt {
+public class HashDeclaringBolt extends BaseRichBolt {
     private int count;
     private int windowSize;
     private int targetIndex;
@@ -35,7 +37,7 @@ public class DeclaringBolt extends BaseRichBolt {
     /* Logger */
     private final static Logger logger = LoggerFactory.getLogger(DeclaringBolt.class);
 
-    public DeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
+    public HashDeclaringBolt(String topologyName, String redisKey, JedisClusterConfig jedisClusterConfig){
         count = 0;
         this.topologyName = topologyName;
         this.redisKey = redisKey;
@@ -54,6 +56,12 @@ public class DeclaringBolt extends BaseRichBolt {
             throw new IllegalArgumentException("Jedis configuration not found");
         }
 
+        try {
+            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName, "HASH_SAMPLING");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         windowSize = Integer.parseInt(jedisCommands.hget(redisKey, windowSizeKey));
     }
 
@@ -61,7 +69,8 @@ public class DeclaringBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         count++;
         String data = input.getString(0);
-        collector.emit(new Values(data, count));
+        String target = data.split(",")[targetIndex];
+        collector.emit(new Values(data, count, target));
 
         if(count == windowSize){
             count = 0;
@@ -70,6 +79,6 @@ public class DeclaringBolt extends BaseRichBolt {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("data", "count"));
+        declarer.declare(new Fields("data", "count", "target"));
     }
 }
