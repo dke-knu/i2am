@@ -16,10 +16,12 @@ import java.util.Map;
 public class DeclaringBolt extends BaseRichBolt{
     private int targetIndex;
     private String topologyName;
+    private String algorithmName;
     private OutputCollector collector;
 
-    public DeclaringBolt(String topologyName){
+    public DeclaringBolt(String topologyName, String algorithmName){
         this.topologyName = topologyName;
+        this.algorithmName = algorithmName;
     }
 
     @Override
@@ -27,7 +29,7 @@ public class DeclaringBolt extends BaseRichBolt{
         this.collector = collector;
 
         try {
-            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName);
+            targetIndex = DbAdapter.getInstance().getTargetIndex(topologyName, algorithmName);
         } catch (SQLException e) {
             e.printStackTrace();
         }

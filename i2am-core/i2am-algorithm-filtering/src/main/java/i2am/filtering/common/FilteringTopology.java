@@ -100,7 +100,7 @@ public class FilteringTopology {
 
         /* DeclaringBolt */
         if(!algorithmName.equals("QUERY_FILTERING")) {        
-        	topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName), 1)
+        	topologyBuilder.setBolt("DECLARING_BOLT", new DeclaringBolt(topologyName, algorithmName), 1)
             .shuffleGrouping("KAFKA_SPOUT")
             .setNumTasks(1);        	
         }        

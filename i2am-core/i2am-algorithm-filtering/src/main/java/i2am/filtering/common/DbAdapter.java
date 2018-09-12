@@ -14,7 +14,7 @@ public class DbAdapter {
     private final DataSource ds;
     private volatile static DbAdapter instance;
 
-    private static final String GETTARGETINDEXQUERY = "SELECT COLUMN_INDEX FROM tbl_src_csv_schema WHERE F_SRC = (SELECT F_SRC FROM tbl_plan WHERE IDX = (SELECT F_PLAN FROM tbl_topology WHERE TOPOLOGY_NAME = ?))";
+    private static final String GETTARGETINDEXQUERY = "SELECT F_TARGET FROM ? WHERE F_TOPOLOGY = (SELECT IDX FROM tbl_topology WHERE TOPOLOGY_NAME = ?)";
     private static final String GETBLOOMHASHFUNCTIONQUERY = "SELECT HASH_FUNCTION1, HASH_FUNCTION2, HASH_FUNCTION3 FROM tbl_params_bloom_filtering WHERE F_TOPOLOGY = (SELECT IDX FROM tbl_topology WHERE TOPOLOGY_NAME = ?)";
 
     private DbAdapter(){
@@ -33,11 +33,27 @@ public class DbAdapter {
         return instance;
     }
 
-    public int getTargetIndex(String topologyName) throws SQLException {
+    public int getTargetIndex(String topologyName, String algorithmName) throws SQLException {
+        String tableName = "";
         int targetIndex = 0;
         connection = ds.getConnection();
         preparedStatement = connection.prepareStatement(GETTARGETINDEXQUERY);
-        preparedStatement.setString(1, topologyName);
+        switch (algorithmName) {
+            case "BLOOM_FILTERING":
+                tableName = "tbl_params_bloom_filtering";
+                break;
+            case "KALMAN_FILTERING":
+                tableName = "tbl_params_kalman_filtering";
+                break;
+            case "NR_KALMAN_FILTERING":
+                tableName = "tbl_params_noise_recommend_kalman_filtering";
+                break;
+            case "I_KALMAN_FILTERING":
+                tableName = "tbl_intelligent_kalman_filtering";
+                break;
+        }
+        preparedStatement.setString(1, tableName);
+        preparedStatement.setString(2, topologyName);
         resultSet = preparedStatement.executeQuery();
         if(resultSet.next()) {
             targetIndex = resultSet.getInt("COLUMN_INDEX");
@@ -45,7 +61,7 @@ public class DbAdapter {
         preparedStatement.close();
         resultSet.close();
         connection.close();
-        return targetIndex-1; // MariDB's target index start from 1
+        return targetIndex; // MariDB's target index start from 1
     }
 
     public String[] getBloomHashFunction(String topologyName) throws SQLException {
