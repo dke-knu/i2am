@@ -43,6 +43,7 @@ public class DbAdapter {
                 break;
             case "PRIORITY_SAMPLING":
                 tableName = "tbl_params_priority_sampling";
+                break;
         }
         preparedStatement.setString(1, tableName);
         preparedStatement.setString(2, topologyName);
@@ -53,7 +54,7 @@ public class DbAdapter {
         preparedStatement.close();
         resultSet.close();
         connection.close();
-        return targetIndex; // MariDB's target index start from 1
+        return targetIndex; // MariDB's target index start from 0
     }
 
     public String getHashFunction(String topologyName) throws SQLException {
