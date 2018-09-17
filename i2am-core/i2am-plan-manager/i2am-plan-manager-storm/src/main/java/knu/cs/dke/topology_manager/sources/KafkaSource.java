@@ -89,7 +89,7 @@ public class KafkaSource extends Source {
 
 				for (ConsumerRecord<String, String> record : records) {
 					System.out.println(record.value());
-					producer.send(record.value()+ (i++));
+					producer.send(record.value(), (i++));
 				}				
 				if(Thread.currentThread().isInterrupted()) break;												
 			}			
