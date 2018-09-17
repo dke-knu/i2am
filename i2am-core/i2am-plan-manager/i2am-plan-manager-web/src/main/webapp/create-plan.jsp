@@ -802,8 +802,13 @@ $(document).ready(function() {
 								message = message + "<li>파라미터 입력 없음</li>"
 								break;
 								
-							} else {
-								parameters[$(inputs[i]).attr("parameter")] = parseFloat($(inputs[i]).val());	
+							} else {								
+								if( $(inputs[i]).attr("parameter") == "keywords" ) { // keywords								
+									parameters[$(inputs[i]).attr("parameter")] = $(inputs[i]).val();
+									
+								} else {
+									parameters[$(inputs[i]).attr("parameter")] = parseFloat($(inputs[i]).val());	
+								}									
 							}							
 						}						
 						parameters["target"] = parseInt(targetIndex);	
@@ -811,6 +816,11 @@ $(document).ready(function() {
 						if($(next).attr("name") == "nrkf") {														
 							var selected = $(".mySelect option:selected").val();
 							parameters["measure"] = selected;
+						}
+						
+						if($(next).attr("name") == "hs") {
+							var selected = $(".hashHashFunction option:selected").val();
+							parameters["hashFunction"] = selected;
 						}						
 					}
 					else {
@@ -993,8 +1003,16 @@ function recommendedAlgorithm(algorithmName) {
 								<div class="cannot"> Connect with source. </div>
 					 			<div class="schemenTarget"></div>
 										 							 		
-					 			<div class="paramInputLabel">Sample ratio</div><input class="paramInput" parameter="sample_ratio"></input><br>
+					 			<div class="paramInputLabel">Sample size</div><input class="paramInput" parameter="sample_ratio"></input><br>
 					 			<div class="paramInputLabel">Window size</div><input class="paramInput" parameter="window_size"></input>
+					 			<div class="selectLabel">Hash Function</div>
+					 				<center>
+					 					<select class="hashHashFunction">
+					 							<option value="javaHashFunction" selected>javaHashFunction</option>
+					 							<option value="xxHash32">xxHash32</option>
+					 							<option value="jsHash">jsHash</option>
+					 					</select>
+					 				</center>
 				 			</div>
 				 		</div>
 					</div>		
@@ -1085,6 +1103,29 @@ function recommendedAlgorithm(algorithmName) {
 								
 					 			<div class="paramInputLabel">Bucket size</div><input class="paramInput" parameter="bucket_size"></input><br>
 					 			<div class="paramInputLabel">Keywords</div><input class="paramInput" parameter="keywords"></input>
+					 			
+					 			<div class="selectLabel">Hash Function</div>
+					 				<center>
+					 					<select class="bloomHashFunction bloomHashFunction1" disabled>
+					 							<option value="javaHashFunction" selected>javaHashFunction</option>
+					 							<option value="xxHash32">xxHash32</option>
+					 							<option value="jsHash">jsHash</option>
+					 					</select>
+					 					
+					 					<select class="bloomHashFunction bloomHashFunction2" disabled>
+					 							<option value="javaHashFunction">javaHashFunction</option>
+					 							<option value="xxHash32" selected>xxHash32</option>
+					 							<option value="jsHash">jsHash</option>
+					 					</select>
+					 					
+					 					<select class="bloomHashFunction bloomHashFunction3" disabled>
+					 							<option value="javaHashFunction">javaHashFunction</option>
+					 							<option value="xxHash32">xxHash32</option>
+					 							<option value="jsHash" selected>jsHash</option>
+					 					</select>
+					 				</center>
+					 			
+					 			
 				 			</div>
 				 		</div>
 					</div>

@@ -170,7 +170,7 @@ public class SourceHandler {
 			break;
 		}		
 		
-		DbAdapter.getInstance().addLog(owner, "INFO", "Source is created.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is created." + " (" + source.getSourceName() + ")");
 		
 
 		 // 지능형 엔진 사용 시 > 소스 및 소스의 파일 정보 > 지능형 엔진에 전송
@@ -179,11 +179,17 @@ public class SourceHandler {
 
 			MessageSender ms = new MessageSender();			
 			ms.sendToConceptDrift("new-src", source.getOwner(), source.getSourceName());
-			ms.sendToIntelligentEngine("new-src", source.getOwner(), source.getSourceName());			
+			ms.sendToIntelligentEngine("new-src", source.getOwner(), source.getSourceName());
 		}	
+		
+		// 로드쉐딩 사용 시 
+		if(loadShedding.equals("Y")) {			
+			MessageSender lsm = new MessageSender();
+			lsm.sendToLoadSheddingManager("creation", source.getOwner(), source.getSourceName());
+		}
 	}
 
-	public void destroySource() throws InterruptedException {
+	public void destroySource() throws InterruptedException, UnknownHostException, IOException {
 	
 		// Parse Content!
 		JSONObject content = (JSONObject) command.get("commandContent");
@@ -193,14 +199,27 @@ public class SourceHandler {
 		String owner = (String) content.get("owner");
 				
 		//
-		//this.deactiveSource();		
+		//this.deactiveSource();
 		
 		// Delete!
-		Source temp = sources.get(owner, srcName);				
-		sources.remove(temp);
+		Source temp = sources.get(owner, srcName);	
+		
+		// 컨셉 드리프트 사용 시, 소스가 중지 되면 메시지 전송
+		if(temp.getUseIntelliEngine().equals("Y")) {			
+			MessageSender ms = new MessageSender();			
+			ms.sendToConceptDrift("destroy-src", temp.getOwner(), temp.getSourceName());			
+		}		
+		
+		// 로드쉐딩 사용 시 
+		if(temp.getUseLoadShedding().equals("Y")) {			
+			MessageSender lsm = new MessageSender();
+			lsm.sendToLoadSheddingManager("deletion", temp.getOwner(), temp.getSourceName());
+		}		
+		
+		sources.remove(temp);		
 				
 		DbAdapter.getInstance().removeSource(temp);
-		DbAdapter.getInstance().addLog(owner, "INFO", "Source is destroyed.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is destroyed." + " (" + srcName + ")");
 		
 	}
 
@@ -238,7 +257,7 @@ public class SourceHandler {
 		}		
 				
 		System.out.println("[Source Handler]" + source.getName() + " is started! - " + source.isAlive() );
-		DbAdapter.getInstance().addLog(owner, "INFO", "Source is activated.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is activated."  + " (" + source.getSourceName() + ")");
 	}
 	
 /*	public void updateRecommendation() {
@@ -252,7 +271,7 @@ public class SourceHandler {
 		// DB Adapter에서 해당 Source의 recommendation을 Update!
 	}*/
 
-	public void deactiveSource() throws InterruptedException {
+	public void deactiveSource() throws InterruptedException, UnknownHostException, IOException {
 
 		// Content.
 		JSONObject content = (JSONObject) command.get("commandContent");
@@ -263,18 +282,23 @@ public class SourceHandler {
 		source.setStatus("DEACTIVE");		
 
 		DbAdapter.getInstance().changeSourceStatus(source);
+		
+		// 컨셉 드리프트 사용 시, 소스가 중지 되면 메시지 전송
+		if(source.getUseIntelliEngine().equals("Y")) {			
+			MessageSender ms = new MessageSender();			
+			ms.sendToConceptDrift("deactivate-src", source.getOwner(), source.getSourceName());			
+		}		
 
 		sources.set(source);
-
+		
 		if(source.getSrcType() != "CUSTOM") {		
 			Thread run = sources.getThread(source.getSourceName());
 			run.interrupt();			
-		}
-				
+		}				
 		
 		System.out.println("[Source Handler]" + source.getName() + " is stopped! - " + source.isAlive() );
 		
-		DbAdapter.getInstance().addLog(owner, "INFO", "Source is deactivated.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Source is deactivated." + " (" + source.getSourceName() + ")");
 	}
 
 	public void sendToConceptDrift() {

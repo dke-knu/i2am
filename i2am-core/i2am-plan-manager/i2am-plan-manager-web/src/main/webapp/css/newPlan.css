@@ -369,6 +369,22 @@ h1 {
 	margin-bottom: 5px;	
 }
 
+.hashHashFunction {
+	width: 70%;
+	font-size: 17px;
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
+	margin-bottom: 5px;	
+}
+
+.bloomHashFunction {
+	width: 70%;
+	font-size: 17px;
+	border: 1px solid #aaaaaa;
+	margin-top: 5px;	
+	margin-bottom: 5px;	
+}
+
 .recommendation {
 	width: 90%;
 	margin: auto;	

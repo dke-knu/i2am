@@ -6,13 +6,16 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 	private int windowSize;
 	private int target;
 	
-	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize, int target) {
+	private String hashFunction;
+	
+	public HashSamplingTopology(String createdTime, String plan, int index, String topologyType, int sampleSize, int windowSize, String hashFunction, int target) {
 
 		super(createdTime, plan, index, topologyType);
 		
 		this.sampleSize = sampleSize;
 		this.windowSize = windowSize;	
-		this.target = target;		
+		this.target = target;				
+		this.hashFunction = hashFunction;
 	}
 	
 	public int getSampleSize() {
@@ -37,5 +40,13 @@ public class HashSamplingTopology extends ASamplingFilteringTopology{
 
 	public void setTarget(int target) {
 		this.target = target;
+	}
+
+	public String getHashFunction() {
+		return hashFunction;
+	}
+
+	public void setHashFunction(String hashFunction) {
+		this.hashFunction = hashFunction;
 	}		
 }

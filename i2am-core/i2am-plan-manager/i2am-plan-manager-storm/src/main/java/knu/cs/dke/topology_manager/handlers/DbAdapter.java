@@ -378,9 +378,14 @@ public class DbAdapter {
 					targetIdx.next();
 					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
 
-					String hash_Query = "INSERT INTO tbl_params_hash_sampling " + "VALUES (" + "'0'," + "'"
-							+ topologyNumber + "'," + "'" + targetNumber + "'," + "'" + hss.getSampleSize() + "'," + "'"
-							+ hss.getWindowSize() + "'" + ")";
+					String hash_Query = "INSERT INTO tbl_params_hash_sampling " + "VALUES (" 
+							+ "'0'," + "'"
+							+ topologyNumber + "'," + "'"
+							+ targetNumber + "'," + "'" 
+							+ hss.getSampleSize() + "'," + "'"
+							+ hss.getWindowSize() + "'," + "'"
+							+ hss.getHashFunction() + "')";
+					
 					ResultSet hash_paramsResult = stmt.executeQuery(hash_Query);
 					break;
 
@@ -492,9 +497,17 @@ public class DbAdapter {
 					targetIdx.next();
 					targetNumber = ((Number) targetIdx.getObject(1)).intValue();
 
-					String bloom_Query = "INSERT INTO tbl_params_bloom_filtering " + "VALUES (" + "'0'," + "'"
-							+ topologyNumber + "'," + "'" + targetNumber + "'," + "'" + blf.getBucketSize() + "'," + "'"
-							+ blf.getKeywords() + "'" + ")";
+					String bloom_Query = "INSERT INTO tbl_params_bloom_filtering " + "VALUES (" 
+							+ "'0'," 
+							+ "'" + topologyNumber + "',"
+							+ "'" + targetNumber + "'," 
+							+ "'" + blf.getBucketSize() + "',"
+							+ "'" + blf.getKeywords() + "',"
+							+ "'" + blf.getHashFunction1() + "',"
+							+ "'" + blf.getHashFunction2() + "',"
+							+ "'" + blf.getHashFunction3() + "'"
+							+ ")";
+					
 					ResultSet bloom_paramsResult = stmt.executeQuery(bloom_Query);
 					break;
 
@@ -1116,9 +1129,7 @@ public class DbAdapter {
 
 						temp_topology = new BinaryBernoulliSamplingTopology(topology_rs.getString("CREATED_TIME"),
 								rs.getString("p.NAME"), topology_rs.getInt("TOPOLOGY_INDEX"),
-								"BINARY_BERNOULLI_SAMPLING", params_rs.getInt("SAMPLE_SIZE"),
-								params_rs.getInt("WINDOW_SIZE"));
-
+								"BINARY_BERNOULLI_SAMPLING", params_rs.getInt("SAMPLE_SIZE"), params_rs.getInt("WINDOW_SIZE"));
 						break;
 
 					case "BLOOM_FILTERING":
@@ -1132,8 +1143,8 @@ public class DbAdapter {
 						temp_topology = new BloomFilteringTopology(topology_rs.getString("CREATED_TIME"),
 								rs.getString("p.NAME"), topology_rs.getInt("TOPOLOGY_INDEX"), "BLOOM_FILTERING",
 								params_rs.getInt("BUCKET_SIZE"), params_rs.getString("KEYWORDS"),
-								params_rs.getInt("F_TARGET"));
-
+								params_rs.getInt("F_TARGET"), params_rs.getString("HASH_FUNCTION1"), params_rs.getString("HASH_FUNCTION2"),
+								params_rs.getString("HASH_FUNCTION1"));
 						break;
 
 					case "HASH_SAMPLING":
@@ -1146,7 +1157,7 @@ public class DbAdapter {
 
 						temp_topology = new HashSamplingTopology(topology_rs.getString("CREATED_TIME"),
 								rs.getString("p.NAME"), topology_rs.getInt("TOPOLOGY_INDEX"), "HASH_SAMPLING",
-								params_rs.getInt("SAMPLE_RATIO"), params_rs.getInt("WINDOW_SIZE"),
+								params_rs.getInt("SAMPLE_SIZE"), params_rs.getInt("WINDOW_SIZE"), params_rs.getString("HASH_FUNCTION"),
 								params_rs.getInt("F_TARGET"));
 
 						break;

@@ -218,7 +218,7 @@ public class RedisAdapter {
 				String k_inputTopic = k_topology.getInputTopic();
 				String k_outputTopic = k_topology.getOutputTopic();
 				
-				jedisCn.hset(k_redisKey, "SamplingRateKey", k_sampleRate);				
+				jedisCn.hset(k_redisKey, "SamplingRate", k_sampleRate);				
 				jedisCn.hset(k_redisKey, "InputTopic", k_inputTopic);
 				jedisCn.hset(k_redisKey, "OutputTopic", k_outputTopic);				
 

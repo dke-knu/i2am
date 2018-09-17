@@ -20,10 +20,10 @@ public class KafkaTester {
 	public static void main(String[] args) throws InterruptedException {
 
 
-		String topic = "fb9a3ebb-16d7-40cf-b2e9-68f37288fbc3";
+		String topic = "745cabf3-86ec-4d85-8642-f506f34f16a5";
 		String groupId = UUID.randomUUID().toString(); 
 
-		String server = "114.70.235.43:19092";
+		//String server = "114.70.235.43:9092";
 
 		String servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
 				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
@@ -52,7 +52,7 @@ public class KafkaTester {
 
 		//KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consume_props);
 		Producer<String, String> producer = new KafkaProducer<>(produce_props);
-
+		
 		
 		Consumer<String, String> consumer = new KafkaConsumer<>(consume_props);
 		consumer.subscribe(Arrays.asList(topic));
@@ -62,7 +62,7 @@ public class KafkaTester {
 			for (ConsumerRecord<String, String> record : records) {
 				
 				System.out.println(record.value());
-				producer.send(new ProducerRecord<String, String>("5ece46bb-7668-44e6-9b8e-3a1cd2621959", record.value()));
+				//producer.send(new ProducerRecord<String, String>("5ece46bb-7668-44e6-9b8e-3a1cd2621959", record.value()));
 				//Thread.sleep(1000);
 			}
 				

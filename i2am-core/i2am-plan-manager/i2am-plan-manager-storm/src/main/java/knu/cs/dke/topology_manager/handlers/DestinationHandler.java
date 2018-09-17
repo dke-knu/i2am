@@ -114,7 +114,7 @@ public class DestinationHandler {
 			break;
 		}
 		
-		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is created.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is created." + " (" + dstName + ")");
 	}
 
 	public void destroySource() {
@@ -131,7 +131,7 @@ public class DestinationHandler {
 		destinations.remove(temp);
 			
 		DbAdapter.getInstance().removeDestination(temp);
-		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is destroyed.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is destroyed." + " (" + temp.getDestinationName() + ")");
 	}
 	public void alterDestination() { }	
 
@@ -157,7 +157,7 @@ public class DestinationHandler {
 		run.start();
 		
 		System.out.println("[Destination Handler] " + destination.getName() + " is Started!");	
-		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is activated.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is activated." + " (" + name + ")");
 	}
 
 	public void deactiveDestination() {
@@ -178,6 +178,6 @@ public class DestinationHandler {
 		run.interrupt();
 		
 		System.out.println("[Destination Handler]" + destination.getName() + " is stopped! - " + destination.isAlive() );
-		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is deactivated.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Destination is deactivated." + " (" + name + ")");
 	}
 }

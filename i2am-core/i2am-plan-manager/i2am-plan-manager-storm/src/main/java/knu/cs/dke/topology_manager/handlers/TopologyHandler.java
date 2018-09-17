@@ -122,9 +122,9 @@ public class TopologyHandler {
 				int hash_sampleSize = ((Number) hash_params.get("sample_ratio")).intValue();
 				int hash_windowSize = ((Number) hash_params.get("window_size")).intValue();
 				int hash_target = ((Number) hash_params.get("target")).intValue();
-				//String hash_function = (String) hash_params.get("hashFunction");
+				String hash_function = (String) hash_params.get("hashFunction");
 				// int bucket_size = ((Number) hash_params.get("bucketsize")).intValue();
-				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, hash_target);
+				temp = new HashSamplingTopology(createdTime, planName, i, "HASH_SAMPLING", hash_sampleSize, hash_windowSize, hash_function, hash_target);
 				break;				
 
 			case "ps":
@@ -166,7 +166,13 @@ public class TopologyHandler {
 				int bloom_size = ((Number) bloom_params.get("bucket_size")).intValue();
 				String bloom_keywords = (String) bloom_params.get("keywords");
 				int bloom_target = ((Number) bloom_params.get("target")).intValue();
-				temp = new BloomFilteringTopology(createdTime, planName, i, "BLOOM_FILTERING", bloom_size, bloom_keywords, bloom_target);
+				
+				//'javaHashFunction','xxHash32','jsHash'
+				String hashFunction1 = "javaHashFunction";
+				String hashFunction2 = "xxHash32";
+				String hashFunction3 = "jsHash";
+				
+				temp = new BloomFilteringTopology(createdTime, planName, i, "BLOOM_FILTERING", bloom_size, bloom_keywords, bloom_target, hashFunction1, hashFunction2, hashFunction3);
 				break;
 
 			case "kf":				
@@ -244,7 +250,7 @@ public class TopologyHandler {
 
 		// Plan to DB ...
 		DbAdapter.getInstance().addPlan(plan);
-		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is created.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is created." + " (" + plan.getPlanName() + ")");
 
 		// Topology Params to Redis ...
 		RedisAdapter.getInstance().addPlanParams(plan);	
@@ -266,7 +272,7 @@ public class TopologyHandler {
 		plans.remove(temp);
 		
 		DbAdapter.getInstance().removePlan(temp);		
-		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is destroyed.");
+		DbAdapter.getInstance().addLog(owner, "INFO", "Plan is destroyed." + " (" + temp.getPlanName() + ")");
 	}
 
 	private void changeStatus() throws InvalidTopologyException, AuthorizationException, TException, InterruptedException, IOException {
@@ -299,7 +305,7 @@ public class TopologyHandler {
 		// 만약 상태가 active로 바뀐다면!
 		if ( status.equals("ACTIVE") ) {						
 			temp.activateTopologies();
-			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is activated.");
+			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is activated." + " (" + temp.getPlanName() + ")");
 			
 			// 지능형 칼만 필터링이 포함되어 있으면, 메시지 전송
 			for(ASamplingFilteringTopology i: temp.getTopologies()) {
@@ -312,7 +318,7 @@ public class TopologyHandler {
 		} 
 		else if ( status.equals("DEACTIVE") ) {
 			temp.deactivateTopologies();
-			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is dectivated.");
+			DbAdapter.getInstance().addLog(owner, "INFO", "Plan is dectivated." + " (" + temp.getPlanName() + ")");
 		}
 		else
 			System.out.println("[Topology Handler] Status Type Error.");		
