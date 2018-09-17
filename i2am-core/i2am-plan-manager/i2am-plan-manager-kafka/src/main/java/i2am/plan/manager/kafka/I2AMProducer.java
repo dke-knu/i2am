@@ -2,98 +2,138 @@ package i2am.plan.manager.kafka;
 
 import java.util.Properties;
 
-import kafka.javaapi.producer.Producer;
-import kafka.producer.KeyedMessage;
-import kafka.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 class SwitchMod {
-	private boolean changeSwitch = true;
+    private boolean changeSwitch = false;
 
-	public boolean getSwitch(){
-		return changeSwitch;
-	}
+    public boolean getSwitch() {
+        return changeSwitch;
+    }
 
-	public void setSwitch(boolean changeSwitch){
-		this.changeSwitch = changeSwitch;
-	}
+    public void setSwitch(boolean changeSwitch) {
+        this.changeSwitch = changeSwitch;
+    }
 }
 
 public class I2AMProducer {
-	private String brokers;
-	private String topic;
+    private String brokers;
+    private String topic;
+    private String srcName;
 
-	private Producer<String, String> producer;
+    private double ratio = 0.01;
 
-	private SwitchMod mod;
+    private KafkaProducer<String, String> producer;
 
-	public I2AMProducer(String id, String srcName) {
-		this.brokers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,"
-				+ "114.70.235.43:19095,114.70.235.43:19096,114.70.235.43:19097,"
-				+ "114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
-		this.topic = getInputTopic(id, srcName);
+    private SwitchMod mod;
 
-		Properties props = new Properties();
-		props.put("metadata.broker.list", this.brokers);
-		props.put("serializer.class", "kafka.serializer.StringEncoder");
+    public I2AMProducer(String id, String srcName) {
+        this.brokers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
+                + "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
 
-		ProducerConfig producerConfig = new ProducerConfig(props);
-		producer = new Producer<String, String>(producerConfig);
+        this.topic = getInputTopic(id, srcName);
+        this.srcName = srcName;
 
-		// for load-shedding
-		mod = new SwitchMod();
-		Thread thread = new Thread(new DBThread(mod, topic));
-		thread.start();
-	}
+        Properties props = new Properties();
+        props.put("bootstrap.servers", this.brokers);
+        props.put("acks", "all");
+        props.put("retries", 0);
+        props.put("batch.size", 16384);
+        props.put("linger.ms", 1);
+        props.put("buffer.memory", 33554432);
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-	public void send(String message) {
-		if (this.topic == null) {
-			throw new NullPointerException("Source is not available.");
-		}
-		// for load-shedding
-		if(mod.getSwitch()) {
-			producer.send(new KeyedMessage<String, String>(this.topic, message));
-		}
-	}
+        this.producer = new KafkaProducer<String, String>(props);
+        // for load-shedding
+        this.mod = new SwitchMod();
+        Thread thread = new Thread(new DBThread(this.mod, this.topic));
+        thread.start();
+    }
 
-	private String getInputTopic(String id, String srcName) {
-		return getDbInstance().getInputTopic(id, srcName);
-	}
+    public void close() {
+        producer.close();
+    }
 
-	private DbAdapter getDbInstance() {
-		return DbAdapter.getInstance();
-	}
+    public void send(String message, long no) throws InterruptedException {
+        if (this.topic == null) {
+            throw new NullPointerException("Source is not available.");
+        }
+        // mod.getSwtich -- false -> LS off , true -> LS on
+        if (!mod.getSwitch()) {
+            producer.send(new ProducerRecord<String, String>(this.topic,
+                    message + "," + System.currentTimeMillis() + "," + this.srcName + "," + no));
+//			System.out.println("["+cnt+"][Sending] "+message+","+System.currentTimeMillis()+","+this.srcName);
+        } else {
+            if (Math.random() < ratio) {
+                producer.send(new ProducerRecord<String, String>(this.topic,
+                        message + "," + System.currentTimeMillis() + "," + this.srcName + "," + no));
+//				System.out.println("["+cnt+"][Sending] "+message+","+System.currentTimeMillis()+","+this.srcName);
+            }
+
+        }
+    }
+
+    public void send(String message) throws InterruptedException {
+        if (this.topic == null) {
+            throw new NullPointerException("Source is not available.");
+        }
+        // mod.getSwtich -- false -> LS off , true -> LS on
+        if (!mod.getSwitch()) {
+            producer.send(new ProducerRecord<String, String>(this.topic,
+                    message + "," + System.currentTimeMillis() + "," + this.srcName));
+        } else {
+            if (Math.random() <= ratio) {
+                producer.send(new ProducerRecord<String, String>(this.topic,
+                        message + "," + System.currentTimeMillis() + "," + this.srcName));
+            }
+        }
+    }
+
+
+    private String getInputTopic(String id, String srcName) {
+        return getDbInstance().getInputTopic(id, srcName);
+    }
+
+    private DbAdapter getDbInstance() {
+        return DbAdapter.getInstance();
+    }
 }
 
 // for load-shedding
 class DBThread implements Runnable {
 
-	private String topic;
-	private SwitchMod mod;	
+    private String topic;
+    private SwitchMod mod;
 
-	public DBThread(SwitchMod mod, String topic) {
-		this.topic = topic;
-		this.mod = mod;
-	}
+    public DBThread(SwitchMod mod, String topic) {
+        this.topic = topic;
+        this.mod = mod;
+    }
 
-	@Override
-	public void run() {
-		while(true){ 
-			mod.setSwitch(getSwtichValue(topic));
-			
-			try {
-				Thread.sleep(5 * 1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+    @Override
+    public void run() {
+        while (true) {
+            this.mod.setSwitch(getSwtichValue(this.topic));
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-	private boolean getSwtichValue(String topic) {
-		return getDbInstance().getSwtichValue(topic);
-	}
+    //수정하기
+    private boolean getSwtichValue(String topic) {
+//		boolean res = getDbInstance().getSwtichValue(topic);
+//		System.out.println("[DB Check]["+topic+"]"+res);
+//		return res;
+        return getDbInstance().getSwtichValue(topic);
+    }
 
-	private DbAdapter getDbInstance() {
-		return DbAdapter.getInstance();
-	}
+    private DbAdapter getDbInstance() {
+        return DbAdapter.getInstance();
+    }
+
 }

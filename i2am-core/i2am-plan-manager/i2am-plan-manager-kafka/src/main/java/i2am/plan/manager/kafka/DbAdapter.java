@@ -120,18 +120,19 @@ public class DbAdapter {
 		Statement stmt = null;
 		String sql = null;
 
-		boolean switchValue = false; 
-
+		boolean switchValue = false;
 		try {
 			con = this.getConnection();
 			stmt = con.createStatement();
 
 			sql = "SELECT IF (SWITCH_MESSAGING = 'Y', 'true', 'false') "
-					+ "AS result from " + "tbl_src" + " WHERE NAME = '" + topic + "'"; //topic �߰�
+					+ "AS result from " + "tbl_src" + " WHERE TRANS_TOPIC = '" + topic + "'";
 			ResultSet rs = stmt.executeQuery(sql);
 
-			if(rs.next())
+			if(rs.next()){
 				return Boolean.valueOf(rs.getString("result")).booleanValue();
+			}
+
 
 		} catch (SQLException e) {
 			e.printStackTrace();
