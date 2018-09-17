@@ -2,8 +2,11 @@ package knu.cs.dke.topology_manager.destinations;
 
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import i2am.plan.manager.kafka.I2AMConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -36,7 +39,7 @@ public class KafkaDestination extends Destination {
 		String read_servers = "114.70.235.43:19092,114.70.235.43:19093,114.70.235.43:19094,114.70.235.43:19095,"
 				+ "114.70.235.43:19096,114.70.235.43:19097,114.70.235.43:19098,114.70.235.43:19099,114.70.235.43:19100";
 
-		String read_topics = super.getTransTopic();
+//		String read_topics = super.getTransTopic();
 		String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
 
 		// Consumer Props
@@ -48,7 +51,6 @@ public class KafkaDestination extends Destination {
 		consume_props.put("auto.commit.interval.ms", "1000");
 		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-
 
 		// Producer: Server Kafka --> User's
 		String write_server = zookeeperIp + ":" + zookeeperPort;
@@ -73,22 +75,49 @@ public class KafkaDestination extends Destination {
 		//////////////////////
 		/////////////////////
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
-		consumer.subscribe(Arrays.asList(read_topics));
+//		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
+//		consumer.subscribe(Arrays.asList(read_topics));
+		I2AMConsumer consumer = new I2AMConsumer(super.getOwner(),super.getDestinationName());
 
 		KafkaProducer<String, String> producer = new KafkaProducer<String, String>(produce_props);
 		boolean status = true;		
 
-		try {			
-			while (status) {
+		try {
+			while(status) {
+				try {
+					// Consume.
+					Queue<String> q = new LinkedBlockingQueue<String>(100);
+					consumer.receive(q);
 
-				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
-				for (ConsumerRecord<String, String> record : records) {
-					// System.out.println(record.value());
-					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
+					while (true) {
+						String message;
+						do {
+							message = q.poll();
+							// Send to Kafka!
+//							producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
+							producer.send(new ProducerRecord<String,String>(write_topic, message));
+
+						} while(message == null);
+					}
+
+				} catch(Exception e) {
+					e.printStackTrace();
 				}
-				Thread.sleep(100);
-			}			
+			}
+
+//			while (status) {
+//
+//				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
+//				for (ConsumerRecord<String, String> record : records) {
+//					 System.out.println(record.value());
+//					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
+//				}
+//				Thread.sleep(100);
+//			}
+
+
+
+
 		} catch(Exception e) {
 			e.printStackTrace();
 		} finally {

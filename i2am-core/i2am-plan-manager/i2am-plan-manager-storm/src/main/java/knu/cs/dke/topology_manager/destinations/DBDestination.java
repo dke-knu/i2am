@@ -5,8 +5,11 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import i2am.plan.manager.kafka.I2AMConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -54,18 +57,20 @@ public class DBDestination extends Destination {
 		String read_topics = super.getTransTopic();
 		String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
 
-		// Consumer Props
-		Properties consume_props = new Properties();
-		consume_props.put("bootstrap.servers", read_servers);
-		consume_props.put("group.id", groupId);
-		consume_props.put("enable.auto.commit", "true");
-		consume_props.put("auto.offset.reset", "earliest");
-		consume_props.put("auto.commit.interval.ms", "1000");
-		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+//		// Consumer Props
+//		Properties consume_props = new Properties();
+//		consume_props.put("bootstrap.servers", read_servers);
+//		consume_props.put("group.id", groupId);
+//		consume_props.put("enable.auto.commit", "true");
+//		consume_props.put("auto.offset.reset", "earliest");
+//		consume_props.put("auto.commit.interval.ms", "1000");
+//		consume_props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+//		consume_props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
-		consumer.subscribe(Arrays.asList(super.getTransTopic()));
+//		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consume_props);
+//		consumer.subscribe(Arrays.asList(super.getTransTopic()));
+
+		I2AMConsumer consumer = new I2AMConsumer(super.getOwner(),super.getDestinationName());
 
 		// DB Config.
 		Connection connection = null;
@@ -96,19 +101,27 @@ public class DBDestination extends Destination {
 		// Send.
 		try {
 			while(true) {
-
 				try {
 					// Consume.
-					ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
+					Queue<String> q = new LinkedBlockingQueue<String>(100);
+					consumer.receive(q);
 
-					for (ConsumerRecord<String, String> record : records) {
-						// System.out.println(record.value());	
-						// Send to DB!
-						String query = "insert into " + tableName + " values ('" + record.key() + "', '" + record.value() + "')";
-						stmt.executeUpdate(query);
-					}			
+					while (true) {
+						String message;
+						do {
+							message = q.poll();
+							// Send to DB!
+							String query = "insert into " + tableName + " values ('" + message + "')";
+							stmt.executeUpdate(query);
+						} while(message == null);
+					}
+//					for (ConsumerRecord<String, String> record : records) {
+//						// System.out.println(record.value());
+//						// Send to DB!
+//						String query = "insert into " + tableName + " values ('" + record.key() + "', '" + record.value() + "')";
+//						stmt.executeUpdate(query);
+//					}
 					// System.out.println("DB Check");
-
 				} catch(Exception e) {
 					e.printStackTrace();
 				} 
