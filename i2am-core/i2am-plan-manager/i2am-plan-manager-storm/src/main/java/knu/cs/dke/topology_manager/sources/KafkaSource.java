@@ -81,14 +81,15 @@ public class KafkaSource extends Source {
 		// String sourceName = super.getSourceName();
 		// boolean status = true;
 		this.init();
-		
+		//index
+		long i = 0;
 		try {			
 			while (true) {
 				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
 
 				for (ConsumerRecord<String, String> record : records) {
-					System.out.println(record.value());					
-					producer.send(record.value());
+					System.out.println(record.value());
+					producer.send(record.value()+ (i++));
 				}				
 				if(Thread.currentThread().isInterrupted()) break;												
 			}			
