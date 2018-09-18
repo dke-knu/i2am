@@ -67,16 +67,18 @@ public class LoadSheddingManager {
     }
 
     // 각 플랜(토픽)별 로드쉐딩 조건 체크하여 jmxTopics 값 변경
-    public void loadSheddingCheck(double var, String srcName, double threshold) throws IOException {
-        if (var > threshold && !jmxTopics.get(srcName)) {
+    public void loadSheddingCheck(double var, String srcIdx, double threshold) throws IOException {
+        if (var > threshold && !jmxTopics.get(srcIdx)) {
             System.out.println("[LOADSHEDDING ON!]");
-            DbAdapter.getInstance(conf).setSwicthValue(srcName, "Y");
-            jmxTopics.put(srcName, true);
+            DbAdapter.getInstance(conf).setSwicthValue(srcIdx, "Y");
+            DbAdapter.getInstance(conf).addLog(srcIdx, "[LOAD SHEDDING ENGINE] Load shedding is activated. ");
+            jmxTopics.put(srcIdx, true);
         }
-        if (var <= threshold && jmxTopics.get(srcName)) {
+        if (var <= threshold && jmxTopics.get(srcIdx)) {
             System.out.println("[LOADSHEDDING OFF!]");
-            DbAdapter.getInstance(conf).setSwicthValue(srcName, "N");
-            jmxTopics.put(srcName, false);
+            DbAdapter.getInstance(conf).setSwicthValue(srcIdx, "N");
+            DbAdapter.getInstance(conf).addLog(srcIdx, "[LOAD SHEDDING ENGINE] Load shedding is deactivated. ");
+            jmxTopics.put(srcIdx, false);
         }
     }
 

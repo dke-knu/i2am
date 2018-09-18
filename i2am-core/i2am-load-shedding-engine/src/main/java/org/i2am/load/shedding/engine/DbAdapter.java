@@ -5,13 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DbAdapter {
-    private static final Class<?> klass = (new Object() {}).getClass().getEnclosingClass();
-    private Map<String, String> conf = new HashMap<String,String>();
+    private static final Class<?> klass = (new Object() {
+    }).getClass().getEnclosingClass();
+    private Map<String, String> conf = new HashMap<String, String>();
 
     // singleton
     private volatile static DbAdapter instance;
 
-    public static DbAdapter getInstance(Map<String,String> conf) {
+    public static DbAdapter getInstance(Map<String, String> conf) {
         if (instance == null) {
             synchronized (DbAdapter.class) {
                 if (instance == null) {
@@ -22,8 +23,8 @@ public class DbAdapter {
         return instance;
     }
 
-    protected DbAdapter(Map<String,String> conf) {
-        this.conf=conf;
+    protected DbAdapter(Map<String, String> conf) {
+        this.conf = conf;
     }
 
     private Connection cn;
@@ -50,7 +51,7 @@ public class DbAdapter {
         con.close();
     }
 
-    public void initMethod(Map<String,Boolean> map){
+    public void initMethod(Map<String, Boolean> map) {
         Connection con = null;
         PreparedStatement pstmt = null;
         String sql = null;
@@ -60,14 +61,13 @@ public class DbAdapter {
             pstmt = con.prepareStatement("SELECT * FROM tbl_src WHERE USES_LOAD_SHEDDING='Y'");
 
             ResultSet rs = pstmt.executeQuery();
-            while(rs.next()) {
-                String srcName = rs.getString("NAME");
-                boolean value =  rs.getString("SWITCH_MESSAGING").equals("N")? false : true;
-                map.put(srcName,value);
-                System.out.println("src: "+srcName+", value: "+value);
+            while (rs.next()) {
+                String srcIdx = rs.getString("IDX");
+                boolean value = rs.getString("SWITCH_MESSAGING").equals("N") ? false : true;
+                map.put(srcIdx, value);
+                System.out.println("src: " + srcIdx + ", value: " + value);
             }
         } catch (Exception e) {
-
             e.printStackTrace();
         }
     }
@@ -86,4 +86,44 @@ public class DbAdapter {
             e.printStackTrace();
         }
     }
+
+    public boolean addLog(String srcIdx, String message) {
+
+        Connection con = null;
+        Statement stmt = null;
+        String sql = null;
+        try {
+            con = this.getConnection();
+            stmt = con.createStatement();
+            sql = "SELECT NAME FROM tbl_src WHERE IDX =" + srcIdx;
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            String srcName = rs.getString("NAME");
+
+            sql = "INSERT INTO tbl_log (f_user, logging_type, logging_message) VALUES (" + "(SELECT F_OWNER FROM tbl_src WHERE IDX ='" + srcIdx + "') , '" + "INFO" + "' , '" +
+                    (message + "(" + srcName + ")") + "')";
+
+            rs = stmt.executeQuery(sql);
+
+            if (rs.next())
+                return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return false;
+    }
+
+
 }
