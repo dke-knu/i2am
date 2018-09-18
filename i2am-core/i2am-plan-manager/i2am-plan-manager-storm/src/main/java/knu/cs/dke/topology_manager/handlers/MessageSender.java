@@ -27,7 +27,7 @@ public class MessageSender {
 		
 	// Load Shedding Manager
 	static final String LOAD_SHEDDIING_MANAGER_IP = "114.70.235.43";
-	static final int LOAD_SHEDDIING_MANAGER_PORT = 5006;
+	static final int LOAD_SHEDDIING_MANAGER_PORT = 5004;
 	
 	
 	public void sendToConceptDrift(String messageType, String owner, String srcName) throws UnknownHostException, IOException {		
@@ -161,7 +161,7 @@ public class MessageSender {
 		BufferedWriter bw = null;		
 		
 		try {
-			socket = new Socket(INTELLIGENT_ENGINE_IP, INTELLIGENT_ENGINE_PORT);
+			socket = new Socket(LOAD_SHEDDIING_MANAGER_IP, LOAD_SHEDDIING_MANAGER_PORT);
 			os = socket.getOutputStream();
 			osw = new OutputStreamWriter(os);
 			bw = new BufferedWriter(osw);

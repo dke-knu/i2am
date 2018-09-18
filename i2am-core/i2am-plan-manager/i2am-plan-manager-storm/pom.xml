@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <project
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>i2am-plan-manager</groupId>
@@ -79,7 +80,7 @@
 		<dependency>
 			<groupId>org.apache.storm</groupId>
 			<artifactId>storm-core</artifactId>
-			<version>1.1.1</version>			
+			<version>1.1.1</version>
 		</dependency>
 
 		<dependency>
@@ -118,55 +119,62 @@
 			<artifactId>mariadb-java-client</artifactId>
 			<version>2.2.0</version>
 		</dependency>
-		
+
 		<dependency>
-        	<groupId>i2am</groupId>
+			<groupId>i2am</groupId>
 			<artifactId>i2am-metadata</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
-        </dependency>
-        
-        <dependency>
-        	<groupId>i2am</groupId>
+		</dependency>
+
+		<dependency>
+			<groupId>i2am</groupId>
 			<artifactId>i2am-query-parser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
-        </dependency>
-        
+		</dependency>
+
 		<dependency>
-        	<groupId>i2am</groupId>
+			<groupId>i2am</groupId>
 			<artifactId>i2am-algorithm-filtering</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
-        </dependency>
-        
+		</dependency>
+
 		<dependency>
-        	<groupId>i2am</groupId>
+			<groupId>i2am</groupId>
 			<artifactId>i2am-algorithm-sampling</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
-        </dependency>
-        
-        <!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-core -->
-	<dependency>
-	    <groupId>org.twitter4j</groupId>
-	    <artifactId>twitter4j-core</artifactId>
-	    <version>4.0.7</version>
-	</dependency>
-        
-       <!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-stream -->
-	<dependency>
-    	<groupId>org.twitter4j</groupId>
-    	<artifactId>twitter4j-stream</artifactId>
-    	<version>4.0.7</version>
-	</dependency>
-        
-        
-        
-        
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-core -->
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-core</artifactId>
+			<version>4.0.7</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.twitter4j/twitter4j-stream -->
+		<dependency>
+			<groupId>org.twitter4j</groupId>
+			<artifactId>twitter4j-stream</artifactId>
+			<version>4.0.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>i2am-plan-manager-kafka</groupId>
+			<artifactId>i2am-plan-manager-kafka</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
+
+
 	</dependencies>
 </project>

@@ -110,7 +110,7 @@ public class DBDestination extends Destination {
                     // Send to DB!
                     String query = "insert into " + tableName + " values ('" + message + "')";
                     stmt.executeUpdate(query);
-                } while (message == null);
+                } while (message != null);
             }
         } catch (Exception e) {
             e.printStackTrace();

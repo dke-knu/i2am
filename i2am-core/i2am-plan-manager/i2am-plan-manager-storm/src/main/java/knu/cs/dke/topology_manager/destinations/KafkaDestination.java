@@ -92,10 +92,10 @@ public class KafkaDestination extends Destination {
                 do {
                     message = q.poll();
                     // Send to Kafka!
-//							producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
+//					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
                     producer.send(new ProducerRecord<String, String>(write_topic, message));
 
-                } while (message == null);
+                } while (message != null);
             }
 
 //			while (status) {
