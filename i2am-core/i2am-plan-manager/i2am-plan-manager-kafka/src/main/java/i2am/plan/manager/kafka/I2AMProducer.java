@@ -21,6 +21,7 @@ public class I2AMProducer {
     private String brokers;
     private String topic;
     private String srcName;
+    private String id;
 
     private double ratio = 0.01;
 
@@ -34,6 +35,7 @@ public class I2AMProducer {
 
         this.topic = getInputTopic(id, srcName);
         this.srcName = srcName;
+        this.id=id;
 
         Properties props = new Properties();
         props.put("bootstrap.servers", this.brokers);
@@ -82,7 +84,7 @@ public class I2AMProducer {
         // mod.getSwtich -- false -> LS off , true -> LS on
         if (!mod.getSwitch()) {
             producer.send(new ProducerRecord<String, String>(this.topic,
-                    message + "," + System.currentTimeMillis() + "," + this.srcName));
+                    message + "," + System.currentTimeMillis() + "," + this.srcName+","+this.id));
         } else {
             if (Math.random() <= ratio) {
                 producer.send(new ProducerRecord<String, String>(this.topic,
@@ -94,6 +96,10 @@ public class I2AMProducer {
 
     private String getInputTopic(String id, String srcName) {
         return getDbInstance().getInputTopic(id, srcName);
+    }
+
+    private String getSrcIdx(String id, String srcName) {
+        return getDbInstance().getSrcIdx(id, srcName);
     }
 
     private DbAdapter getDbInstance() {
