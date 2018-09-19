@@ -83,8 +83,7 @@ public class I2AMProducer {
         }
         // mod.getSwtich -- false -> LS off , true -> LS on
         if (!mod.getSwitch()) {
-            producer.send(new ProducerRecord<String, String>(this.topic,
-                    message + "," + System.currentTimeMillis() + "," + this.srcName+","+this.id));
+            producer.send(new ProducerRecord<String, String>(this.topic,message + "," + System.currentTimeMillis() + "," + this.srcName));
         } else {
             if (Math.random() <= ratio) {
                 producer.send(new ProducerRecord<String, String>(this.topic,
