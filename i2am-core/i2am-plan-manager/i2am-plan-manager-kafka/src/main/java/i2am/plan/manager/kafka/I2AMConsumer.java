@@ -65,8 +65,12 @@ public class I2AMConsumer {
                             // message split by comma
                             String[] msg = record.value().split(",");
                             //original message
-//                        qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 3]) - 1));
-                            qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 4]) - 1));
+                            String org = "";
+                            for (int i = 0; i < msg.length - 4; i++) {
+                                org += "," + msg[i];
+                            }
+                            org = org.replaceFirst(",", "");
+                            qMessages.offer(org);
 
 //                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+"," + msg[msg.length - 1];
                             //message = sendTime, receiveTime, srcName, userId, count
