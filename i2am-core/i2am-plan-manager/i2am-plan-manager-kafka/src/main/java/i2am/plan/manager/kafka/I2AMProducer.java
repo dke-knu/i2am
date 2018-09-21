@@ -65,15 +65,14 @@ public class I2AMProducer {
         // mod.getSwtich -- false -> LS off , true -> LS on
         if (!mod.getSwitch()) {
             producer.send(new ProducerRecord<String, String>(this.topic,
-                    message + "," + System.currentTimeMillis() + "," + this.srcName + "," + no));
+                    message + "," + System.currentTimeMillis() + "," + this.srcName + "," + this.id + "," + no));
 //			System.out.println("["+cnt+"][Sending] "+message+","+System.currentTimeMillis()+","+this.srcName);
         } else {
             if (Math.random() < ratio) {
                 producer.send(new ProducerRecord<String, String>(this.topic,
-                        message + "," + System.currentTimeMillis() + "," + this.srcName + "," + no));
+                        message + "," + System.currentTimeMillis() + "," + this.srcName + "," + this.id + "," + no));
 //				System.out.println("["+cnt+"][Sending] "+message+","+System.currentTimeMillis()+","+this.srcName);
             }
-
         }
     }
 
@@ -83,15 +82,14 @@ public class I2AMProducer {
         }
         // mod.getSwtich -- false -> LS off , true -> LS on
         if (!mod.getSwitch()) {
-            producer.send(new ProducerRecord<String, String>(this.topic,message + "," + System.currentTimeMillis() + "," + this.srcName));
+            producer.send(new ProducerRecord<String, String>(this.topic,message + "," + System.currentTimeMillis() + "," + this.srcName+","+this.id));
         } else {
             if (Math.random() <= ratio) {
                 producer.send(new ProducerRecord<String, String>(this.topic,
-                        message + "," + System.currentTimeMillis() + "," + this.srcName));
+                        message + "," + System.currentTimeMillis() + "," + this.srcName+","+this.id));
             }
         }
     }
-
 
     private String getInputTopic(String id, String srcName) {
         return getDbInstance().getInputTopic(id, srcName);

@@ -1,7 +1,6 @@
 package i2am.plan.manager.kafka;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
@@ -54,8 +53,7 @@ public class I2AMConsumer {
         System.out.println("[연결 요청]");
         this.socket.connect(new InetSocketAddress("MN", 5006));
         System.out.println("[연결 성공]");
-        DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -68,16 +66,16 @@ public class I2AMConsumer {
                         String[] msg = record.value().split(",");
                         //original message
 //                        qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 2]) - 1));
-                        qMessages.offer( record.value().substring(0, record.value().indexOf(msg[msg.length - 3]) - 1));
+                        qMessages.offer( record.value().substring(0, record.value().indexOf(msg[msg.length - 4]) - 1));
 
                         //message = sendTime, receiveTime, srcName
 //                        String message = msg[msg.length - 2] + "," + rTime + "," + msg[msg.length - 1];
-                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+ "," + msg[msg.length - 1];
+                        //sendTime, receiveTime, srcName, userId, count
+                        String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3]+ ","+ msg[msg.length - 2]+ "," + msg[msg.length - 1];
 //							System.out.println("[Message Sending] "+message);
                         try {
-                            os.writeUTF(message);
-                            os.flush();
-
+                            bw.write(message);
+                            bw.flush();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
