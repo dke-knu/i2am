@@ -89,32 +89,17 @@ public class KafkaDestination extends Destination {
 
             while (true) {
                 String message;
-                do {
+                while(!q.isEmpty()){
                     message = q.poll();
-                    // Send to Kafka!
-//					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
                     producer.send(new ProducerRecord<String, String>(write_topic, message));
-
-                } while (message != null);
+                }
             }
-
-//			while (status) {
-//
-//				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
-//				for (ConsumerRecord<String, String> record : records) {
-//					 System.out.println(record.value());
-//					producer.send(new ProducerRecord<String,String>(write_topic, record.value()));
-//				}
-//				Thread.sleep(100);
-//			}
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             consumer.close();
             producer.close();
         }
-
     }
 
     public String getTopic() {
