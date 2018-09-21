@@ -13,6 +13,7 @@ import i2am.plan.manager.kafka.I2AMConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class DBDestination extends Destination {
 
@@ -105,12 +106,12 @@ public class DBDestination extends Destination {
 
             while (true) {
                 String message;
-                do {
+                while(!q.isEmpty()){
                     message = q.poll();
-                    // Send to DB!
+                    //send to DB!
                     String query = "insert into " + tableName + " values ('" + message + "')";
                     stmt.executeUpdate(query);
-                } while (message != null);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
