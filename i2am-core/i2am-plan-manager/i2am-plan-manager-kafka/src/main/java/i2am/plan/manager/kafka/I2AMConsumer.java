@@ -53,7 +53,9 @@ public class I2AMConsumer {
         System.out.println("[연결 요청]");
         this.socket.connect(new InetSocketAddress("MN", 5006));
         System.out.println("[연결 성공]");
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        DataOutputStream os = new DataOutputStream(this.socket.getOutputStream());
+
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -77,8 +79,10 @@ public class I2AMConsumer {
                             String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3] + "," + msg[msg.length - 2] + "," + msg[msg.length - 1];
 //							System.out.println("[Message Sending] "+message);
                             try {
-                                bw.write(message);
-                                bw.newLine();
+//                                bw.write(message);
+//                                bw.newLine();
+                                os.writeUTF(message);
+                                os.flush();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
