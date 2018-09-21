@@ -75,7 +75,7 @@ public class I2AMConsumer {
 //							System.out.println("[Message Sending] "+message);
                         try {
                             bw.write(message);
-                            bw.flush();
+                            bw.newLine();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
