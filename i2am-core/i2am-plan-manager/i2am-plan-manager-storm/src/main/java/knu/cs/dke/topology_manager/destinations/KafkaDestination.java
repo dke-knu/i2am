@@ -80,7 +80,6 @@ public class KafkaDestination extends Destination {
         I2AMConsumer consumer = new I2AMConsumer(super.getOwner(), super.getDestinationName());
 
         KafkaProducer<String, String> producer = new KafkaProducer<String, String>(produce_props);
-        boolean status = true;
 
         try {
             // Consume.
@@ -89,8 +88,9 @@ public class KafkaDestination extends Destination {
 
             while (true) {
                 String message;
-                while(!q.isEmpty()){
+                while (!q.isEmpty()) {
                     message = q.poll();
+                    System.out.println("[KafkaDestination Msg]"+message);
                     producer.send(new ProducerRecord<String, String>(write_topic, message));
                 }
             }
