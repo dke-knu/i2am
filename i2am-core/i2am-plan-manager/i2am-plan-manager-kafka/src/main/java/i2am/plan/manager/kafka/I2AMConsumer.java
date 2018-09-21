@@ -43,7 +43,7 @@ public class I2AMConsumer {
         return DbAdapter.getInstance();
     }
 
-    public void close(){
+    public void close() {
         consumer.close();
     }
 
@@ -58,26 +58,26 @@ public class I2AMConsumer {
             @Override
             public void run() {
                 while (true) {
-                    ConsumerRecords<String, String> records = consumer.poll(0);
+                    ConsumerRecords<String, String> records = consumer.poll(100);
                     long rTime = System.currentTimeMillis();
-
                     for (ConsumerRecord<String, String> record : records) {
-                        // message split by comma
-                        String[] msg = record.value().split(",");
-                        //original message
-//                        qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 2]) - 1));
-                        qMessages.offer( record.value().substring(0, record.value().indexOf(msg[msg.length - 4]) - 1));
+                        if (record.value() != null) {
+                            // message split by comma
+                            String[] msg = record.value().split(",");
+                            //original message
+//                        qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 3]) - 1));
+                            qMessages.offer(record.value().substring(0, record.value().indexOf(msg[msg.length - 4]) - 1));
 
-                        //message = sendTime, receiveTime, srcName
-//                        String message = msg[msg.length - 2] + "," + rTime + "," + msg[msg.length - 1];
-                        //sendTime, receiveTime, srcName, userId, count
-                        String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3]+ ","+ msg[msg.length - 2]+ "," + msg[msg.length - 1];
+//                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+"," + msg[msg.length - 1];
+                            //message = sendTime, receiveTime, srcName, userId, count
+                            String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3] + "," + msg[msg.length - 2] + "," + msg[msg.length - 1];
 //							System.out.println("[Message Sending] "+message);
-                        try {
-                            bw.write(message);
-                            bw.newLine();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            try {
+                                bw.write(message);
+                                bw.newLine();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
