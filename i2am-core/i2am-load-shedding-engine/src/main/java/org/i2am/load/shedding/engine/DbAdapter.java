@@ -74,17 +74,59 @@ public class DbAdapter {
 
     public void setSwicthValue(String srcName, String switchValue) {
         Connection con = null;
-        PreparedStatement pstmt = null;
+        PreparedStatement stmt = null;
 
         try {
             con = this.getConnection();
-            pstmt = con.prepareStatement("UPDATE tbl_src SET SWITCH_MESSAGING=? WHERE NAME=?");
-            pstmt.setString(1, switchValue);
-            pstmt.setString(2, srcName);
-            pstmt.executeQuery();
+            stmt = con.prepareStatement("UPDATE tbl_src SET SWITCH_MESSAGING=? WHERE NAME=?");
+            stmt.setString(1, switchValue);
+            stmt.setString(2, srcName);
+            stmt.executeQuery();
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public String getSrcId(String userId, String srcName){
+        Connection con = null;
+        Statement stmt = null;
+        String sql = null;
+        String srcId="";
+        try {
+            con = this.getConnection();
+            stmt = con.createStatement();
+            sql = "select IDX from tbl_src where NAME = '"+ srcName +"' and F_OWNER in (select IDX from tbl_user where ID = '"+ userId  +"')";
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            srcId = rs.getString("IDX");
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return srcId;
     }
 
     public boolean addLog(String srcIdx, String message) {

@@ -1,9 +1,6 @@
 package org.i2am.load.shedding.engine;
 
-import java.io.DataInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.InetAddress;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -46,7 +43,7 @@ public class LoadSheddingManager {
     //configuration information
     public void setConf() {
         // for socket connection
-        conf.put("hostname", "localhost");
+        conf.put("hostname", "MN");
         conf.put("mrPort", "5004");
         conf.put("lsmPort", "5006");
 
@@ -57,7 +54,7 @@ public class LoadSheddingManager {
         conf.put("password", "dke214");
 
         // for loadshedding
-        conf.put("threshold", "5000");
+        conf.put("threshold", "500000");
         conf.put("windowSize", "4");
     }
 
@@ -68,6 +65,7 @@ public class LoadSheddingManager {
 
     // 각 플랜(토픽)별 로드쉐딩 조건 체크하여 jmxTopics 값 변경
     public void loadSheddingCheck(double var, String srcIdx, double threshold) throws IOException {
+        System.out.println("[LS Checking]");
         if (var > threshold && !jmxTopics.get(srcIdx)) {
             System.out.println("[LOADSHEDDING ON!]");
             DbAdapter.getInstance(conf).setSwicthValue(srcIdx, "Y");
@@ -82,7 +80,22 @@ public class LoadSheddingManager {
         }
     }
 
+    public void printWords() {
+        System.out.println("####################################################################################################################################");
+        System.out.println("    #                                #####                                                 ####### ");
+        System.out.println("    #        ####    ##   #####     #     # #    # ###### #####  #####  # #    #  ####     #       #    #  ####  # #    # ######");
+        System.out.println("    #       #    #  #  #  #    #    #       #    # #      #    # #    # # ##   # #    #    #       ##   # #    # # ##   # #");
+        System.out.println("    #       #    # #    # #    #     #####  ###### #####  #    # #    # # # #  # #         #####   # #  # #      # # #  # #####");
+        System.out.println("    #       #    # ###### #    #          # #    # #      #    # #    # # #  # # #  ###    #       #  # # #  ### # #  # # #");
+        System.out.println("    #       #    # #    # #    #    #     # #    # #      #    # #    # # #   ## #    #    #       #   ## #    # # #   ## #");
+        System.out.println("    #######  ####  #    # #####      #####  #    # ###### #####  #####  # #    #  ####     ####### #    #  ####  # #    # ######");
+        System.out.println("####################################################################################################################################");
+    }
+
     public void start() throws Exception {
+
+        printWords();
+
         MessageReceiver messageReceiver = new MessageReceiver(jmxTopics, conf);
         new Thread(messageReceiver).start();
 
@@ -97,9 +110,7 @@ public class LoadSheddingManager {
             try {
                 System.out.println("[LSM 연결 기다림]");
                 clientSocket = serverSocket.accept();
-                InetAddress ia = clientSocket.getInetAddress();
-
-                System.out.println("[LSM 연결 수락함]"+clientSocket);
+                System.out.println("[LSM 연결 수락함]" + clientSocket);
 
                 new Thread(new MsgSendingThread(clientSocket)).start();
 
@@ -121,8 +132,11 @@ public class LoadSheddingManager {
             boolean check = true;
             do {
                 try {
-                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
-                    String message = is.readUTF();
+//                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
+//                    String message = is.readUTF();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    String message = br.readLine();
+                    System.out.println("[LSM 메시지 받음] " + message);
                     check = calculateVar(message);
 
                 } catch (IOException e) {
@@ -143,9 +157,9 @@ public class LoadSheddingManager {
         double preVar;
         long sumJmx;
 
-        public LSInfo(){
-            this.preVar=0.0;
-            this.sumJmx=0;
+        public LSInfo() {
+            this.preVar = 0.0;
+            this.sumJmx = 0;
             this.window = new LinkedList<Long>();
         }
     }
@@ -176,8 +190,8 @@ public class LoadSheddingManager {
         return var;
     }
 
-    public boolean  calculateVar(String message) throws IOException {
-        String srcName;
+    public boolean calculateVar(String message) throws IOException {
+        String srcId;
         long time;
 
         int winSize = Integer.parseInt(conf.get("windowSize"));
@@ -185,17 +199,17 @@ public class LoadSheddingManager {
 
         String[] messages = message.split(",");
         time = Long.parseLong(messages[1]) - Long.parseLong(messages[0]); //receiveTime - sendTime
-        srcName = messages[2];
+        srcId = DbAdapter.getInstance(conf).getSrcId(messages[3], messages[2]); //userId, srcName 으로 srcIdx 얻음
+        System.out.println("srcId: "+srcId+", time: "+time);
 
         // loadshedding check
-        if(jmxTopics.containsKey(srcName)) {
+        if (jmxTopics.containsKey(srcId)) {
             //이동평균 변화량 로드 쉐딩
 //            double var = movingAverage(srcName, winSize, time);
 //            loadSheddingCheck(var, srcName, threshold);
-
-//            System.out.println("time: "+time);
+//            System.out.println("srcId: "+srcId+", time: "+time);
             //지연시간 로드 쉐딩
-            loadSheddingCheck(time, srcName, threshold);
+            loadSheddingCheck(time, srcId, threshold);
             return true;
         } else {
             return false;
