@@ -132,10 +132,10 @@ public class LoadSheddingManager {
             boolean check = true;
             do {
                 try {
-//                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
-//                    String message = is.readUTF();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    String message = br.readLine();
+                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
+                    String message = is.readUTF();
+//                    BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+//                    String message = br.readLine();
                     System.out.println("[LSM 메시지 받음] " + message);
                     check = calculateVar(message);
 
