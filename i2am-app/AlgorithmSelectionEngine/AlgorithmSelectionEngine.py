@@ -188,7 +188,7 @@ def get_target_index(user_id, src_name):
         target_info = (1, 1)
         print("Target not found. Initialized 1")
 
-    return target_info[1] - 1, target_info[0]    # target_idx value: user's idx, target_idx - 1: program's idx
+    return target_info[1], target_info[0]    # maria DB start idx from 0
 
 def logger(json_data, selected_algorithm):
     cursor = connectToDB()
