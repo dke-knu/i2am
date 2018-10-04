@@ -15,7 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 public class I2AMConsumer {
 
     private KafkaConsumer<String, String> consumer;
-    private Socket socket = null;
+    //    private Socket socket = null;
     private Thread receiveThread;
 
     public I2AMConsumer(String id, String dstName) {
@@ -48,15 +48,28 @@ public class I2AMConsumer {
     }
 
     public void receive(Queue<String> qMessages) throws IOException {
+        ReceiveThread receiveThread = new ReceiveThread(qMessages);
+        receiveThread.run();
+    }
 
-        this.socket = new Socket();
-        System.out.println("[연결 요청]");
-        this.socket.connect(new InetSocketAddress("MN", 5006));
-        System.out.println("[연결 성공]");
-        DataOutputStream os = new DataOutputStream(this.socket.getOutputStream());
-        receiveThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+    public class ReceiveThread implements Runnable {
+        private Queue<String> qMessages;
+        private Socket socket = null;
+
+        public ReceiveThread(Queue<String> qMessages) {
+            this.qMessages = qMessages;
+
+        }
+
+        @Override
+        public void run() {
+            this.socket = new Socket();
+            System.out.println("[연결 요청]");
+            try {
+                this.socket.connect(new InetSocketAddress("MN", 5006));
+                System.out.println("[연결 성공]");
+                DataOutputStream os = new DataOutputStream(this.socket.getOutputStream());
+
                 while (true) {
                     ConsumerRecords<String, String> records = consumer.poll(100);
                     long rTime = System.currentTimeMillis();
@@ -75,23 +88,107 @@ public class I2AMConsumer {
 //                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+"," + msg[msg.length - 1];
                             //message = sendTime, receiveTime, srcName, userId, count
                             String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3] + "," + msg[msg.length - 2] + "," + msg[msg.length - 1];
-//							System.out.println("[Message Sending] "+message);
-                            try {
-//                                bw.write(message);
-//                                bw.newLine();
-                                os.writeUTF(message);
-                                os.flush();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            os.writeUTF(message);
+                            os.flush();
                         }
                     }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        });
-        receiveThread.start();
-
+        }
     }
+
+//    public void receive(Queue<String> qMessages) throws IOException {
+//
+//        this.socket = new Socket();
+//        System.out.println("[연결 요청]");
+//        this.socket.connect(new InetSocketAddress("MN", 5006));
+//        System.out.println("[연결 성공]");
+//        DataOutputStream os = new DataOutputStream(this.socket.getOutputStream());
+//        receiveThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    ConsumerRecords<String, String> records = consumer.poll(100);
+//                    long rTime = System.currentTimeMillis();
+//                    for (ConsumerRecord<String, String> record : records) {
+//                        if (record.value() != null) {
+//                            // message split by comma
+//                            String[] msg = record.value().split(",");
+//                            //original message
+//                            String org = "";
+//                            for (int i = 0; i < msg.length - 4; i++) {
+//                                org += "," + msg[i];
+//                            }
+//                            org = org.replaceFirst(",", "");
+//                            qMessages.offer(org);
+//
+////                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+"," + msg[msg.length - 1];
+//                            //message = sendTime, receiveTime, srcName, userId, count
+//                            String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3] + "," + msg[msg.length - 2] + "," + msg[msg.length - 1];
+////							System.out.println("[Message Sending] "+message);
+//                            try {
+////                                bw.write(message);
+////                                bw.newLine();
+//                                os.writeUTF(message);
+//                                os.flush();
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        });
+//        receiveThread.start();
+//
+//    }
+//    public void receive(Queue<String> qMessages) throws IOException {
+//
+//        this.socket = new Socket();
+//        System.out.println("[연결 요청]");
+//        this.socket.connect(new InetSocketAddress("MN", 5006));
+//        System.out.println("[연결 성공]");
+//        DataOutputStream os = new DataOutputStream(this.socket.getOutputStream());
+//        receiveThread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    ConsumerRecords<String, String> records = consumer.poll(100);
+//                    long rTime = System.currentTimeMillis();
+//                    for (ConsumerRecord<String, String> record : records) {
+//                        if (record.value() != null) {
+//                            // message split by comma
+//                            String[] msg = record.value().split(",");
+//                            //original message
+//                            String org = "";
+//                            for (int i = 0; i < msg.length - 4; i++) {
+//                                org += "," + msg[i];
+//                            }
+//                            org = org.replaceFirst(",", "");
+//                            qMessages.offer(org);
+//
+////                        String message = msg[msg.length - 3] + "," + rTime + "," + msg[msg.length - 2]+"," + msg[msg.length - 1];
+//                            //message = sendTime, receiveTime, srcName, userId, count
+//                            String message = msg[msg.length - 4] + "," + rTime + "," + msg[msg.length - 3] + "," + msg[msg.length - 2] + "," + msg[msg.length - 1];
+////							System.out.println("[Message Sending] "+message);
+//                            try {
+////                                bw.write(message);
+////                                bw.newLine();
+//                                os.writeUTF(message);
+//                                os.flush();
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        });
+//        receiveThread.start();
+//
+//    }
 
     public String getInputTopic(String id, String dstName) {
         return DbAdapter.getInstance().getOutputTopic(id, dstName);
