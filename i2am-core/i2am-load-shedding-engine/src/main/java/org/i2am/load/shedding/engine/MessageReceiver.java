@@ -10,14 +10,14 @@ import java.net.Socket;
 import java.util.Map;
 
 public class MessageReceiver implements Runnable {
-    private Map<String, Boolean> jmxTopics;
+    private Map<Source, Boolean> srcLsInfo;
     private Map<String, String> conf;
 
     private String hostname;
     private int port;
 
-    public MessageReceiver(Map jmxTopics, Map conf) throws IOException {
-        this.jmxTopics = jmxTopics;
+    public MessageReceiver(Map srcLsInfo, Map conf) throws IOException {
+        this.srcLsInfo = srcLsInfo;
         this.conf=conf;
         this.hostname = (String) conf.get("hostname");
         this.port = Integer.parseInt((String) conf.get("mrPort"));
@@ -43,7 +43,7 @@ public class MessageReceiver implements Runnable {
 
                 //json message parsing - type --> if/else if
                 //ParsingThread ps = new ParsingThread(message, jmxTopics); --> Creation and Deletion 까지 수행
-                new Thread(new ParsingThread(message, jmxTopics)).start();
+                new Thread(new ParsingThread(message, srcLsInfo)).start();
             }
         } catch (Exception e) {
             System.out.println(e);
@@ -52,7 +52,7 @@ public class MessageReceiver implements Runnable {
 
     class ParsingThread implements Runnable {
         private String jsonStr;
-        private Map<String, Boolean> map;
+        private Map<Source, Boolean> map;
 
         public ParsingThread(String jsonStr, Map map) {
             this.jsonStr = jsonStr;
@@ -64,17 +64,17 @@ public class MessageReceiver implements Runnable {
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(jsonStr);
 
-                String userId = (String) jsonObject.get("user_id");
+                String userId = (String) jsonObject.get("user-id");
                 String message = (String) jsonObject.get("message");
                 String srcName = (String) jsonObject.get("src-name");
-                String srcId = DbAdapter.getInstance(conf).getSrcId(userId, srcName);
+                System.out.println("userID: "+userId+", message: "+message+", srcName: "+srcName);
 
                 if (message.equals("creation")) {
-                    map.put(srcId, false);
-                    System.out.println("[srcId] "+srcId+" 추가");
+                    map.put(new Source(srcName, userId), false);
+                    System.out.println("[UserID] "+userId+", [srcName] "+srcName+" 추가");
                 } else if (message.equals("deletion")) {
-                    map.remove(srcId);
-                    System.out.println("[srcId] "+srcId+" 삭제");
+                    map.remove(new Source(srcName,userId));
+                    System.out.println("[UserID] "+userId+", [srcName] "+srcName+" 삭제");
                 }
 
             } catch (Exception e) {

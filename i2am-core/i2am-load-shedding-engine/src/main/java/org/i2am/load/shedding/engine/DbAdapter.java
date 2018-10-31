@@ -51,36 +51,44 @@ public class DbAdapter {
         con.close();
     }
 
-    public void initMethod(Map<String, Boolean> map) {
+    public void initMethod(Map<Source, Boolean> map) {
         Connection con = null;
-        PreparedStatement pstmt = null;
+        PreparedStatement stmt = null;
         String sql = null;
 
         try {
             con = this.getConnection();
-            pstmt = con.prepareStatement("SELECT * FROM tbl_src WHERE USES_LOAD_SHEDDING='Y'");
+            stmt = con.prepareStatement("SELECT * FROM tbl_src, tbl_user WHERE F_OWNER=tbl_user.IDX AND USES_LOAD_SHEDDING='Y'");
+            ResultSet rs = stmt.executeQuery();
 
-            ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                String srcIdx = rs.getString("IDX");
+                String srcName = rs.getString("NAME");
+                String userId = rs.getString("ID");
                 boolean value = rs.getString("SWITCH_MESSAGING").equals("N") ? false : true;
-                map.put(srcIdx, value);
-                System.out.println("src: " + srcIdx + ", value: " + value);
+                map.put(new Source(srcName, userId), value);
+                System.out.println("srcName: " + srcName + ", userId: " + userId +", value: "+value);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void setSwicthValue(String srcName, String switchValue) {
+    public void setSwicthValue(Source source, String switchValue) {
         Connection con = null;
         PreparedStatement stmt = null;
 
         try {
             con = this.getConnection();
-            stmt = con.prepareStatement("UPDATE tbl_src SET SWITCH_MESSAGING=? WHERE NAME=?");
+            stmt = con.prepareStatement("SELECT * FROM tbl_user WHERE ID=?");
+            stmt.setString(1, source.getUserId());
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            String userIdx = rs.getString("IDX");
+
+            stmt = con.prepareStatement("UPDATE tbl_src SET SWITCH_MESSAGING=? WHERE NAME=? and F_OWNER=?");
             stmt.setString(1, switchValue);
-            stmt.setString(2, srcName);
+            stmt.setString(2, source.getSrcName());
+            stmt.setString(3, userIdx);
             stmt.executeQuery();
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,52 +106,56 @@ public class DbAdapter {
         }
     }
 
-    public String getSrcId(String userId, String srcName){
+//    public String getSrcId(String userId, String srcName){
+//        Connection con = null;
+//        Statement stmt = null;
+//        String sql = null;
+//        String srcId="";
+//        try {
+//            con = this.getConnection();
+//            stmt = con.createStatement();
+//            sql = "select * from tbl_src where NAME = '"+ srcName +"' and F_OWNER in (select IDX from tbl_user where ID = '"+ userId  +"')";
+//            ResultSet rs = stmt.executeQuery(sql);
+//            while (rs.next()) {
+//                srcId = rs.getString("IDX");
+////                System.out.println("src: " + srcId );
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                if (stmt != null) {
+//                    stmt.close();
+//                }
+//                if (con != null) {
+//                    con.close();
+//                }
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return srcId;
+//    }
+
+    public boolean addLog(Source source, String message) {
+
         Connection con = null;
-        Statement stmt = null;
+        PreparedStatement stmt = null;
         String sql = null;
-        String srcId="";
         try {
             con = this.getConnection();
-            stmt = con.createStatement();
-            sql = "select IDX from tbl_src where NAME = '"+ srcName +"' and F_OWNER in (select IDX from tbl_user where ID = '"+ userId  +"')";
-            ResultSet rs = stmt.executeQuery(sql);
+            stmt = con.prepareStatement("SELECT * FROM tbl_user WHERE ID=?");
+
+            stmt.setString(1, source.getUserId());
+            ResultSet rs = stmt.executeQuery();
             rs.next();
-            srcId = rs.getString("IDX");
+            String userIdx = rs.getString("IDX");
 
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (stmt != null) {
-                    stmt.close();
-                }
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return srcId;
-    }
-
-    public boolean addLog(String srcIdx, String message) {
-
-        Connection con = null;
-        Statement stmt = null;
-        String sql = null;
-        try {
-            con = this.getConnection();
-            stmt = con.createStatement();
-            sql = "SELECT NAME FROM tbl_src WHERE IDX =" + srcIdx;
-            ResultSet rs = stmt.executeQuery(sql);
-            rs.next();
-            String srcName = rs.getString("NAME");
-
-            sql = "INSERT INTO tbl_log (f_user, logging_type, logging_message) VALUES (" + "(SELECT F_OWNER FROM tbl_src WHERE IDX ='" + srcIdx + "') , '" + "INFO" + "' , '" +
-                    (message + "(" + srcName + ")") + "')";
+            sql = "INSERT INTO tbl_log (f_user, logging_type, logging_message) VALUES" +
+                    " (" + "(SELECT F_OWNER FROM tbl_src WHERE NAME ='" + source.getSrcName() +
+                    "' AND F_OWNER='"+userIdx+"') , '" + "INFO" + "' , '" +
+                    (message + "(" + source.getSrcName() + ")") + "')";
 
             rs = stmt.executeQuery(sql);
 

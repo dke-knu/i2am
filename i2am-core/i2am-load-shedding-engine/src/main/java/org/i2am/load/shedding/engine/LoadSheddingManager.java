@@ -6,10 +6,39 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
+class Source {
+    private String srcName;
+    private String userId;
+
+    public Source(String srcName, String userId) {
+        this.srcName = srcName;
+        this.userId = userId;
+    }
+
+    public String getSrcName() {
+        return srcName;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof Source) {
+            Source source = (Source) obj;
+            if (userId.equals(source.userId) && srcName.equals(source.srcName)) return true;
+        }
+        return false;
+    }
+}
+
+
 public class LoadSheddingManager {
-    public static Map<String, Boolean> jmxTopics = Collections.synchronizedMap(new HashMap<String, Boolean>());
+    private Map<String, Boolean> jmxTopics = Collections.synchronizedMap(new HashMap<String, Boolean>());
     private static Map<String, String> conf = new HashMap<String, String>();
-    public Map<String, LSInfo> varMap = Collections.synchronizedMap(new HashMap<String, LSInfo>());
+    private Map<String, LSInfo> varMap = Collections.synchronizedMap(new HashMap<String, LSInfo>());
+
+    private Map<Source, Boolean> srcLsInfo = Collections.synchronizedMap(new HashMap<>());
 
 //    FileWriter fw = new FileWriter("D:\\대학원\\11.LoadShedding\\정보처리학회논문\\실험2\\ex01_1.csv");
 
@@ -33,15 +62,16 @@ public class LoadSheddingManager {
 
     public static void main(String args[]) throws Exception {
         LoadSheddingManager lsm = new LoadSheddingManager(conf);
-        lsm.setConf();
+        lsm.setConf(args[0]);
+        lsm.printWords();
 
         // 초기화 후 시작
-        lsm.initJmxTopics();
+        lsm.initSrcLsInfo();
         lsm.start();
     }
 
     //configuration information
-    public void setConf() {
+    public void setConf(String threshold) {
         // for socket connection
         conf.put("hostname", "MN");
         conf.put("mrPort", "5004");
@@ -54,34 +84,49 @@ public class LoadSheddingManager {
         conf.put("password", "dke214");
 
         // for loadshedding
-        conf.put("threshold", "500000");
+//        conf.put("threshold", "5000");
+        conf.put("threshold", threshold);
         conf.put("windowSize", "4");
     }
 
     // 초기화 - DB에서 플랜(토픽)정보 읽어서 jmxTopics 맵에 저장
-    public void initJmxTopics() {
-        DbAdapter.getInstance(conf).initMethod(jmxTopics);
+    public void initSrcLsInfo() {
+        DbAdapter.getInstance(conf).initMethod(srcLsInfo);
     }
 
     // 각 플랜(토픽)별 로드쉐딩 조건 체크하여 jmxTopics 값 변경
-    public void loadSheddingCheck(double var, String srcIdx, double threshold) throws IOException {
-        System.out.println("[LS Checking]");
-        if (var > threshold && !jmxTopics.get(srcIdx)) {
-            System.out.println("[LOADSHEDDING ON!]");
-            DbAdapter.getInstance(conf).setSwicthValue(srcIdx, "Y");
-            DbAdapter.getInstance(conf).addLog(srcIdx, "[LOAD SHEDDING ENGINE] Load shedding is activated. ");
-            jmxTopics.put(srcIdx, true);
+    public void loadSheddingCheck(double var, Source source, double threshold) throws IOException {
+        System.out.println("getValue: "+getValue(srcLsInfo, source));
+        if (var > threshold && !getValue(srcLsInfo, source)) {
+            System.out.println("==============================================");
+            System.out.println("              [LOADSHEDDING ON!]  ");
+            System.out.println("==============================================");
+            DbAdapter.getInstance(conf).setSwicthValue(source, "Y");
+            DbAdapter.getInstance(conf).addLog(source, "[LOAD SHEDDING ENGINE] Load shedding is activated. ");
+            srcLsInfo.put(source, true);
         }
-        if (var <= threshold && jmxTopics.get(srcIdx)) {
-            System.out.println("[LOADSHEDDING OFF!]");
-            DbAdapter.getInstance(conf).setSwicthValue(srcIdx, "N");
-            DbAdapter.getInstance(conf).addLog(srcIdx, "[LOAD SHEDDING ENGINE] Load shedding is deactivated. ");
-            jmxTopics.put(srcIdx, false);
+        if (var <= threshold && getValue(srcLsInfo, source)) {
+            System.out.println("==============================================");
+            System.out.println("              [LOADSHEDDING OFF!]");
+            System.out.println("==============================================");
+            DbAdapter.getInstance(conf).setSwicthValue(source, "N");
+            DbAdapter.getInstance(conf).addLog(source, "[LOAD SHEDDING ENGINE] Load shedding is deactivated. ");
+            srcLsInfo.put(source, false);
         }
     }
 
+    public void printThreshold() {
+        System.out.println();
+        System.out.println("==============================================");
+        System.out.println("    Threshold : " + conf.get("threshold"));
+        System.out.println("==============================================");
+        System.out.println();
+    }
+
     public void printWords() {
-        System.out.println("####################################################################################################################################");
+        System.out.println();
+        System.out.println();
+//        System.out.println("####################################################################################################################################");
         System.out.println("    #                                #####                                                 ####### ");
         System.out.println("    #        ####    ##   #####     #     # #    # ###### #####  #####  # #    #  ####     #       #    #  ####  # #    # ######");
         System.out.println("    #       #    #  #  #  #    #    #       #    # #      #    # #    # # ##   # #    #    #       ##   # #    # # ##   # #");
@@ -89,14 +134,16 @@ public class LoadSheddingManager {
         System.out.println("    #       #    # ###### #    #          # #    # #      #    # #    # # #  # # #  ###    #       #  # # #  ### # #  # # #");
         System.out.println("    #       #    # #    # #    #    #     # #    # #      #    # #    # # #   ## #    #    #       #   ## #    # # #   ## #");
         System.out.println("    #######  ####  #    # #####      #####  #    # ###### #####  #####  # #    #  ####     ####### #    #  ####  # #    # ######");
-        System.out.println("####################################################################################################################################");
+//        System.out.println("####################################################################################################################################");
+        System.out.println();
+        System.out.println();
     }
 
     public void start() throws Exception {
+        printThreshold(); //threshold 출력
 
-        printWords();
+        MessageReceiver messageReceiver = new MessageReceiver(srcLsInfo, conf);
 
-        MessageReceiver messageReceiver = new MessageReceiver(jmxTopics, conf);
         new Thread(messageReceiver).start();
 
         String hostname = conf.get("hostname");
@@ -113,7 +160,6 @@ public class LoadSheddingManager {
                 System.out.println("[LSM 연결 수락함]" + clientSocket);
 
                 new Thread(new MsgSendingThread(clientSocket)).start();
-
             } catch (Exception e) {
                 System.out.println(e);
             }
@@ -130,19 +176,15 @@ public class LoadSheddingManager {
         @Override
         public void run() {
             boolean check = true;
-            do {
-                try {
-                    DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
+            try {
+                DataInputStream is = new DataInputStream(this.clientSocket.getInputStream());
+                do {
                     String message = is.readUTF();
-//                    BufferedReader br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//                    String message = br.readLine();
-                    System.out.println("[LSM 메시지 받음] " + message);
                     check = calculateVar(message);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } while (check);
+                } while (true) ;
+            }catch(IOException e){
+                e.printStackTrace();
+            }
             try {
                 this.clientSocket.close();
             } catch (IOException e) {
@@ -191,28 +233,51 @@ public class LoadSheddingManager {
     }
 
     public boolean calculateVar(String message) throws IOException {
-        String srcId;
         long time;
+        String srcName;
+        String userId;
 
         int winSize = Integer.parseInt(conf.get("windowSize"));
         double threshold = Double.parseDouble(conf.get("threshold"));
 
         String[] messages = message.split(",");
         time = Long.parseLong(messages[1]) - Long.parseLong(messages[0]); //receiveTime - sendTime
-        srcId = DbAdapter.getInstance(conf).getSrcId(messages[3], messages[2]); //userId, srcName 으로 srcIdx 얻음
-        System.out.println("srcId: "+srcId+", time: "+time);
+        srcName = String.valueOf(messages[2]);
+        userId = String.valueOf(messages[3]);
+//        srcId = DbAdapter.getInstance(conf).getSrcId(messages[3], messages[2]); //userId, srcName 으로 srcIdx 얻음
+//        System.out.println("srcId: "+srcId+", time: "+time);
+        System.out.println("[LSM 메시지 받음] " + message + " |    Latency Time: " + time);
+        System.out.println();
+
 
         // loadshedding check
-        if (jmxTopics.containsKey(srcId)) {
+        if (containsKey(srcLsInfo, new Source(srcName, userId))) {
             //이동평균 변화량 로드 쉐딩
 //            double var = movingAverage(srcName, winSize, time);
 //            loadSheddingCheck(var, srcName, threshold);
 //            System.out.println("srcId: "+srcId+", time: "+time);
             //지연시간 로드 쉐딩
-            loadSheddingCheck(time, srcId, threshold);
+            loadSheddingCheck(time, new Source(srcName, userId), threshold);
             return true;
         } else {
             return false;
         }
     }
+
+    public boolean containsKey(Map<Source, Boolean> map, Source source){
+        for(Source src: map.keySet()){
+            if(src.equals(source)) return true;
+        }
+        return false;
+    }
+
+    public boolean getValue(Map<Source, Boolean> map, Source source){
+        for(Source src : map.keySet()){
+            if(src.equals(source)) return map.get(src);
+        }
+        return false;
+    }
+
 }
+
+
