@@ -51,7 +51,7 @@ public class MultivariateQueryFilteringBolt extends BaseRichBolt{
     
     private Map<String, String> arraysToMap (String[] key, String[] value) {
     	Map<String, String> map = new HashMap<String, String>();
-    	for (int i=0; i<value.length; i++) {
+    	for (int i=0; i<key.length; i++) { // value.length --> key.length로 바꿈
     		map.put(key[i], value[i]);
     	}
     	return map;

@@ -222,8 +222,8 @@ public class CommandSubmitter {
 
 	private class Submitter implements Runnable {
 
-		private final String serverIp = "114.70.235.43";
-		//private final String serverIp = "114.70.234.191";
+		//private final String serverIp = "114.70.235.43";
+		private final String serverIp = "114.70.234.191";
 		private final int serverPort = 11111;
 
 		private JSONObject obj = null;

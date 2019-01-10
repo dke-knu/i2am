@@ -145,7 +145,7 @@ public class DestinationHandler {
 		
 
 		Destination destination = destinations.get(owner, name);
-		destination.setStatus("ACTIVE");
+		destination.setStatus("ACTIVE");		
 
 		DbAdapter.getInstance().changeDestinationStatus(destination);
 
@@ -168,7 +168,7 @@ public class DestinationHandler {
 		String name = (String) content.get("dstName");
 
 		Destination destination = destinations.get(owner, name);
-		destination.setStatus("DEACTIVE");
+		destination.setStatus("DEACTIVE");		
 		
 		DbAdapter.getInstance().changeDestinationStatus(destination);
 

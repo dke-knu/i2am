@@ -54,7 +54,8 @@ public class KafkaSource extends Source {
 		// Needed Parameters: server IP&Port, topic name ...
 		String read_servers = zookeeperIp + ":" + zookeeperPort;
 		String read_topics = topic;
-		String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
+		// String groupId = UUID.randomUUID().toString(); // Offset을 초기화 하려면 새로운 이름을 줘야한다. 걍 랜덤!
+		String groupId = super.getSourceName(); 
 
 		// Consumer Props
 		Properties consume_props = new Properties();
@@ -88,7 +89,7 @@ public class KafkaSource extends Source {
 				ConsumerRecords<String, String> records = consumer.poll(Long.MAX_VALUE);
 
 				for (ConsumerRecord<String, String> record : records) {
-					System.out.println(record.value());
+					//System.out.println(record.value());
 					producer.send(record.value(), (i++));
 				}				
 				if(Thread.currentThread().isInterrupted()) break;												

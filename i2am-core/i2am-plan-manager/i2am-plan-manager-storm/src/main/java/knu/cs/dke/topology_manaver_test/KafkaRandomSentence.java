@@ -34,7 +34,7 @@ public class KafkaRandomSentence {
 		};
 		
 				
-		String output_topic = "4fc6b7bf-3467-45aa-a0e9-0b12809f9223";		
+		String output_topic = "7fbd4bce-8ca5-4c51-aebe-5bc3274d4cf6";		
 		String groupId = UUID.randomUUID().toString(); 
 
 		String server = "114.70.235.43:19092";
@@ -65,7 +65,7 @@ public class KafkaRandomSentence {
 		String mTime;
 		
 		
-		while (true) {							
+		while (true) {						
 			
 				currentTime = new Date();
 				mTime = mSimpleDateFormat.format(currentTime);

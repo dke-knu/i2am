@@ -918,7 +918,7 @@ public class DbAdapter {
 				switch (rs.getString("SRC_TYPE")) {
 
 				case "DATABASE":
-					type = "select * from tbl_src s, tbl_src_database_info d, tbl_user u, tbl_src_test_data t where s.IDX = d.F_SRC AND d.F_SRC ='"
+					type = "select * from tbl_src s, tbl_src_database_info d, tbl_user u where s.IDX = d.F_SRC AND s.F_OWNER = u.IDX AND d.F_SRC = '"
 							+ rs.getInt("s.IDX") + "'";
 					type_rs = stmt.executeQuery(type);
 					type_rs.next();
@@ -932,7 +932,7 @@ public class DbAdapter {
 					break;
 
 				case "KAFKA":
-					type = "select * from tbl_src s, tbl_src_kafka_info d, tbl_user u where s.IDX = d.F_SRC AND d.F_SRC = '"
+					type = "select * from tbl_src s, tbl_src_kafka_info d, tbl_user u where s.IDX = d.F_SRC AND s.F_OWNER = u.IDX AND d.F_SRC = '"
 							+ rs.getInt("s.IDX") + "'";
 					type_rs = stmt.executeQuery(type);
 					type_rs.next();
@@ -1008,7 +1008,7 @@ public class DbAdapter {
 			stmt = con.createStatement();
 
 			// Database
-			String query = "select * from tbl_dst d, tbl_dst_database_info i, tbl_user u where d.IDX = i.F_DST";
+			String query = "select * from tbl_dst d, tbl_dst_database_info i, tbl_user u where d.IDX = i.F_DST AND d.F_OWNER = u.IDX";
 			ResultSet rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
@@ -1018,14 +1018,15 @@ public class DbAdapter {
 						rs.getString("i.ID"), rs.getString("i.PASSWORD"), rs.getString("i.DB_NAME"),
 						rs.getString("i.TABLE_NAME"));
 
-				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
-				temp.setModifiedTime(rs.getString("STATUS"));
-
+				temp.setModifiedTime(rs.getString("d.MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("d.STATUS"));
+				temp.setTransTopic(rs.getString("d.TRANS_TOPIC"));
+				
 				destinations.add(temp);
 			}
 
 			// Kafka
-			query = "select * from tbl_dst d, tbl_dst_kafka_info i, tbl_user u where d.IDX = i.F_DST";
+			query = "select * from tbl_dst d, tbl_dst_kafka_info i, tbl_user u where d.IDX = i.F_DST AND d.F_OWNER = u.IDX";
 			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
@@ -1034,8 +1035,9 @@ public class DbAdapter {
 						rs.getString("u.ID"), rs.getString("d.DST_TYPE"), rs.getString("i.ZOOKEEPER_IP"),
 						rs.getString("i.PORT"), rs.getString("i.TOPIC"));
 
-				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
-				temp.setModifiedTime(rs.getString("STATUS"));
+				temp.setModifiedTime(rs.getString("d.MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("d.STATUS"));
+				temp.setTransTopic(rs.getString("d.TRANS_TOPIC"));
 
 				destinations.add(temp);
 			}
@@ -1049,8 +1051,9 @@ public class DbAdapter {
 				CustomDestination temp = new CustomDestination(rs.getString("d.NAME"), rs.getString("d.CREATED_TIME"),
 						rs.getString("u.ID"), rs.getString("d.DST_TYPE"));
 
-				temp.setModifiedTime(rs.getString("MODIFIED_TIME"));
-				temp.setModifiedTime(rs.getString("STATUS"));
+				temp.setModifiedTime(rs.getString("d.MODIFIED_TIME"));
+				temp.setModifiedTime(rs.getString("d.STATUS"));
+				temp.setTransTopic(rs.getString("d.TRANS_TOPIC"));
 
 				destinations.add(temp);
 			}
