@@ -1,5 +1,4 @@
 # SPinDP
-=========
 
 This is a FULL package source code of SPinDP (Stream Purifier in Distributed Platform).
 The following papers are related to the core technologies of SPinDP.
